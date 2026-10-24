@@ -8,6 +8,7 @@ import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
+import Snow from "./components/Snow.jsx";
 import HeroAurora from "./components/HeroAurora.jsx";
 import Tilt from "./components/Tilt.jsx";
 import Reviews from "./components/Reviews.jsx";
@@ -253,6 +254,7 @@ function Hero() {
       <HeroGlow />
       <HeroAurora />
       <Sparkles />
+      <Snow />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-0 pt-28 sm:px-8 sm:pb-24">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}

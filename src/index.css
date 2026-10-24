@@ -223,15 +223,13 @@ html[data-hero-playing="true"] .sparkle {
 .vignette-pulse {
   pointer-events: none;
 }
-/* Idle (no song): the aurora drifts very slowly at low strength. Playing turns it up (rules below). */
 .aurora-layer {
   position: absolute;
   inset: -25%;
-  opacity: 0.4;
+  opacity: 0;
   mix-blend-mode: screen;
   filter: blur(36px);
   transition: opacity 1.6s ease;
-  animation: aurora-drift 34s ease-in-out infinite alternate, aurora-breathe 12s ease-in-out infinite;
 }
 .aurora-a { background: radial-gradient(ellipse 60% 45% at 30% 35%, rgba(255, 100, 200, 0.55), transparent 70%); }
 .aurora-b { background: radial-gradient(ellipse 55% 50% at 70% 60%, rgba(139, 92, 246, 0.5), transparent 70%); }
@@ -256,10 +254,7 @@ html[data-hero-playing="true"] .aurora-c { animation-duration: 21s, 8s; }
   position: absolute;
   bottom: -8%;
   border-radius: 9999px;
-  opacity: calc(var(--o, 0.6) * 0.4);
-  animation-name: orb-rise;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
+  opacity: 0;
   filter: blur(1px);
   transition: opacity 0.9s ease;
   background: radial-gradient(circle, rgba(255, 236, 214, 0.95) 0%, rgba(255, 150, 210, 0.5) 35%, rgba(255, 100, 200, 0) 70%);
@@ -282,14 +277,16 @@ html[data-hero-playing="true"] .aurora-c { animation-duration: 21s, 8s; }
 }
 html[data-hero-playing="true"] .hero-orb {
   opacity: var(--o, 0.6);
+  animation-name: orb-rise;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
 }
 
 /* Edge vignette that breathes while a track plays. */
 .vignette-pulse {
   position: absolute;
   inset: 0;
-  opacity: 0.6;
-  animation: vignette-pulse 9s ease-in-out infinite;
+  opacity: 0;
   transition: opacity 1.2s ease;
   background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(255, 100, 200, 0.14) 78%, rgba(22, 4, 34, 0.72) 100%);
 }
@@ -300,6 +297,31 @@ html[data-hero-playing="true"] .hero-orb {
 html[data-hero-playing="true"] .vignette-pulse {
   opacity: 1;
   animation: vignette-pulse 5.5s ease-in-out infinite;
+}
+
+/* Idle hero snowfall: soft warm-coloured flakes drifting slowly down (components/Snow.jsx).
+   Transform and opacity only, no blur, so it stays cheap on phones. Fades out while a track plays. */
+.snow-layer {
+  transition: opacity 1.2s ease;
+}
+html[data-hero-playing="true"] .snow-layer {
+  opacity: 0;
+}
+.snow-flake {
+  top: -4%;
+  opacity: 0;
+  pointer-events: none;
+  animation-name: snow-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes snow-fall {
+  0% { transform: translate3d(0, 0, 0); opacity: 0; }
+  10% { opacity: var(--fo, 0.6); }
+  50% { transform: translate3d(var(--dx, 0px), 55vh, 0); }
+  90% { opacity: var(--fo, 0.6); }
+  100% { transform: translate3d(0, 110vh, 0); opacity: 0; }
 }
 
 /* Title sheen: a soft light band sweeps across the hero title while a track plays. */
