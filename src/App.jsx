@@ -266,7 +266,7 @@ function Hero() {
         >
           Artist · Songs · Sound
         </motion.p>
-        <h1 className="hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
+        <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
           <Typewriter text="SRD Masum" delay={introDelay} />
         </h1>
         <motion.p
@@ -285,7 +285,7 @@ function Hero() {
         >
           <a
             href="#featured"
-            className="glow-hover inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+            className="glow-hover beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
           >
             Listen now
           </a>
@@ -293,7 +293,7 @@ function Hero() {
             href={CHANNEL_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="glow-hover inline-flex items-center gap-2 rounded-full border border-hairline bg-raised px-6 py-3 text-sm font-medium text-ink transition-colors duration-200 hover:bg-sunk"
+            className="glow-hover beat-pop inline-flex items-center gap-2 rounded-full border border-hairline bg-raised px-6 py-3 text-sm font-medium text-ink transition-colors duration-200 hover:bg-sunk"
           >
             Watch on YouTube
             <ArrowUpRight size={16} aria-hidden="true" />
@@ -414,7 +414,7 @@ function Music() {
             rel="noopener noreferrer"
             whileTap={{ scale: 0.97 }}
             transition={spring}
-            className="glow-hover inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
+            className="glow-hover beat-pop inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
           >
             <SpotifyLogo size={18} weight="fill" aria-hidden="true" />
             Follow on Spotify
@@ -442,7 +442,7 @@ function Gallery() {
                   src={src}
                   alt={`SRD Masum photo ${i + 1}`}
                   loading="lazy"
-                  className="glow-hover aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+                  className="beat-photo glow-hover aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
                 />
               </Tilt>
             </Reveal>
@@ -504,7 +504,7 @@ function PressKit() {
         <Reveal>
           <SectionHeader eyebrow="For press" title="Press Kit" />
         </Reveal>
-        <Reveal delay={0.08} className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:p-10">
+        <Reveal delay={0.08} className="beat-glow flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:p-10">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-start">
             <div className="flex flex-col gap-5">
               <p className="font-display text-2xl tracking-display sm:text-3xl">SRD Masum</p>
@@ -524,7 +524,7 @@ function PressKit() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`${label} (opens in a new tab)`}
-                      className="glow-hover inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunk text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
+                      className="glow-hover beat-pop inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunk text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
                     >
                       <Icon size={18} aria-hidden="true" />
                     </a>
@@ -539,7 +539,7 @@ function PressKit() {
                 onClick={download}
                 whileTap={reduce ? undefined : { scale: 0.97 }}
                 transition={spring}
-                className="glow-hover inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03]"
+                className="glow-hover beat-pop inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03]"
               >
                 <DownloadSimple size={18} aria-hidden="true" />
                 Download press kit
@@ -550,7 +550,7 @@ function PressKit() {
                 rel="noopener noreferrer"
                 whileTap={reduce ? undefined : { scale: 0.97 }}
                 transition={spring}
-                className="glow-hover inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
+                className="glow-hover beat-pop inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
               >
                 <SpotifyLogo size={18} weight="fill" aria-hidden="true" />
                 Spotify
@@ -774,7 +774,7 @@ function Contact() {
             onClick={copy}
             whileTap={reduce ? undefined : { scale: 0.96 }}
             transition={spring}
-            className="glow-hover inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-sunk px-5 py-3 text-sm font-medium text-ink ring-1 ring-hairline transition-colors hover:bg-canvas sm:self-center"
+            className="glow-hover beat-pop inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-sunk px-5 py-3 text-sm font-medium text-ink ring-1 ring-hairline transition-colors hover:bg-canvas sm:self-center"
             aria-live="polite"
           >
             <AnimatePresence mode="popLayout" initial={false}>
@@ -851,7 +851,7 @@ function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${label} (opens in a new tab)`}
-              className="glow-hover inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
+              className="glow-hover beat-pop inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
             >
               <Icon size={18} aria-hidden="true" />
             </a>

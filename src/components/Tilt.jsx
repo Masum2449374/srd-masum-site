@@ -31,7 +31,7 @@ export default function Tilt({ children }) {
       onPointerLeave={() => setTilt(0, 0)}
       onPointerUp={() => setTilt(0, 0)}
       onPointerCancel={() => setTilt(0, 0)}
-      className="overflow-hidden will-change-transform transition-transform duration-300 ease-out"
+      className="beat-tilt overflow-hidden will-change-transform transition-transform duration-300 ease-out"
       style={{ transform: "perspective(900px) rotateX(0deg) rotateY(0deg)" }}
     >
       {children}

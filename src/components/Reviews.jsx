@@ -54,7 +54,7 @@ function StarRow({ value }) {
 
 function ReviewCard({ review }) {
   return (
-    <li className="flex w-[260px] shrink-0 flex-col gap-4 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:w-[320px]">
+    <li className="beat-glow flex w-[260px] shrink-0 flex-col gap-4 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:w-[320px]">
       <StarRow value={review.rating} />
       <p className="text-ink leading-relaxed">“{review.message}”</p>
       <p className="mt-auto font-mono text-xs uppercase tracking-[0.15em] text-accent">{review.name}</p>
@@ -199,7 +199,7 @@ function ReviewForm({ onAdd }) {
       <div className="flex flex-wrap items-center gap-4">
         <button
           type="submit"
-          className="glow-hover inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+          className="glow-hover beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
         >
           <ChatCircleText size={18} aria-hidden="true" />
           Post review

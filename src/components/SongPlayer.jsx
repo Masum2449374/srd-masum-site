@@ -134,7 +134,7 @@ export function AudioTrack({ track, active, setActive }) {
   const pct = duration ? Math.min(100, (current / duration) * 100) : 0;
 
   return (
-    <div className={`relative flex flex-col gap-3 rounded-2xl bg-raised p-4 ring-1 ring-hairline sm:p-5 ${playing ? "beat-card" : ""}`}>
+    <div className={`beat-glow relative flex flex-col gap-3 rounded-2xl bg-raised p-4 ring-1 ring-hairline sm:p-5 ${playing ? "beat-card" : ""}`}>
       <MusicNotes playing={playing} />
       <div className="flex items-center gap-4">
         <div

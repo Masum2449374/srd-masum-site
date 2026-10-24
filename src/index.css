@@ -179,12 +179,57 @@
   transform: scaleX(calc(0.7 + var(--beat, 0) * 0.3));
 }
 
+/* Whole-site beat reaction: each element below animates only opacity, transform or the scale
+   property, reading --beat. Phones use the same effect, with the smaller amplitude. */
+.beat-on .beat-photo {
+  scale: calc(1 + var(--beat, 0) * 0.025);
+  transition: scale 120ms linear;
+}
+.beat-on .beat-tilt {
+  rotate: calc(var(--beat, 0) * 1.5deg);
+}
+.beat-on .beat-hero {
+  transform: scale(calc(1 + var(--beat, 0) * 0.018));
+  transform-origin: left center;
+}
+.beat-on .beat-pop {
+  scale: calc(1 + var(--beat, 0) * 0.035);
+}
+.beat-glow {
+  position: relative;
+  isolation: isolate;
+}
+.beat-glow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px rgba(255, 100, 200, 0.2);
+  opacity: 0;
+  z-index: -1;
+  pointer-events: none;
+  will-change: opacity;
+}
+.beat-on .beat-glow::before {
+  opacity: calc(var(--beat, 0) * 0.9);
+  box-shadow: 0 0 22px rgba(255, 100, 200, 0.45);
+}
+
 @media (prefers-reduced-motion: reduce) and (hover: hover) {
   .beat-bg,
   .beat-card::before,
   .beat-nav::after,
-  .beat-heading::after {
+  .beat-heading::after,
+  .beat-glow::before {
     display: none;
+  }
+  .beat-on .beat-photo,
+  .beat-on .beat-hero,
+  .beat-on .beat-pop,
+  .beat-on .beat-tilt {
+    transform: none;
+    scale: none;
+    rotate: none;
   }
 }
 
