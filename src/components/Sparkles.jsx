@@ -21,7 +21,7 @@ export default function Sparkles() {
 
   if (reduce) return null;
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+    <div aria-hidden="true" className="hero-sparkles pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       {dots.map((d) => (
         <span
           key={d.id}
