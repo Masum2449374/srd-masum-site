@@ -26,18 +26,38 @@ const YEAR = new Date().getFullYear();
 const RELEASE_DATE = "2026-12-01T00:00:00";
 const RELEASE_NAME = "Next single";
 
+// Photo intro: the portrait in a round frame with a soft pink glow ring, then the name fades in,
+// then the screen slides away into the hero. Shows once per session, tap anywhere to skip, max ~2.5s.
+// Only transform and opacity animate (one small image, no blur filters, no animated shadows).
+const INTRO_HOLD_MS = 2000; // how long the intro stays before it starts leaving
+const INTRO_EXIT_S = 0.5; // leave animation, so the intro is gone by ~2.5s
+const INTRO_TYPE_DELAY_MS = 2500; // first-visit typewriter starts once the intro has gone
+
 function IntroLoader() {
   const reduce = useReducedMotion();
   const [show, setShow] = useState(() => !sessionStorage.getItem("srd-intro-seen"));
+  const [leaving, setLeaving] = useState(false);
+
+  const finish = () => {
+    sessionStorage.setItem("srd-intro-seen", "1");
+    setShow(false);
+  };
+  const leave = () => {
+    if (leaving) return;
+    setLeaving(true);
+  };
 
   useEffect(() => {
     if (!show) return;
-    const t = setTimeout(() => {
-      sessionStorage.setItem("srd-intro-seen", "1");
-      setShow(false);
-    }, reduce ? 400 : 1400);
+    const t = setTimeout(leave, reduce ? 300 : INTRO_HOLD_MS);
     return () => clearTimeout(t);
-  }, [show, reduce]);
+  }, [show, reduce]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!leaving) return;
+    const t = setTimeout(finish, reduce ? 150 : INTRO_EXIT_S * 1000);
+    return () => clearTimeout(t);
+  }, [leaving, reduce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <AnimatePresence>
@@ -45,22 +65,46 @@ function IntroLoader() {
         <motion.div
           key="intro"
           role="status"
-          aria-label="Loading"
+          aria-label="Intro"
+          onClick={leave}
+          onPointerDown={leave}
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduce ? 0.2 : 0.5, ease: "easeOut" }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-canvas"
+          animate={leaving ? { opacity: 0, y: reduce ? 0 : -24 } : { opacity: 1, y: 0 }}
+          transition={{ duration: reduce ? 0.15 : INTRO_EXIT_S, ease: "easeInOut" }}
+          className="fixed inset-0 z-50 flex cursor-pointer flex-col items-center justify-center gap-6 bg-canvas"
         >
-          <motion.img
-            src="/images/avatar.jpg"
-            alt="SRD Masum logo"
-            width="96"
-            height="96"
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={reduce ? { opacity: 1 } : { opacity: [0.4, 1, 0.4], scale: [0.96, 1, 0.96] }}
-            transition={reduce ? { duration: 0.2 } : { duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-            className="h-24 w-24 rounded-full object-cover ring-1 ring-accent"
-          />
+          <div className="relative">
+            <motion.div
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.85 }}
+              transition={{ duration: reduce ? 0.2 : 0.9, ease: "easeOut" }}
+              className="pointer-events-none absolute -inset-5 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(circle, rgba(255,100,200,0) 58%, rgba(255,120,210,0.55) 66%, rgba(255,100,200,0.18) 74%, rgba(255,100,200,0) 80%)",
+              }}
+            />
+            <motion.img
+              src="/images/hero-portrait.jpg"
+              alt="SRD Masum"
+              width="176"
+              height="176"
+              decoding="async"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: reduce ? 0.2 : 0.9, ease: "easeOut" }}
+              className="relative h-44 w-44 rounded-full object-cover object-[50%_20%] ring-1 ring-accent/70 sm:h-52 sm:w-52"
+            />
+          </div>
+          <motion.p
+            initial={{ opacity: 0, y: reduce ? 0 : 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: reduce ? 0 : 0.7, duration: reduce ? 0.2 : 0.8, ease: "easeOut" }}
+            className="font-display text-3xl tracking-tight text-ink sm:text-4xl"
+          >
+            SRD Masum
+          </motion.p>
         </motion.div>
       )}
     </AnimatePresence>
@@ -263,8 +307,8 @@ function Hero() {
   const { scrollY } = useScroll();
   // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
   const parallaxY = useTransform(scrollY, [0, 900], [0, 120]);
-  // On a first visit the intro loader covers the page for about 1.4s, so the typing waits for it.
-  const [introDelay] = useState(() => (sessionStorage.getItem("srd-intro-seen") ? 250 : 1700));
+  // On a first visit the intro covers the page for about 2.5s, so the typing waits for it.
+  const [introDelay] = useState(() => (sessionStorage.getItem("srd-intro-seen") ? 250 : INTRO_TYPE_DELAY_MS));
   return (
     <section id="top" className="relative isolate overflow-hidden">
       <motion.img
