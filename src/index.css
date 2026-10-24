@@ -154,6 +154,18 @@
 .beat-on .hero-glow {
   opacity: calc(0.5 + var(--beat, 0) * 0.5);
 }
+/* Idle hero: no colour glow at all (snow only). The glow returns only while a song plays. */
+html:not([data-hero-playing="true"]) .hero-glow,
+html:not([data-hero-playing="true"]) .beat-bg,
+html:not([data-hero-playing="true"]) .aurora-layer,
+html:not([data-hero-playing="true"]) .hero-orb,
+html:not([data-hero-playing="true"]) .vignette-pulse {
+  opacity: 0 !important;
+  display: none !important;
+}
+html[data-hero-playing="true"] .hero-glow {
+  display: block !important;
+}
 .beat-glow {
   position: relative;
   isolation: isolate;
