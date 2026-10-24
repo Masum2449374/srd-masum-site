@@ -6,6 +6,7 @@ import { CHANNEL_URL } from "../data/videos.js";
 
 const LINKS = [
   { id: "featured", label: "Featured" },
+  { id: "music", label: "Music" },
   { id: "gallery", label: "Gallery" },
   { id: "videos", label: "Videos" },
   { id: "contact", label: "Contact" },

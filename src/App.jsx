@@ -110,6 +110,42 @@ const GALLERY_PHOTOS = [
   "/images/gallery/photo-5.jpg",
 ];
 
+function Music() {
+  return (
+    <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="Listen" title="Music" />
+        </Reveal>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Reveal className="overflow-hidden rounded-xl ring-1 ring-hairline">
+            <iframe
+              title="SRD Masum on Spotify"
+              src="https://open.spotify.com/embed/artist/267kT30bpgEoiGFawat8k6?utm_source=generator&theme=0"
+              width="100%"
+              height="352"
+              loading="lazy"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              className="block w-full border-0"
+            />
+          </Reveal>
+          <Reveal delay={0.08} className="overflow-hidden rounded-xl ring-1 ring-hairline">
+            <iframe
+              title="SRD Masum track on Spotify"
+              src="https://open.spotify.com/embed/track/0wqbduMup8NkUnRVEERKqb?utm_source=generator&theme=0"
+              width="100%"
+              height="352"
+              loading="lazy"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              className="block w-full border-0"
+            />
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Gallery() {
   return (
     <section id="gallery" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
@@ -266,6 +302,7 @@ export default function App() {
       <main>
         <Hero />
         <Featured />
+        <Music />
         <Gallery />
         <Videos />
         <Contact />
