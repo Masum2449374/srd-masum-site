@@ -106,6 +106,8 @@ const GALLERY_PHOTOS = [
   "/images/gallery/photo-1.jpg",
   "/images/gallery/photo-2.jpg",
   "/images/gallery/photo-3.jpg",
+  "/images/gallery/photo-4.jpg",
+  "/images/gallery/photo-5.jpg",
 ];
 
 function Gallery() {
