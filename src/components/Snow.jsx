@@ -10,7 +10,7 @@ export default function Snow() {
   const lite = isLiteDevice();
 
   const flakes = useMemo(() => {
-    const count = lite ? 8 : 26;
+    const count = lite ? 12 : 26;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       left: `${(i * 41) % 100}%`,

@@ -1,18 +1,15 @@
 import { useEffect } from "react";
 import { onBeatChange, getBass, runFrameHooks, setKick, frameHooksCount, isPlaying, disposeBeat } from "../lib/beat.js";
-import { isLiteDevice } from "../lib/motion.js";
 
 // The ONE requestAnimationFrame loop on the site. It runs only while there is work to do:
-//  - a song is playing (reads bass, writes --beat on <html>, every other frame on phones), or
+//  - a song is playing (reads bass, writes --beat on <html>), or
 //  - a frame hook is registered (cursor glow, note spawner).
 // It stops completely when the tab is hidden or when nothing needs it.
-// Phones ("beat-lite") only get the playing card border and floating notes; everything else stays still.
+// Beat reactions run on every device; CSS only animates transform and opacity from --beat.
 export default function BeatField() {
   useEffect(() => {
     const root = document.documentElement;
-    const phone = isLiteDevice();
     let raf = 0;
-    let frame = 0;
     let level = 0;
     let written = -1;
 
@@ -21,8 +18,7 @@ export default function BeatField() {
     const tick = (now) => {
       raf = 0;
       if (!wantsLoop()) return;
-      frame += 1;
-      if (isPlaying() && (!phone || frame % 2 === 0)) {
+      if (isPlaying()) {
         const raw = getBass();
         level = Math.max(raw, level * 0.85); // quick attack, gentle decay
         if (Math.abs(level - written) > 0.01) {
@@ -46,7 +42,6 @@ export default function BeatField() {
 
     const off = onBeatChange((playing) => {
       root.classList.toggle("beat-on", playing);
-      root.classList.toggle("beat-lite", playing && phone);
       if (playing) {
         kick();
       } else {
@@ -71,12 +66,10 @@ export default function BeatField() {
       document.removeEventListener("visibilitychange", onVisibility);
       stopLoop();
       disposeBeat();
-      root.classList.remove("beat-on", "beat-lite");
+      root.classList.remove("beat-on");
       root.style.setProperty("--beat", "0");
     };
   }, []);
 
-  // Phones skip the full-screen beat background entirely.
-  if (isLiteDevice()) return null;
   return <div aria-hidden="true" className="beat-bg" />;
 }

@@ -8,7 +8,7 @@ export default function Sparkles() {
   const lite = isLiteDevice();
 
   const dots = useMemo(() => {
-    const count = lite ? 4 : 16;
+    const count = lite ? 8 : 16;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       left: `${(i * 37) % 100}%`,
@@ -19,7 +19,7 @@ export default function Sparkles() {
     }));
   }, [lite]);
 
-  if (reduce || lite) return null;
+  if (reduce) return null;
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       {dots.map((d) => (
@@ -31,7 +31,6 @@ export default function Sparkles() {
             top: d.top,
             width: d.size,
             height: d.size,
-            boxShadow: lite ? "none" : "0 0 8px 2px rgba(255, 100, 200, 0.6)",
             opacity: 0,
             animationDuration: d.dur,
             animationDelay: d.delay,

@@ -5,7 +5,7 @@ import { onBeatChange } from "../lib/beat.js";
 // Cinematic aurora for the hero while a track plays: layered drifting colour glow, rising warm bokeh orbs,
 // a breathing vignette at the edges, and a sheen across the title. Everything switches on through
 // <html data-hero-playing="true"> so the CSS in index.css does the animating (no per-frame React renders).
-// Touch devices always run it (see motion.js); desktop with reduced motion renders nothing.
+// Phones run it with fewer layers and orbs (see motion.js); desktop with reduced motion renders nothing.
 export default function HeroAurora() {
   const reduce = useDecorReduce();
   const [playing, setPlaying] = useState(false);
@@ -46,7 +46,7 @@ export default function HeroAurora() {
 
   const lite = isLiteDevice();
   const orbs = useMemo(() => {
-    const count = lite ? 0 : 13;
+    const count = lite ? 7 : 13;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       left: `${((i * 29) % 88) + 4}%`,
@@ -77,11 +77,10 @@ export default function HeroAurora() {
               animationDuration: o.dur,
               animationDelay: o.delay,
               "--o": o.opacity,
-              ...(lite ? { boxShadow: "none" } : null),
             }}
           />
         ))}
-        {!lite && <span className="vignette-pulse" />}
+        <span className="vignette-pulse" />
       </div>
     </>
   );

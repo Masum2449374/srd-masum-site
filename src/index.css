@@ -136,22 +136,23 @@
 }
 
 
-/* Desktop-only whole-site reaction. Phones (html.beat-lite, see the phone pass below) get none of these. */
-@media (hover: hover) and (pointer: fine) {
-  .beat-on .beat-photo {
-    scale: calc(1 + var(--beat, 0) * 0.025);
-    transition: scale 120ms linear;
-  }
-  .beat-on .beat-tilt {
-    rotate: calc(var(--beat, 0) * 1.5deg);
-  }
-  .beat-on .beat-hero {
-    transform: scale(calc(1 + var(--beat, 0) * 0.018));
-    transform-origin: left center;
-  }
-  .beat-on .beat-pop {
-    scale: calc(1 + var(--beat, 0) * 0.035);
-  }
+/* Whole-site beat reaction on every device. Each rule animates transform, scale, rotate or opacity only. */
+.beat-on .beat-photo {
+  scale: calc(1 + var(--beat, 0) * 0.025);
+  transition: scale 120ms linear;
+}
+.beat-on .beat-tilt {
+  rotate: calc(var(--beat, 0) * 1.5deg);
+}
+.beat-on .beat-hero {
+  transform: scale(calc(1 + var(--beat, 0) * 0.018));
+  transform-origin: left center;
+}
+.beat-on .beat-pop {
+  scale: calc(1 + var(--beat, 0) * 0.035);
+}
+.beat-on .hero-glow {
+  opacity: calc(0.5 + var(--beat, 0) * 0.5);
 }
 .beat-glow {
   position: relative;
@@ -301,8 +302,6 @@ html[data-hero-playing="true"] .sparkle {
   position: absolute;
   inset: -25%;
   opacity: 0;
-  mix-blend-mode: screen;
-  filter: blur(36px);
   transition: opacity 1.6s ease;
 }
 .aurora-a { background: radial-gradient(ellipse 60% 45% at 30% 35%, rgba(255, 100, 200, 0.55), transparent 70%); }
@@ -329,18 +328,14 @@ html[data-hero-playing="true"] .aurora-c { animation-duration: 21s, 8s; }
   bottom: -8%;
   border-radius: 9999px;
   opacity: 0;
-  filter: blur(1px);
   transition: opacity 0.9s ease;
   background: radial-gradient(circle, rgba(255, 236, 214, 0.95) 0%, rgba(255, 150, 210, 0.5) 35%, rgba(255, 100, 200, 0) 70%);
-  box-shadow: 0 0 18px 6px rgba(255, 150, 210, 0.3);
 }
 .hero-orb[data-hue="1"] {
   background: radial-gradient(circle, rgba(255, 232, 190, 0.95) 0%, rgba(255, 179, 71, 0.5) 35%, rgba(255, 179, 71, 0) 70%);
-  box-shadow: 0 0 18px 6px rgba(255, 179, 71, 0.28);
 }
 .hero-orb[data-hue="2"] {
   background: radial-gradient(circle, rgba(232, 206, 255, 0.95) 0%, rgba(139, 92, 246, 0.5) 35%, rgba(139, 92, 246, 0) 70%);
-  box-shadow: 0 0 18px 6px rgba(139, 92, 246, 0.28);
 }
 @keyframes orb-rise {
   0% { transform: translate3d(0, 0, 0) scale(0.6); }
@@ -403,19 +398,25 @@ html[data-hero-playing="true"] .snow-layer {
   100% { transform: translate3d(0, 110vh, 0); opacity: 0; }
 }
 
-/* Title sheen: a soft light band sweeps across the hero title while a track plays. */
-html[data-hero-playing="true"] .hero-title {
-  background-image: linear-gradient(105deg, rgb(var(--ink)) 0%, rgb(var(--ink)) 42%, #ffd1ee 50%, rgb(var(--ink)) 58%, rgb(var(--ink)) 100%);
-  background-size: 250% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+/* Title sheen: a soft band slides across the hero title while a track plays. Transform only, no background-position. */
+.hero-title {
+  position: relative;
+}
+html[data-hero-playing="true"] .hero-title::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(90deg, rgba(255, 209, 238, 0), rgba(255, 209, 238, 0.4), rgba(255, 209, 238, 0));
+  transform: translate3d(-100%, 0, 0);
   animation: title-sheen 6s linear infinite;
+  pointer-events: none;
 }
 @keyframes title-sheen {
-  from { background-position: 120% 0; }
-  to { background-position: -120% 0; }
+  from { transform: translate3d(-100%, 0, 0); }
+  to { transform: translate3d(260%, 0, 0); }
 }
 
 @media (prefers-reduced-motion: reduce) and (hover: hover) {
@@ -426,37 +427,25 @@ html[data-hero-playing="true"] .hero-title {
     transition: none !important;
     display: none !important;
   }
-  html[data-hero-playing="true"] .hero-title {
-    animation: none !important;
-    background: none !important;
-    color: inherit !important;
-    -webkit-text-fill-color: inherit !important;
+  html[data-hero-playing="true"] .hero-title::after {
+    display: none !important;
   }
 }
 
-/* Phones and small screens: the hero effects are lighter. No blur filters, no blend modes, no shadows,
-   and no animated background-position on the title (that repaints the whole heading every frame). */
+/* Phones and small screens run the same effects with fewer elements (counts set in the JS components).
+   Everything is transform and opacity only: no blur, no blend modes, no animated shadows. */
 @media (hover: none), (max-width: 639px) {
-  .aurora-layer {
-    filter: none;
-    mix-blend-mode: normal;
+  .aurora-layer,
+  .hero-orb,
+  .vignette-pulse,
+  .snow-flake,
+  .sparkle,
+  .hero-glow,
+  .beat-bg {
     will-change: transform, opacity;
-  }
-  .hero-orb {
-    filter: none;
-    box-shadow: none;
-    will-change: transform;
   }
   .sparkle {
     box-shadow: none !important;
-    will-change: transform, opacity;
-  }
-  html[data-hero-playing="true"] .hero-title {
-    animation: none;
-    background-image: none;
-    background: none;
-    color: rgb(var(--ink));
-    -webkit-text-fill-color: rgb(var(--ink));
   }
 }
 
@@ -465,29 +454,9 @@ html[data-hero-visible="false"] .aurora-layer,
 html[data-hero-visible="false"] .hero-orb,
 html[data-hero-visible="false"] .vignette-pulse,
 html[data-hero-visible="false"] .sparkle,
-html[data-hero-visible="false"] .hero-title {
+html[data-hero-visible="false"] .snow-flake,
+html[data-hero-visible="false"] .hero-title::after {
   animation-play-state: paused !important;
-}
-
-/* ---- Phone performance pass ----
-   On phones only the playing card border and the floating notes react to the beat.
-   Everything else (gallery, buttons, social icons, hero title, reviews, press kit, background) stays still.
-   Bokeh orbs, the vignette, sparkles and the hero glow are off entirely on phones.
-   Snow shows while idle, aurora while a song plays. */
-html.beat-lite .beat-glow::before {
-  display: none !important;
-}
-html.beat-lite .beat-card::before {
-  opacity: calc(0.4 + var(--beat, 0) * 0.6);
-  transform: scale(calc(1 + var(--beat, 0) * 0.012));
-}
-@media (hover: none), (max-width: 639px) {
-  .hero-orb,
-  .vignette-pulse,
-  .sparkle,
-  .hero-glow {
-    display: none !important;
-  }
 }
 
 /* Background tabs never run their animations. */
