@@ -17,8 +17,9 @@ export default function BeatField() {
     let level = 0;
     let written = -1;
     let lastBeat = 0;
+    let hiddenNow = document.hidden;
 
-    const wantsLoop = () => !document.hidden && (isPlaying() || frameHooksCount() > 0);
+    const wantsLoop = () => !hiddenNow && !document.hidden && (isPlaying() || frameHooksCount() > 0);
 
     const tick = (now) => {
       raf = 0;
@@ -60,24 +61,44 @@ export default function BeatField() {
       }
     });
 
-    const onVisibility = () => {
-      root.dataset.tabHidden = document.hidden ? "true" : "false";
-      if (document.hidden) {
+    // Single place that applies the visible/hidden state. Safe to call repeatedly.
+    // The CSS pause rule keys off data-tab-hidden, so it must always reflect the real state:
+    // a stale "true" would freeze every animation until a reload.
+    const applyVisibility = () => {
+      const isHidden = document.hidden;
+      root.dataset.tabHidden = isHidden ? "true" : "false";
+      if (isHidden === hiddenNow) {
+        if (!isHidden) kick(); // already visible: keep the loop alive
+        return;
+      }
+      hiddenNow = isHidden;
+      if (isHidden) {
         stopLoop();
         setBeatHidden(true);
       } else {
-        setBeatHidden(false);
+        setBeatHidden(false); // re-attaches the analyser and resumes the audio context
         kick();
       }
     };
-    root.dataset.tabHidden = document.hidden ? "true" : "false";
-    root.dataset.liteBeat = "false";
+    const onVisibility = () => applyVisibility();
+
+    applyVisibility();
     document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pageshow", onVisibility);
+    window.addEventListener("focus", onVisibility);
+    // Watchdog: a cheap one-attribute check each second, so a missed event (common on mobile
+    // when returning from another app) cannot leave the page stuck in the hidden state.
+    const watchdog = setInterval(applyVisibility, 1000);
+
+    root.dataset.liteBeat = "false";
 
     return () => {
       off();
       setKick(() => {});
       document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pageshow", onVisibility);
+      window.removeEventListener("focus", onVisibility);
+      clearInterval(watchdog);
       stopLoop();
       root.classList.remove("beat-on");
       root.dataset.liteBeat = "false";
