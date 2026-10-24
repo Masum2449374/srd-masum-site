@@ -13,7 +13,8 @@ import HeroAurora from "./components/HeroAurora.jsx";
 import Tilt from "./components/Tilt.jsx";
 import Reviews from "./components/Reviews.jsx";
 import { useDecorReduce } from "./lib/motion.js";
-import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
+import { VideoCard } from "./components/SongPlayer.jsx";
+import { PlayerProvider, TrackRow, MiniPlayer } from "./components/MiniPlayer.jsx";
 import { VIDEO_IDS, FEATURED_PLAYLIST_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
@@ -342,7 +343,6 @@ function Featured() {
 }
 
 function BanglaSongs() {
-  const [activeTrack, setActiveTrack] = useState(null);
   return (
     <section id="bangla-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
@@ -354,11 +354,9 @@ function BanglaSongs() {
             <p className="font-mono text-sm text-faint">শীঘ্রই আসছে · coming soon</p>
           </Reveal>
         ) : (
-          <div className="flex flex-col gap-3">
-            {BANGLA_TRACKS.map((t) => (
-              <Reveal key={t.id}>
-                <AudioTrack track={t} active={activeTrack === t.id} setActive={setActiveTrack} />
-              </Reveal>
+          <div className="flex flex-col gap-1">
+            {BANGLA_TRACKS.map((t, i) => (
+              <TrackRow key={t.id} track={t} list={BANGLA_TRACKS} index={i} />
             ))}
           </div>
         )}
@@ -374,7 +372,6 @@ const SONGS = [
 ];
 
 function AudioSongs() {
-  const [activeTrack, setActiveTrack] = useState(null);
   if (AUDIO_TRACKS.length === 0) return null;
   return (
     <section id="audio-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
@@ -382,11 +379,9 @@ function AudioSongs() {
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Hindi Songs" />
         </Reveal>
-        <div className="flex flex-col gap-3">
-          {AUDIO_TRACKS.map((t) => (
-            <Reveal key={t.id}>
-              <AudioTrack track={t} active={activeTrack === t.id} setActive={setActiveTrack} />
-            </Reveal>
+        <div className="flex flex-col gap-1">
+          {AUDIO_TRACKS.map((t, i) => (
+            <TrackRow key={t.id} track={t} list={AUDIO_TRACKS} index={i} />
           ))}
         </div>
       </div>
@@ -914,7 +909,8 @@ function Footer() {
 
 export default function App() {
   return (
-    <div className="min-h-screen">
+    <PlayerProvider>
+    <div className="min-h-screen pb-24">
       <IntroLoader />
       <BeatField />
       <CursorGlow />
@@ -935,6 +931,8 @@ export default function App() {
         <Contact />
       </main>
       <Footer />
+      <MiniPlayer />
     </div>
+    </PlayerProvider>
   );
 }
