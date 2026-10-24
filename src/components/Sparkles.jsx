@@ -1,13 +1,14 @@
 import { useMemo } from "react";
-import { useDecorReduce } from "../lib/motion.js";
+import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
 
 // Faint floating sparkles drifting over the hero photo, like slow fireflies.
 // Pure CSS animation on a few positioned dots; fewer on small screens. Nothing under reduced motion.
 export default function Sparkles() {
   const reduce = useDecorReduce();
+  const lite = isLiteDevice();
 
   const dots = useMemo(() => {
-    const count = typeof window !== "undefined" && window.innerWidth < 640 ? 8 : 16;
+    const count = lite ? 4 : 16;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       left: `${(i * 37) % 100}%`,
@@ -16,7 +17,7 @@ export default function Sparkles() {
       dur: `${4 + ((i * 3) % 7)}s`,
       delay: `${-((i * 1.7) % 8)}s`,
     }));
-  }, []);
+  }, [lite]);
 
   if (reduce) return null;
   return (
@@ -30,7 +31,7 @@ export default function Sparkles() {
             top: d.top,
             width: d.size,
             height: d.size,
-            boxShadow: "0 0 8px 2px rgba(255, 100, 200, 0.6)",
+            boxShadow: lite ? "none" : "0 0 8px 2px rgba(255, 100, 200, 0.6)",
             opacity: 0,
             animationDuration: d.dur,
             animationDelay: d.delay,

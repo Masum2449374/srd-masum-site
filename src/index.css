@@ -329,3 +329,39 @@ html[data-hero-playing="true"] .hero-title {
     -webkit-text-fill-color: inherit !important;
   }
 }
+
+/* Phones and small screens: the hero effects are lighter. No blur filters, no blend modes, no shadows,
+   and no animated background-position on the title (that repaints the whole heading every frame). */
+@media (hover: none), (max-width: 639px) {
+  .aurora-layer {
+    filter: none;
+    mix-blend-mode: normal;
+    will-change: transform, opacity;
+  }
+  .hero-orb {
+    filter: none;
+    box-shadow: none;
+    will-change: transform;
+  }
+  .sparkle {
+    box-shadow: none !important;
+    will-change: transform, opacity;
+  }
+  html[data-hero-playing="true"] .hero-title {
+    animation: none;
+    background-image: none;
+    background: none;
+    color: rgb(var(--ink));
+    -webkit-text-fill-color: rgb(var(--ink));
+  }
+}
+
+/* Pause the hero effects while the hero is scrolled out of view (set from HeroAurora.jsx). */
+html[data-hero-visible="false"] .aurora-layer,
+html[data-hero-visible="false"] .hero-orb,
+html[data-hero-visible="false"] .vignette-pulse,
+html[data-hero-visible="false"] .sparkle,
+html[data-hero-visible="false"] .hero-title {
+  animation-play-state: paused !important;
+}
+

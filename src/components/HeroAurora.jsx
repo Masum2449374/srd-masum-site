@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useDecorReduce } from "../lib/motion.js";
+import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
 import { onBeatChange } from "../lib/beat.js";
 
 // Cinematic aurora for the hero while a track plays: layered drifting colour glow, rising warm bokeh orbs,
@@ -27,8 +27,26 @@ export default function HeroAurora() {
     };
   }, [playing, reduce]);
 
+  // Pause all hero animations while the hero is scrolled out of view (CSS reads data-hero-visible).
+  useEffect(() => {
+    const hero = document.getElementById("top");
+    if (!hero || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        document.documentElement.dataset.heroVisible = entry.isIntersecting ? "true" : "false";
+      },
+      { threshold: 0 }
+    );
+    io.observe(hero);
+    return () => {
+      io.disconnect();
+      document.documentElement.dataset.heroVisible = "true";
+    };
+  }, []);
+
+  const lite = isLiteDevice();
   const orbs = useMemo(() => {
-    const count = typeof window !== "undefined" && window.innerWidth < 640 ? 7 : 13;
+    const count = lite ? 4 : 13;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       left: `${((i * 29) % 88) + 4}%`,
@@ -38,7 +56,7 @@ export default function HeroAurora() {
       opacity: (0.4 + ((i * 0.13) % 0.45)).toFixed(2),
       hue: i % 3,
     }));
-  }, []);
+  }, [lite]);
 
   if (reduce) return null;
   return (
@@ -46,7 +64,7 @@ export default function HeroAurora() {
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
         <span className="aurora-layer aurora-a" />
         <span className="aurora-layer aurora-b" />
-        <span className="aurora-layer aurora-c" />
+        {!lite && <span className="aurora-layer aurora-c" />}
         {orbs.map((o) => (
           <span
             key={o.id}
@@ -59,6 +77,7 @@ export default function HeroAurora() {
               animationDuration: o.dur,
               animationDelay: o.delay,
               "--o": o.opacity,
+              ...(lite ? { boxShadow: "none" } : null),
             }}
           />
         ))}

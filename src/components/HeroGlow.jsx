@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { useDecorReduce } from "../lib/motion.js";
+import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
 import { onBeatChange, getBass } from "../lib/beat.js";
 
 // Soft pink glow behind the hero photo that swells with the bass of the playing cover.
@@ -15,12 +15,18 @@ export default function HeroGlow() {
     let raf = 0;
     let level = 0;
     let playing = false;
+    let tick = 0;
+    const lite = isLiteDevice();
 
     const frame = () => {
-      const target = playing ? getBass() : 0;
-      level += (target - level) * (target > level ? 0.5 : 0.12);
-      el.style.opacity = String(Math.min(1, level * 1.4));
-      el.style.transform = `scale(${1 + level * 0.12})`;
+      // On phones the beat is sampled and applied at 30fps instead of 60fps (cheaper, looks the same).
+      tick += 1;
+      if (!lite || tick % 2 === 0) {
+        const target = playing ? getBass() : 0;
+        level += (target - level) * (target > level ? 0.5 : 0.12);
+        el.style.opacity = String(Math.min(1, level * 1.4));
+        el.style.transform = `scale(${1 + level * 0.12})`;
+      }
       raf = playing || level > 0.002 ? requestAnimationFrame(frame) : 0;
     };
 
