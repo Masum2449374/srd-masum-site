@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Play, Pause, Disc } from "@phosphor-icons/react";
+import { beatPlay, beatStop } from "../lib/beat.js";
 
 function formatTime(sec) {
   if (!Number.isFinite(sec) || sec < 0) return "0:00";
@@ -120,14 +121,19 @@ export function AudioTrack({ track, active, setActive }) {
         ref={ref}
         src={track.src}
         preload="metadata"
-        onPlay={() => {
+        onPlay={(e) => {
           setPlaying(true);
           setActive(track.id);
+          beatPlay(e.currentTarget);
         }}
-        onPause={() => setPlaying(false)}
-        onEnded={() => {
+        onPause={(e) => {
+          setPlaying(false);
+          beatStop(e.currentTarget);
+        }}
+        onEnded={(e) => {
           setPlaying(false);
           setCurrent(0);
+          beatStop(e.currentTarget);
         }}
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}

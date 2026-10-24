@@ -6,6 +6,7 @@ import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, Faceboo
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
+import HeroGlow from "./components/HeroGlow.jsx";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 
@@ -212,6 +213,7 @@ function Hero() {
         className="absolute inset-x-0 -top-[12%] -z-10 h-[124%] w-full object-cover object-top opacity-60 will-change-transform"
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
+      <HeroGlow />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 sm:px-8 sm:pb-24">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
