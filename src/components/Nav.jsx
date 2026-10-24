@@ -10,6 +10,7 @@ const LINKS = [
   { id: "songs", label: "Songs" },
   { id: "gallery", label: "Gallery" },
   { id: "videos", label: "Videos" },
+  { id: "press-kit", label: "Press Kit" },
   { id: "contact", label: "Contact" },
 ];
 

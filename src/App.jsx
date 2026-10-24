@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import CursorGlow from "./components/CursorGlow.jsx";
 import { fireConfetti } from "./lib/confetti.js";
-import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, SpotifyLogo } from "@phosphor-icons/react";
+import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, SpotifyLogo, DownloadSimple } from "@phosphor-icons/react";
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
@@ -408,6 +408,131 @@ function Gallery() {
   );
 }
 
+const PRESS_BIO =
+  "SRD Masum is a singer and music maker sharing original songs and covers that are made to be played loud, late, and on repeat. Every new track lands on the channel first, with the Spotify catalogue following.";
+
+const PRESS_SOCIALS = [
+  { key: "instagram", label: "Instagram", Icon: InstagramLogo },
+  { key: "facebook", label: "Facebook", Icon: FacebookLogo },
+  { key: "youtube", label: "YouTube", Icon: YoutubeLogo },
+  { key: "whatsapp", label: "WhatsApp", Icon: WhatsappLogo },
+].filter(({ key }) => SOCIAL_LINKS[key] && SOCIAL_LINKS[key] !== "#");
+
+function buildPressKitText() {
+  const lines = [
+    "SRD Masum - Press Kit",
+    "",
+    "Artist name: SRD Masum",
+    "",
+    "Bio",
+    PRESS_BIO,
+    "",
+    `Contact: ${CONTACT_EMAIL}`,
+    "",
+    "Socials",
+    ...PRESS_SOCIALS.map(({ key, label }) => `${label}: ${SOCIAL_LINKS[key]}`),
+    "",
+    `Spotify: ${SPOTIFY_ARTIST_URL}`,
+    "",
+  ];
+  return lines.join("\n");
+}
+
+function PressKit() {
+  const reduce = useReducedMotion();
+
+  const download = () => {
+    const blob = new Blob([buildPressKitText()], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "srd-masum-press-kit.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+
+  return (
+    <section id="press-kit" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="For press" title="Press Kit" />
+        </Reveal>
+        <Reveal delay={0.08} className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:p-10">
+          <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="flex flex-col gap-5">
+              <p className="font-display text-2xl tracking-display sm:text-3xl">SRD Masum</p>
+              <p className="max-w-2xl text-muted">{PRESS_BIO}</p>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="inline-flex items-center gap-3 break-all text-base font-medium text-ink underline decoration-accent decoration-2 underline-offset-8 transition-colors hover:text-accent"
+              >
+                <EnvelopeSimple size={20} aria-hidden="true" className="shrink-0 text-accent" />
+                {CONTACT_EMAIL}
+              </a>
+              <ul className="flex flex-wrap items-center gap-2">
+                {PRESS_SOCIALS.map(({ key, label, Icon }) => (
+                  <li key={key}>
+                    <a
+                      href={SOCIAL_LINKS[key]}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`${label} (opens in a new tab)`}
+                      className="glow-hover inline-flex h-10 w-10 items-center justify-center rounded-full bg-sunk text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
+                    >
+                      <Icon size={18} aria-hidden="true" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+              <motion.button
+                type="button"
+                onClick={download}
+                whileTap={reduce ? undefined : { scale: 0.97 }}
+                transition={spring}
+                className="glow-hover inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03]"
+              >
+                <DownloadSimple size={18} aria-hidden="true" />
+                Download press kit
+              </motion.button>
+              <motion.a
+                href={SPOTIFY_ARTIST_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                whileTap={reduce ? undefined : { scale: 0.97 }}
+                transition={spring}
+                className="glow-hover inline-flex items-center justify-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
+              >
+                <SpotifyLogo size={18} weight="fill" aria-hidden="true" />
+                Spotify
+                <ArrowUpRight size={16} aria-hidden="true" />
+                <span className="sr-only">(opens in a new tab)</span>
+              </motion.a>
+            </div>
+          </div>
+
+          <ul className="grid grid-cols-3 gap-3 sm:gap-4">
+            {GALLERY_PHOTOS.map((src, i) => (
+              <li key={src} className="overflow-hidden rounded-xl ring-1 ring-hairline">
+                <img
+                  src={src}
+                  alt={`SRD Masum press photo ${i + 1}`}
+                  loading="lazy"
+                  className="aspect-[4/5] w-full object-cover"
+                />
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
 function VideoCarousel() {
   const reduce = useReducedMotion();
   const trackRef = useRef(null);
@@ -707,6 +832,7 @@ export default function App() {
         <Songs />
         <Gallery />
         <Videos />
+        <PressKit />
         <FanMessage />
         <Contact />
       </main>
