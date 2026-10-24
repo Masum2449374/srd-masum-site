@@ -510,6 +510,39 @@ function Contact() {
   );
 }
 
+const VISITOR_KEY = "srd-visitors";
+const VISITOR_SESSION_KEY = "srd-visitor-counted";
+
+function readVisitors() {
+  try {
+    return Number(localStorage.getItem(VISITOR_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+function VisitorCounter() {
+  const [count, setCount] = useState(readVisitors);
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem(VISITOR_SESSION_KEY)) return;
+      sessionStorage.setItem(VISITOR_SESSION_KEY, "1");
+      const next = readVisitors() + 1;
+      localStorage.setItem(VISITOR_KEY, String(next));
+      setCount(next);
+    } catch {
+      /* storage unavailable: show the stored count without counting */
+    }
+  }, []);
+
+  return (
+    <p className="mt-6 text-center font-mono text-xs text-faint sm:mt-8">
+      visitors: <span className="tabular-nums">{count}</span>
+    </p>
+  );
+}
+
 function Footer() {
   return (
     <footer className="border-t border-hairline bg-sunk px-5 py-10 sm:px-8">
@@ -538,6 +571,7 @@ function Footer() {
           ))}
         </div>
       </div>
+      <VisitorCounter />
     </footer>
   );
 }
