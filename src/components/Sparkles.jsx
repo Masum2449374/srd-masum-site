@@ -13,7 +13,7 @@ export default function Sparkles() {
       left: `${(i * 37) % 100}%`,
       top: `${(i * 53) % 100}%`,
       size: 2 + ((i * 7) % 3),
-      dur: `${6 + ((i * 3) % 6)}s`,
+      dur: `${4 + ((i * 3) % 7)}s`,
       delay: `${-((i * 1.7) % 8)}s`,
     }));
   }, []);

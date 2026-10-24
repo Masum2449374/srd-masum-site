@@ -8,6 +8,7 @@ import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
+import HeroAurora from "./components/HeroAurora.jsx";
 import Tilt from "./components/Tilt.jsx";
 import Reviews from "./components/Reviews.jsx";
 import { useDecorReduce } from "./lib/motion.js";
@@ -250,6 +251,7 @@ function Hero() {
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
       <HeroGlow />
+      <HeroAurora />
       <Sparkles />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 sm:px-8 sm:pb-24">
         <motion.p
@@ -260,7 +262,7 @@ function Hero() {
         >
           Artist · Songs · Sound
         </motion.p>
-        <h1 className="mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
+        <h1 className="hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
           <Typewriter text="SRD Masum" delay={introDelay} />
         </h1>
         <motion.p
