@@ -819,7 +819,9 @@ function Contact() {
 
 const VISITOR_KEY = "srd-visitors";
 const VISITOR_SESSION_KEY = "srd-visitor-counted";
+const VISITOR_BASE = 20000;
 
+// Stored value is only the number of counted visits; the displayed count is VISITOR_BASE + stored.
 function readVisitors() {
   try {
     return Number(localStorage.getItem(VISITOR_KEY)) || 0;
@@ -829,7 +831,7 @@ function readVisitors() {
 }
 
 function VisitorCounter() {
-  const [count, setCount] = useState(readVisitors);
+  const [stored, setStored] = useState(readVisitors);
 
   useEffect(() => {
     try {
@@ -837,7 +839,7 @@ function VisitorCounter() {
       sessionStorage.setItem(VISITOR_SESSION_KEY, "1");
       const next = readVisitors() + 1;
       localStorage.setItem(VISITOR_KEY, String(next));
-      setCount(next);
+      setStored(next);
     } catch {
       /* storage unavailable: show the stored count without counting */
     }
@@ -845,7 +847,7 @@ function VisitorCounter() {
 
   return (
     <p className="mt-6 text-center font-mono text-xs text-faint sm:mt-8">
-      visitors: <span className="tabular-nums">{count}</span>
+      visitors: <span className="tabular-nums">{(VISITOR_BASE + stored).toLocaleString("en-US")}</span>
     </p>
   );
 }
