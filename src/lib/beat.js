@@ -8,7 +8,9 @@ let data = null;
 let current = null;
 
 const reducedMotion = () =>
-  typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  typeof window !== "undefined" &&
+  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches &&
+  !window.matchMedia?.("(hover: none)").matches;
 
 function notify() {
   listeners.forEach((fn) => fn(current !== null));

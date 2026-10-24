@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useDecorReduce } from "../lib/motion.js";
 import { Play, Pause, Disc } from "@phosphor-icons/react";
 import { beatPlay, beatStop } from "../lib/beat.js";
 
@@ -44,7 +44,7 @@ const NOTE_GLYPHS = ["🎵", "🎶", "♪"];
 // Music notes float up out of the player while the track plays. Spawns a note every ~900ms and removes it
 // once its animation ends. Nothing renders under reduced motion or while paused.
 function MusicNotes({ playing }) {
-  const reduce = useReducedMotion();
+  const reduce = useDecorReduce();
   const [notes, setNotes] = useState([]);
 
   useEffect(() => {

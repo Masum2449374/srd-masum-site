@@ -1,10 +1,10 @@
 import { useRef } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useDecorReduce } from "../lib/motion.js";
 
 // Gallery tilt: the photo leans toward the pointer. Mouse gets a stronger lean, touch a gentle one.
 // Resets on leave/release. Plain wrapper under reduced motion.
 export default function Tilt({ children }) {
-  const reduce = useReducedMotion();
+  const reduce = useDecorReduce();
   const ref = useRef(null);
 
   if (reduce) return <div className="overflow-hidden">{children}</div>;

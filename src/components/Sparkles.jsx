@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useDecorReduce } from "../lib/motion.js";
 
 // Faint floating sparkles drifting over the hero photo, like slow fireflies.
 // Pure CSS animation on a few positioned dots; fewer on small screens. Nothing under reduced motion.
 export default function Sparkles() {
-  const reduce = useReducedMotion();
+  const reduce = useDecorReduce();
 
   const dots = useMemo(() => {
     const count = typeof window !== "undefined" && window.innerWidth < 640 ? 8 : 16;

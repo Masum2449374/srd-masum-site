@@ -188,7 +188,7 @@
   animation-iteration-count: infinite;
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) and (hover: hover) {
   .review-track {
     animation: none !important;
   }

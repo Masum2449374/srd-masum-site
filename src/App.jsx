@@ -10,6 +10,7 @@ import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Tilt from "./components/Tilt.jsx";
 import Reviews from "./components/Reviews.jsx";
+import { useDecorReduce } from "./lib/motion.js";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 
@@ -202,7 +203,7 @@ function SectionHeader({ eyebrow, title }) {
 
 // Types text out one letter at a time. Starts after the intro loader on a first visit.
 function Typewriter({ text, delay = 0 }) {
-  const reduce = useReducedMotion();
+  const reduce = useDecorReduce();
   const [count, setCount] = useState(reduce ? text.length : 0);
   const [caret, setCaret] = useState(!reduce);
 

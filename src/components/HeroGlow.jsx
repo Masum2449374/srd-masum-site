@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useDecorReduce } from "../lib/motion.js";
 import { onBeatChange, getBass } from "../lib/beat.js";
 
 // Soft pink glow behind the hero photo that swells with the bass of the playing cover.
 // Driven straight on the DOM node each frame (no React re-renders); idle and reduced-motion render nothing.
 export default function HeroGlow() {
-  const reduce = useReducedMotion();
+  const reduce = useDecorReduce();
   const ref = useRef(null);
 
   useEffect(() => {

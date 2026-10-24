@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useReducedMotion } from "framer-motion";
+import { useDecorReduce } from "../lib/motion.js";
 import { Star, ChatCircleText } from "@phosphor-icons/react";
 import Reveal from "./Reveal.jsx";
 
@@ -65,7 +65,7 @@ function ReviewCard({ review }) {
 // Continuous loop: the list is repeated so the track is always wider than the screen.
 // The second copy is hidden from assistive tech and the loop resets seamlessly at -50%.
 function ReviewMarquee({ reviews }) {
-  const reduce = useReducedMotion();
+  const reduce = useDecorReduce();
   const [paused, setPaused] = useState(false);
 
   const items = useMemo(() => {
