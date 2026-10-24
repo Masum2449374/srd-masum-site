@@ -136,26 +136,28 @@
 }
 
 
-/* Whole-site beat reaction: each element below animates only opacity, transform or the scale
-   property, reading --beat. Phones use the same effect, with the smaller amplitude. */
-.beat-on .beat-photo {
-  scale: calc(1 + var(--beat, 0) * 0.025);
-  transition: scale 120ms linear;
-}
-.beat-on .beat-tilt {
-  rotate: calc(var(--beat, 0) * 1.5deg);
-}
-.beat-on .beat-hero {
-  transform: scale(calc(1 + var(--beat, 0) * 0.018));
-  transform-origin: left center;
-}
-.beat-on .beat-pop {
-  scale: calc(1 + var(--beat, 0) * 0.035);
+/* Desktop-only whole-site reaction. Phones (html.beat-lite, see the phone pass below) get none of these. */
+@media (hover: hover) and (pointer: fine) {
+  .beat-on .beat-photo {
+    scale: calc(1 + var(--beat, 0) * 0.025);
+    transition: scale 120ms linear;
+  }
+  .beat-on .beat-tilt {
+    rotate: calc(var(--beat, 0) * 1.5deg);
+  }
+  .beat-on .beat-hero {
+    transform: scale(calc(1 + var(--beat, 0) * 0.018));
+    transform-origin: left center;
+  }
+  .beat-on .beat-pop {
+    scale: calc(1 + var(--beat, 0) * 0.035);
+  }
 }
 .beat-glow {
   position: relative;
   isolation: isolate;
 }
+/* Card border glow: opacity and transform only (no animated box-shadow). Playing card on all devices. */
 .beat-glow::before {
   content: "";
   position: absolute;
@@ -169,7 +171,6 @@
 }
 .beat-on .beat-glow::before {
   opacity: calc(var(--beat, 0) * 0.9);
-  box-shadow: 0 0 22px rgba(255, 100, 200, 0.45);
 }
 
 @media (prefers-reduced-motion: reduce) and (hover: hover) {
@@ -465,6 +466,34 @@ html[data-hero-visible="false"] .hero-orb,
 html[data-hero-visible="false"] .vignette-pulse,
 html[data-hero-visible="false"] .sparkle,
 html[data-hero-visible="false"] .hero-title {
+  animation-play-state: paused !important;
+}
+
+/* ---- Phone performance pass ----
+   On phones only the playing card border and the floating notes react to the beat.
+   Everything else (gallery, buttons, social icons, hero title, reviews, press kit, background) stays still.
+   Bokeh orbs, the vignette, sparkles and the hero glow are off entirely on phones.
+   Snow shows while idle, aurora while a song plays. */
+html.beat-lite .beat-glow::before {
+  display: none !important;
+}
+html.beat-lite .beat-card::before {
+  opacity: calc(0.4 + var(--beat, 0) * 0.6);
+  transform: scale(calc(1 + var(--beat, 0) * 0.012));
+}
+@media (hover: none), (max-width: 639px) {
+  .hero-orb,
+  .vignette-pulse,
+  .sparkle,
+  .hero-glow {
+    display: none !important;
+  }
+}
+
+/* Background tabs never run their animations. */
+html[data-tab-hidden="true"] *,
+html[data-tab-hidden="true"] *::before,
+html[data-tab-hidden="true"] *::after {
   animation-play-state: paused !important;
 }
 

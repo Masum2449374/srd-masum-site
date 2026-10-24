@@ -1,7 +1,9 @@
 import { useEffect, useRef } from "react";
+import { onFrame } from "../lib/beat.js";
 
 // Soft pink light that follows the mouse. Desktop with a fine pointer only;
 // skipped entirely on touch devices and when the user prefers reduced motion.
+// Runs on the shared frame loop (onFrame in lib/beat.js) and only does work while the pointer is over the page.
 export default function CursorGlow() {
   const ref = useRef(null);
 
@@ -15,20 +17,23 @@ export default function CursorGlow() {
     let y = window.innerHeight / 2;
     let tx = x;
     let ty = y;
-    let raf = 0;
     let visible = false;
+    let settled = true;
 
-    const loop = () => {
+    const onFrameTick = () => {
+      if (!visible || document.hidden || settled) return;
       // Eased follow keeps the glow soft rather than snapping to the pointer.
       x += (tx - x) * 0.12;
       y += (ty - y) * 0.12;
       el.style.transform = `translate3d(${x - 200}px, ${y - 200}px, 0)`;
-      raf = requestAnimationFrame(loop);
+      settled = Math.abs(tx - x) < 0.5 && Math.abs(ty - y) < 0.5;
     };
+    const unFrame = onFrame(onFrameTick);
 
     const onMove = (e) => {
       tx = e.clientX;
       ty = e.clientY;
+      settled = false;
       if (!visible) {
         visible = true;
         el.style.opacity = "1";
@@ -41,10 +46,9 @@ export default function CursorGlow() {
 
     window.addEventListener("pointermove", onMove, { passive: true });
     document.documentElement.addEventListener("mouseleave", onLeave);
-    raf = requestAnimationFrame(loop);
 
     return () => {
-      cancelAnimationFrame(raf);
+      unFrame();
       window.removeEventListener("pointermove", onMove);
       document.documentElement.removeEventListener("mouseleave", onLeave);
     };

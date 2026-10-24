@@ -46,7 +46,7 @@ export default function HeroAurora() {
 
   const lite = isLiteDevice();
   const orbs = useMemo(() => {
-    const count = lite ? 4 : 13;
+    const count = lite ? 0 : 13;
     return Array.from({ length: count }, (_, i) => ({
       id: i,
       left: `${((i * 29) % 88) + 4}%`,
@@ -81,7 +81,7 @@ export default function HeroAurora() {
             }}
           />
         ))}
-        <span className="vignette-pulse" />
+        {!lite && <span className="vignette-pulse" />}
       </div>
     </>
   );

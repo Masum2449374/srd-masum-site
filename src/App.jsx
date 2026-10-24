@@ -71,8 +71,28 @@ function Countdown() {
   const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
+    // One tick per second, only while the tab is visible. It re-syncs on return instead of firing while hidden.
+    let id = 0;
+    const start = () => {
+      if (!id) id = setInterval(() => setNow(Date.now()), 1000);
+    };
+    const stop = () => {
+      if (id) clearInterval(id);
+      id = 0;
+    };
+    const onVis = () => {
+      if (document.hidden) stop();
+      else {
+        setNow(Date.now());
+        start();
+      }
+    };
+    if (!document.hidden) start();
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", onVis);
+    };
   }, []);
 
   const diff = Math.max(0, target - now);

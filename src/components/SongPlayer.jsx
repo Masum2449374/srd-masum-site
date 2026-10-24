@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useDecorReduce } from "../lib/motion.js";
 import { Play, Pause, Disc } from "@phosphor-icons/react";
-import { beatPlay, beatStop } from "../lib/beat.js";
+import { beatPlay, beatStop, onFrame } from "../lib/beat.js";
 
 function formatTime(sec) {
   if (!Number.isFinite(sec) || sec < 0) return "0:00";
@@ -43,6 +43,10 @@ const NOTE_GLYPHS = ["🎵", "🎶", "♪"];
 
 // Music notes float up out of the player while the track plays. Spawns a note every ~900ms and removes it
 // once its animation ends. Nothing renders under reduced motion or while paused.
+// Notes are spawned and expired from the shared BeatField frame loop (onFrame), not from their own
+// setInterval/setTimeout, so there is one timer on the page while a song plays.
+const NOTE_EVERY_MS = 900;
+const NOTE_LIFE_MS = 2700;
 function MusicNotes({ playing }) {
   const reduce = useDecorReduce();
   const [notes, setNotes] = useState([]);
@@ -53,29 +57,31 @@ function MusicNotes({ playing }) {
       return;
     }
     let n = 0;
-    const removals = new Set();
-    const id = setInterval(() => {
-      if (document.hidden) return; // no notes while the tab is hidden
-      n += 1;
-      const note = {
-        key: n,
-        glyph: NOTE_GLYPHS[n % NOTE_GLYPHS.length],
-        left: 8 + Math.random() * 84,
-        drift: `${(Math.random() - 0.5) * 60}px`,
-        spin: `${(Math.random() - 0.5) * 40}deg`,
-        size: 14 + Math.round(Math.random() * 8),
-      };
-      setNotes((list) => [...list.slice(-6), note]);
-      const t = setTimeout(() => {
-        removals.delete(t);
-        setNotes((list) => list.filter((x) => x.key !== note.key));
-      }, 2700);
-      removals.add(t);
-    }, 900);
-    return () => {
-      clearInterval(id);
-      removals.forEach(clearTimeout);
-    };
+    let last = 0;
+    return onFrame((now) => {
+      if (document.hidden) return;
+      if (!last) last = now;
+      if (now - last >= NOTE_EVERY_MS) {
+        last = now;
+        n += 1;
+        const note = {
+          key: n,
+          born: now,
+          glyph: NOTE_GLYPHS[n % NOTE_GLYPHS.length],
+          left: 8 + Math.random() * 84,
+          drift: `${(Math.random() - 0.5) * 60}px`,
+          spin: `${(Math.random() - 0.5) * 40}deg`,
+          size: 14 + Math.round(Math.random() * 8),
+        };
+        setNotes((list) => [...list.filter((x) => now - x.born < NOTE_LIFE_MS).slice(-5), note]);
+      } else {
+        // Expire old notes, but only touch state when one actually leaves (avoids a render every frame).
+        setNotes((list) => {
+          const kept = list.filter((x) => now - x.born < NOTE_LIFE_MS);
+          return kept.length === list.length ? list : kept;
+        });
+      }
+    });
   }, [playing, reduce]);
 
   if (reduce || notes.length === 0) return null;

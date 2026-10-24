@@ -19,7 +19,7 @@ export default function Sparkles() {
     }));
   }, [lite]);
 
-  if (reduce) return null;
+  if (reduce || lite) return null;
   return (
     <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       {dots.map((d) => (

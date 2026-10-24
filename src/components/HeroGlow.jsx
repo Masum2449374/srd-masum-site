@@ -1,55 +1,15 @@
-import { useEffect, useRef } from "react";
 import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
-import { onBeatChange, getBass } from "../lib/beat.js";
 
-// Soft pink glow behind the hero photo that swells with the bass of the playing cover.
-// Driven straight on the DOM node each frame (no React re-renders); idle and reduced-motion render nothing.
+// Soft pink glow behind the hero photo. It swells with --beat through CSS (.beat-on .hero-glow in index.css),
+// so it needs no loop of its own. Desktop only: phones skip it because of the blur.
 export default function HeroGlow() {
   const reduce = useDecorReduce();
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (reduce) return;
-    const el = ref.current;
-    if (!el) return;
-    let raf = 0;
-    let level = 0;
-    let playing = false;
-    let tick = 0;
-    const lite = isLiteDevice();
-
-    const frame = () => {
-      // On phones the beat is sampled and applied at 30fps instead of 60fps (cheaper, looks the same).
-      tick += 1;
-      if (!lite || tick % 2 === 0) {
-        const target = playing ? getBass() : 0;
-        level += (target - level) * (target > level ? 0.5 : 0.12);
-        // Only while a track plays: the glow is off on the idle hero, so the photo stays clear.
-        const base = playing ? 0.22 : 0;
-        el.style.opacity = String(Math.min(1, base + level * 1.2));
-        el.style.transform = `scale(${1 + level * 0.12})`;
-      }
-      raf = playing || level > 0.002 ? requestAnimationFrame(frame) : 0;
-    };
-
-    const unsubscribe = onBeatChange((p) => {
-      playing = p;
-      if (p && !raf) raf = requestAnimationFrame(frame);
-    });
-    return () => {
-      unsubscribe();
-      cancelAnimationFrame(raf);
-    };
-  }, [reduce]);
-
-  if (reduce) return null;
+  if (reduce || isLiteDevice()) return null;
   return (
     <div
-      ref={ref}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-[10%] -z-10 h-[70%] top-[10%] rounded-full blur-3xl"
+      className="hero-glow pointer-events-none absolute inset-x-[10%] -z-10 h-[70%] top-[10%] rounded-full blur-3xl"
       style={{
-        opacity: 0,
         background: "radial-gradient(closest-side, rgba(255,100,200,0.55), rgba(255,100,200,0) 100%)",
       }}
     />
