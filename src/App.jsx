@@ -116,7 +116,7 @@ function Countdown() {
   return (
     <ul className="grid grid-cols-4 gap-3 sm:gap-5">
       {units.map((u) => (
-        <li key={u.label} className="shine-tile glow-hover relative flex flex-col items-center overflow-hidden rounded-2xl bg-raised px-2 py-5 ring-1 ring-hairline sm:py-7">
+        <li key={u.label} className="shine-tile glow-hover pro-card relative flex flex-col items-center overflow-hidden rounded-2xl bg-raised px-2 py-5 ring-1 ring-hairline sm:py-7">
           <motion.span
             key={u.value}
             initial={reduce ? false : { scale: 1.12, opacity: 0.55 }}
@@ -177,7 +177,7 @@ function FanMessage() {
           <SectionHeader eyebrow="Fans" title="Send a message" />
         </Reveal>
         <Reveal delay={0.08}>
-          <form onSubmit={submit} noValidate className="flex max-w-2xl flex-col gap-5 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:p-10">
+          <form onSubmit={submit} noValidate className="pro-card flex max-w-2xl flex-col gap-5 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:p-10">
             <label className="flex flex-col text-sm font-medium text-muted">
               Your name
               <input
@@ -220,9 +220,9 @@ function FanMessage() {
 
 function SectionHeader({ eyebrow, title }) {
   return (
-    <div className="mb-8 sm:mb-10">
-      <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
-      <h2 className="mt-3 font-display text-3xl tracking-display sm:text-5xl">{title}</h2>
+    <div className="mb-10 border-b border-hairline pb-8 sm:mb-14 sm:pb-10">
+      <p className="eyebrow">{eyebrow}</p>
+      <h2 className="mt-4 font-display text-3xl leading-[1.05] tracking-display sm:text-5xl">{title}</h2>
     </div>
   );
 }
@@ -275,6 +275,7 @@ function Hero() {
         className="absolute inset-x-0 -top-[12%] -z-10 h-[124%] w-full object-cover object-top opacity-60 will-change-transform"
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
+      <div className="hero-blend" aria-hidden="true" />
       <HeroGlow />
       <HeroAurora />
       <Sparkles />
@@ -284,7 +285,7 @@ function Hero() {
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={spring}
-          className="font-mono text-xs uppercase tracking-[0.25em] text-muted"
+          className="eyebrow"
         >
           Artist · Songs · Sound
         </motion.p>
@@ -295,7 +296,7 @@ function Hero() {
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.35 }}
-          className="mt-6 max-w-xl text-lg text-muted sm:text-xl"
+          className="mt-6 max-w-[34rem] text-base leading-relaxed text-muted sm:text-xl sm:leading-relaxed"
         >
           Music made to be played loud, late, and on repeat. Every new track lands here first.
         </motion.p>
@@ -307,7 +308,7 @@ function Hero() {
         >
           <a
             href="#featured"
-            className="glow-hover beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+            className="glow-hover pro-btn beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
           >
             Listen now
           </a>
@@ -315,7 +316,7 @@ function Hero() {
             href={CHANNEL_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="glow-hover beat-pop inline-flex items-center gap-2 rounded-full border border-hairline bg-raised px-6 py-3 text-sm font-medium text-ink transition-colors duration-200 hover:bg-sunk"
+            className="glow-hover pro-btn beat-pop inline-flex items-center gap-2 rounded-full border border-hairline bg-raised px-6 py-3 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-sunk"
           >
             Watch on YouTube
             <ArrowUpRight size={16} aria-hidden="true" />
@@ -800,8 +801,8 @@ function Contact() {
       <div className="mx-auto max-w-6xl">
         <Reveal className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:flex-row sm:items-center sm:justify-between sm:p-12">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Get in touch</p>
-            <h2 className="mt-3 font-display text-3xl tracking-display sm:text-5xl">Contact</h2>
+            <p className="eyebrow">Get in touch</p>
+            <h2 className="mt-4 font-display text-3xl leading-[1.05] tracking-display sm:text-5xl">Contact</h2>
             <a
               href={`mailto:${CONTACT_EMAIL}`}
               className="mt-5 inline-flex items-center gap-3 break-all text-lg font-medium text-ink underline decoration-accent decoration-2 underline-offset-8 transition-colors hover:text-accent sm:text-xl"
@@ -876,13 +877,17 @@ function VisitorCounter() {
 
 function Footer() {
   return (
-    <footer className="border-t border-hairline bg-sunk px-5 py-10 sm:px-8">
-      <div className="mx-auto flex max-w-6xl flex-col gap-4 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-        <p className="flex items-center gap-2">
-          <Disc size={18} aria-hidden="true" className="text-accent" />
-          © {YEAR} SRD Masum. All rights reserved.
-        </p>
-        <div className="flex items-center gap-2">
+    <footer className="border-t border-hairline bg-sunk px-5 pb-10 pt-12 sm:px-8 sm:pt-14">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3">
+          <p className="flex items-center gap-2 font-display text-xl tracking-display text-ink">
+            <Disc size={20} aria-hidden="true" className="text-accent" />
+            SRD Masum
+          </p>
+          <p className="max-w-xs text-sm leading-relaxed text-muted">Music made to be played loud, late, and on repeat.</p>
+          <p className="text-xs text-faint">© {YEAR} SRD Masum. All rights reserved.</p>
+        </div>
+        <div className="flex items-center gap-2.5">
           {[
             { key: "instagram", label: "Instagram", Icon: InstagramLogo },
             { key: "facebook", label: "Facebook", Icon: FacebookLogo },
@@ -895,7 +900,7 @@ function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${label} (opens in a new tab)`}
-              className="glow-hover beat-pop inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
+              className="glow-hover pro-btn beat-pop inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
             >
               <Icon size={18} aria-hidden="true" />
             </a>

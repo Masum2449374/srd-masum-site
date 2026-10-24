@@ -49,7 +49,7 @@ export default function Nav() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/85 backdrop-blur-xl">
+    <header className="pro-nav sticky top-0 z-40 border-b border-hairline">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
         <a href="#top" className="flex items-center gap-2 font-display text-lg tracking-display">
           <img src="/images/avatar.jpg" alt="" aria-hidden="true" width="34" height="34" className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-accent" />
@@ -89,7 +89,7 @@ export default function Nav() {
             onClick={toggleTheme}
             aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
             title={theme === "dark" ? "Light theme" : "Dark theme"}
-            className="glow-hover inline-flex h-9 w-9 items-center justify-center rounded-full text-muted ring-1 ring-hairline transition-colors duration-200 hover:text-ink active:scale-[0.92]"
+            className="glow-hover pro-btn inline-flex h-9 w-9 items-center justify-center rounded-full text-muted ring-1 ring-hairline transition-colors duration-200 hover:text-ink active:scale-[0.92]"
           >
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
@@ -110,7 +110,7 @@ export default function Nav() {
           href={CHANNEL_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-accent px-3 py-2 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97] sm:px-4"
+          className="pro-btn inline-flex shrink-0 items-center gap-2 rounded-full bg-accent px-3 py-2 text-sm font-semibold text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97] sm:px-4"
         >
           <YoutubeLogo weight="fill" size={18} aria-hidden="true" />
           <span className="hidden sm:inline">YouTube</span>

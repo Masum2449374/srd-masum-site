@@ -36,7 +36,139 @@
     outline-offset: 3px;
     border-radius: 6px;
   }
+  body {
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
 }
+
+/* Pro polish: selection colour, scrollbar, eyebrow rhythm, pill buttons, nav glass, cards. Visual only. */
+::selection {
+  background: rgba(255, 100, 200, 0.42);
+  color: #fff;
+}
+html {
+  scrollbar-color: rgba(255, 100, 200, 0.55) rgb(var(--canvas));
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(var(--canvas));
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 100, 200, 0.45);
+  border-radius: 999px;
+  border: 2px solid rgb(var(--canvas));
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 100, 200, 0.7);
+}
+
+/* Section eyebrow with a thin accent rule beside it. */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.75rem;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #ff64c8;
+}
+.eyebrow::after {
+  content: "";
+  width: 2.5rem;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 100, 200, 0.9), rgba(255, 100, 200, 0));
+}
+
+/* Pill buttons: subtle gradient ring plus a soft lift on hover and a press-in on active. */
+.pro-btn {
+  position: relative;
+  isolation: isolate;
+  letter-spacing: 0.01em;
+  transition: transform 200ms ease, box-shadow 300ms ease, background-color 200ms ease, color 200ms ease;
+}
+.pro-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0) 55%, rgba(255, 100, 200, 0.5));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: -1;
+}
+.pro-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+.pro-btn:focus-visible {
+  outline-offset: 4px;
+}
+
+/* Cards: one radius, a hairline border and soft elevation on dark. */
+.pro-card {
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px -24px rgba(0, 0, 0, 0.7);
+}
+:root.light .pro-card {
+  box-shadow: 0 18px 40px -28px rgba(40, 20, 30, 0.35);
+}
+
+/* Nav: glassy, slightly brighter bottom edge while the page scrolls under it. */
+.pro-nav {
+  background: linear-gradient(180deg, rgb(var(--canvas) / 0.92), rgb(var(--canvas) / 0.78));
+  -webkit-backdrop-filter: saturate(140%) blur(18px);
+  backdrop-filter: saturate(140%) blur(18px);
+  box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.8);
+}
+
+/* Hero bottom blend so the hero melts into the next section. */
+.hero-blend {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 9rem;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(14, 13, 12, 0), rgb(var(--canvas)));
+  z-index: -1;
+}
+:root.light .hero-blend {
+  background: linear-gradient(180deg, rgba(250, 248, 245, 0), rgb(var(--canvas)));
+}
+
+/* Footer link pills. */
+.foot-link {
+  transition: color 200ms ease;
+}
+.foot-link:hover {
+  color: #ff64c8;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pro-btn,
+  .foot-link {
+    transition: none !important;
+  }
+}
+
 
 .seek {
   -webkit-appearance: none;
