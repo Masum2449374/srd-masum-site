@@ -15,6 +15,7 @@ import Reviews from "./components/Reviews.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_PLAYLIST_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
+import { AUDIO_TRACKS } from "./data/songs.js";
 
 const YEAR = new Date().getFullYear();
 
@@ -324,19 +325,15 @@ const SONGS = [
   { id: "jSkBtDg-8lg", title: "Sajan Tumse Pyar Ki Ladai Mein", film: "Maine Pyar Kyun Kiya (2005)" },
 ];
 
-const AUDIO_TRACKS = [
-  { id: "laal-cover", title: "Laal Dupatta (Cover)", sub: "SRD Masum · own recording", src: "/audio/laal-dupatta-cover.mp3" },
-];
-
-function Songs() {
+function AudioSongs() {
   const [activeTrack, setActiveTrack] = useState(null);
+  if (AUDIO_TRACKS.length === 0) return null;
   return (
-    <section id="songs" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="audio-songs" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <SectionHeader eyebrow="Bollywood" title="Songs" />
+          <SectionHeader eyebrow="Listen" title="Audio Songs" />
         </Reveal>
-
         <div className="flex flex-col gap-3">
           {AUDIO_TRACKS.map((t) => (
             <Reveal key={t.id}>
@@ -344,6 +341,18 @@ function Songs() {
             </Reveal>
           ))}
         </div>
+      </div>
+    </section>
+  );
+}
+
+function Songs() {
+  return (
+    <section id="songs" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="Bollywood" title="Songs" />
+        </Reveal>
 
         <ul className="mt-10 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:gap-x-6">
           {SONGS.map((s, i) => (
@@ -861,12 +870,13 @@ export default function App() {
       <Nav />
       <main>
         <Hero />
+        <AudioSongs />
         <Featured />
+        <Videos />
         <Music />
         <NewRelease />
         <Songs />
         <Gallery />
-        <Videos />
         <PressKit />
         <Reviews />
         <FanMessage />
