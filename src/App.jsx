@@ -27,11 +27,11 @@ const RELEASE_DATE = "2026-12-01T00:00:00";
 const RELEASE_NAME = "Next single";
 
 // Photo intro: the portrait in a round frame with a soft pink glow ring, then the name fades in,
-// then the screen slides away into the hero. Shows once per session, tap anywhere to skip, max ~2.5s.
+// then the screen slides away into the hero. Shows once per session, tap anywhere to skip, max ~1.5s.
 // Only transform and opacity animate (one small image, no blur filters, no animated shadows).
-const INTRO_HOLD_MS = 2000; // how long the intro stays before it starts leaving
-const INTRO_EXIT_S = 0.5; // leave animation, so the intro is gone by ~2.5s
-const INTRO_TYPE_DELAY_MS = 2500; // first-visit typewriter starts once the intro has gone
+const INTRO_HOLD_MS = 1200; // how long the intro stays before it starts leaving
+const INTRO_EXIT_S = 0.3; // leave animation, so the intro is gone by ~1.5s
+const INTRO_TYPE_DELAY_MS = 1500; // first-visit typewriter starts once the intro has gone
 
 function IntroLoader() {
   const reduce = useReducedMotion();
@@ -307,7 +307,7 @@ function Hero() {
   const { scrollY } = useScroll();
   // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
   const parallaxY = useTransform(scrollY, [0, 900], [0, 120]);
-  // On a first visit the intro covers the page for about 2.5s, so the typing waits for it.
+  // On a first visit the intro covers the page for about 1.5s, so the typing waits for it.
   const [introDelay] = useState(() => (sessionStorage.getItem("srd-intro-seen") ? 250 : INTRO_TYPE_DELAY_MS));
   return (
     <section id="top" className="relative isolate overflow-hidden">
