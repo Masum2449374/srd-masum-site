@@ -14,7 +14,7 @@ import Tilt from "./components/Tilt.jsx";
 import Reviews from "./components/Reviews.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
-import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
+import { VIDEO_IDS, FEATURED_PLAYLIST_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 
 const YEAR = new Date().getFullYear();
 
@@ -311,7 +311,7 @@ function Featured() {
           <SectionHeader eyebrow="Now playing" title="Featured" />
         </Reveal>
         <Reveal delay={0.08}>
-          <Embed id={FEATURED_VIDEO_ID} title="SRD Masum featured video" />
+          <Embed playlist={FEATURED_PLAYLIST_ID} title="SRD Masum featured playlist" />
         </Reveal>
       </div>
     </section>

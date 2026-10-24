@@ -6,6 +6,9 @@ export const VIDEO_IDS = [
 
 export const FEATURED_VIDEO_ID = "Ao9Z_IXdZqM";
 
+// Featured player at the top of the page: the YouTube playlist (embedded as a playlist, not a single video).
+export const FEATURED_PLAYLIST_ID = "OLAK5uy_mPxj3ANcoF9xRYFMMzeaiLIZAkvw1Olzs";
+
 export const CHANNEL_URL = "https://youtube.com/@srdmasum?si=EgLd4eojzSV-ykga";
 export const CONTACT_EMAIL = "srdmasum286381@gmail.com";
 
