@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, LayoutGroup } from "framer-motion";
-import { MusicNotes, YoutubeLogo, ArrowUpRight } from "@phosphor-icons/react";
+import { YoutubeLogo, ArrowUpRight } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
 import { CHANNEL_URL } from "../data/videos.js";
 
@@ -33,8 +33,18 @@ export default function Nav() {
     <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
         <a href="#top" className="flex items-center gap-2 font-display text-lg tracking-display">
-          <MusicNotes weight="fill" className="text-accent" size={20} aria-hidden="true" />
-          SRD Masum
+          <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true" className="shrink-0">
+            <circle cx="20" cy="20" r="19" fill="#0b0b0f" stroke="currentColor" strokeWidth="1.5" className="text-accent" />
+            <circle cx="20" cy="20" r="15.5" fill="none" stroke="currentColor" strokeWidth="0.6" opacity="0.5" className="text-accent" />
+            <g fill="currentColor" className="text-accent">
+              <ellipse cx="17" cy="26" rx="3.6" ry="2.8" transform="rotate(-20 17 26)" />
+              <ellipse cx="25" cy="23.5" rx="3.6" ry="2.8" transform="rotate(-20 25 23.5)" />
+              <rect x="19.6" y="12" width="1.8" height="13" />
+              <rect x="27.4" y="9.5" width="1.8" height="13" />
+              <path d="M19.6 12 L29.2 9.5 L29.2 13 L19.6 15.5 Z" />
+            </g>
+          </svg>
+          <span>SRD <span className="text-accent">Masum</span></span>
         </a>
 
         <LayoutGroup id="nav">

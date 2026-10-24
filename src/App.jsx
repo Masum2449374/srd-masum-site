@@ -23,12 +23,12 @@ function Hero() {
   return (
     <section id="top" className="relative isolate overflow-hidden">
       <img
-        src="/images/hero.jpg"
+        src="/images/hero-photo.jpg"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 -z-10 h-full w-full object-cover opacity-40"
+        className="absolute inset-0 -z-10 h-full w-full object-cover object-top opacity-60"
       />
-      <div className="absolute inset-0 -z-10 bg-canvas/70" aria-hidden="true" />
+      <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 sm:px-8 sm:pb-24">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
