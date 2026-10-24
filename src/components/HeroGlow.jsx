@@ -24,7 +24,8 @@ export default function HeroGlow() {
       if (!lite || tick % 2 === 0) {
         const target = playing ? getBass() : 0;
         level += (target - level) * (target > level ? 0.5 : 0.12);
-        el.style.opacity = String(Math.min(1, level * 1.4));
+        // Idle floor of 0.22 keeps a soft pink glow on screen with no song; the bass swells it on top.
+        el.style.opacity = String(Math.min(1, 0.22 + level * 1.2));
         el.style.transform = `scale(${1 + level * 0.12})`;
       }
       raf = playing || level > 0.002 ? requestAnimationFrame(frame) : 0;
@@ -45,8 +46,11 @@ export default function HeroGlow() {
     <div
       ref={ref}
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-[10%] -z-10 h-[70%] top-[10%] rounded-full opacity-0 blur-3xl"
-      style={{ background: "radial-gradient(closest-side, rgba(255,100,200,0.55), rgba(255,100,200,0) 100%)" }}
+      className="pointer-events-none absolute inset-x-[10%] -z-10 h-[70%] top-[10%] rounded-full blur-3xl"
+      style={{
+        opacity: 0.22,
+        background: "radial-gradient(closest-side, rgba(255,100,200,0.55), rgba(255,100,200,0) 100%)",
+      }}
     />
   );
 }

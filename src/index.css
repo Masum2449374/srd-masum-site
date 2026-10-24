@@ -223,13 +223,15 @@ html[data-hero-playing="true"] .sparkle {
 .vignette-pulse {
   pointer-events: none;
 }
+/* Idle (no song): the aurora drifts very slowly at low strength. Playing turns it up (rules below). */
 .aurora-layer {
   position: absolute;
   inset: -25%;
-  opacity: 0;
+  opacity: 0.4;
   mix-blend-mode: screen;
   filter: blur(36px);
   transition: opacity 1.6s ease;
+  animation: aurora-drift 34s ease-in-out infinite alternate, aurora-breathe 12s ease-in-out infinite;
 }
 .aurora-a { background: radial-gradient(ellipse 60% 45% at 30% 35%, rgba(255, 100, 200, 0.55), transparent 70%); }
 .aurora-b { background: radial-gradient(ellipse 55% 50% at 70% 60%, rgba(139, 92, 246, 0.5), transparent 70%); }
@@ -254,7 +256,10 @@ html[data-hero-playing="true"] .aurora-c { animation-duration: 21s, 8s; }
   position: absolute;
   bottom: -8%;
   border-radius: 9999px;
-  opacity: 0;
+  opacity: calc(var(--o, 0.6) * 0.4);
+  animation-name: orb-rise;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
   filter: blur(1px);
   transition: opacity 0.9s ease;
   background: radial-gradient(circle, rgba(255, 236, 214, 0.95) 0%, rgba(255, 150, 210, 0.5) 35%, rgba(255, 100, 200, 0) 70%);
@@ -277,16 +282,14 @@ html[data-hero-playing="true"] .aurora-c { animation-duration: 21s, 8s; }
 }
 html[data-hero-playing="true"] .hero-orb {
   opacity: var(--o, 0.6);
-  animation-name: orb-rise;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
 }
 
 /* Edge vignette that breathes while a track plays. */
 .vignette-pulse {
   position: absolute;
   inset: 0;
-  opacity: 0;
+  opacity: 0.6;
+  animation: vignette-pulse 9s ease-in-out infinite;
   transition: opacity 1.2s ease;
   background: radial-gradient(ellipse at 50% 45%, transparent 50%, rgba(255, 100, 200, 0.14) 78%, rgba(22, 4, 34, 0.72) 100%);
 }
