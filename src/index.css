@@ -18,7 +18,46 @@
   }
 }
 
+.seek {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  cursor: pointer;
+  outline-offset: 6px;
+}
+.seek::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #ff64c8;
+  border: 0;
+  box-shadow: 0 0 0 4px rgba(255, 100, 200, 0.2);
+  transition: transform 150ms ease;
+}
+.seek:active::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+.seek::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 0;
+  border-radius: 50%;
+  background: #ff64c8;
+  box-shadow: 0 0 0 4px rgba(255, 100, 200, 0.2);
+}
+.seek::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .seek::-webkit-slider-thumb {
+    transition: none;
+  }
   html {
     scroll-behavior: auto;
   }

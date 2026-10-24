@@ -4,6 +4,7 @@ import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc } from "@phosphor-icons
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
+import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL } from "./data/videos.js";
 
 const YEAR = new Date().getFullYear();
@@ -109,47 +110,34 @@ const SONGS = [
   { id: "jSkBtDg-8lg", title: "Sajan Tumse Pyar Ki Ladai Mein", film: "Maine Pyar Kyun Kiya (2005)" },
 ];
 
+const AUDIO_TRACKS = [
+  { id: "laal-cover", title: "Laal Dupatta (Cover)", sub: "SRD Masum · own recording", src: "/audio/laal-dupatta-cover.mp3" },
+];
+
 function Songs() {
+  const [activeTrack, setActiveTrack] = useState(null);
   return (
     <section id="songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Bollywood" title="Songs" />
         </Reveal>
-        <ul className="grid gap-6 sm:grid-cols-2">
-          <Reveal as="li">
-            <p className="mb-3 font-medium text-ink">
-              Laal Dupatta - cover <span className="font-mono text-xs text-muted">· own recording</span>
-            </p>
-            <div className="rounded-xl bg-sunk p-4 ring-1 ring-hairline">
-              <audio
-                controls
-                preload="none"
-                src="/audio/laal-dupatta-cover.mp3"
-                className="w-full"
-                aria-label="Laal Dupatta cover by SRD Masum"
-              >
-                Your browser does not support audio playback.
-              </audio>
-            </div>
-          </Reveal>
+
+        <div className="flex flex-col gap-3">
+          {AUDIO_TRACKS.map((t) => (
+            <Reveal key={t.id}>
+              <AudioTrack track={t} active={activeTrack === t.id} setActive={setActiveTrack} />
+            </Reveal>
+          ))}
+        </div>
+
+        <ul className="mt-10 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:gap-x-6">
           {SONGS.map((s, i) => (
             <Reveal as="li" key={s.id} delay={(i % 2) * 0.08}>
-              <p className="mb-3 font-medium text-ink">
-                {s.title} <span className="font-mono text-xs text-muted">· {s.film}</span>
-              </p>
-              <div className="aspect-video overflow-hidden rounded-xl ring-1 ring-hairline">
-                <iframe
-                  title={`${s.title} official video on YouTube`}
-                  src={`https://www.youtube.com/embed/${s.id}`}
-                  width="100%"
-                  height="100%"
-                  loading="lazy"
-                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="block h-full w-full border-0"
-                />
-              </div>
+              <VideoCard
+                id={s.id}
+                title={`${s.title} · ${s.film}`}
+              />
             </Reveal>
           ))}
         </ul>
