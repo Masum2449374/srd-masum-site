@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import CursorGlow from "./components/CursorGlow.jsx";
 import { fireConfetti } from "./lib/confetti.js";
@@ -408,8 +408,137 @@ function Gallery() {
   );
 }
 
-function Videos() {
+function VideoCarousel() {
   const reduce = useReducedMotion();
+  const trackRef = useRef(null);
+  const drag = useRef(null);
+  const [index, setIndex] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [scrollable, setScrollable] = useState(false);
+
+  const cards = () => Array.from(trackRef.current?.children ?? []);
+
+  const measure = () => {
+    const el = trackRef.current;
+    if (!el) return;
+    setScrollable(el.scrollWidth - el.clientWidth > 4);
+    const max = el.scrollWidth - el.clientWidth;
+    const count = cards().length;
+    if (max <= 0 || count < 2) return setIndex(0);
+    if (el.scrollLeft >= max - 4) return setIndex(count - 1);
+    const pos = el.scrollLeft;
+    let best = 0;
+    cards().forEach((c, i) => {
+      if (Math.abs(c.offsetLeft - pos) < Math.abs(cards()[best].offsetLeft - pos)) best = i;
+    });
+    setIndex(best);
+  };
+
+  useEffect(() => {
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const goTo = (i) => {
+    const el = trackRef.current;
+    const target = cards()[i];
+    if (!el || !target) return;
+    el.scrollTo({ left: target.offsetLeft, behavior: reduce ? "auto" : "smooth" });
+  };
+
+  const onPointerDown = (e) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    drag.current = { x: e.clientX, left: trackRef.current.scrollLeft, moved: false, startIndex: index };
+    trackRef.current.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e) => {
+    const d = drag.current;
+    if (!d) return;
+    const dx = e.clientX - d.x;
+    if (!d.moved && Math.abs(dx) < 6) return;
+    if (!d.moved) {
+      d.moved = true;
+      setDragging(true);
+    }
+    trackRef.current.scrollLeft = d.left - dx;
+  };
+
+  const endDrag = (e) => {
+    const d = drag.current;
+    drag.current = null;
+    if (!d || !d.moved) return;
+    const el = trackRef.current;
+    const dx = e.clientX - d.x;
+    const max = el.scrollWidth - el.clientWidth;
+    let next;
+    if (Math.abs(dx) > 40) {
+      next = dx < 0 ? d.startIndex + 1 : d.startIndex - 1;
+    } else {
+      next = d.startIndex;
+    }
+    next = Math.min(cards().length - 1, Math.max(0, next));
+    if (max <= 0) next = 0;
+    setDragging(false);
+    goTo(next);
+  };
+
+  return (
+    <div className="-mx-5 sm:-mx-8 lg:mx-0">
+      <ul
+        ref={trackRef}
+        onScroll={measure}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        style={{ scrollSnapType: dragging ? "none" : "x mandatory" }}
+        className={`flex snap-x gap-6 overflow-x-auto px-5 pb-2 sm:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+          scrollable ? "cursor-grab active:cursor-grabbing" : ""
+        } ${dragging ? "select-none [&_iframe]:pointer-events-none" : ""}`}
+      >
+        {VIDEO_IDS.map((id, i) => (
+          <motion.li
+            key={id}
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ ...spring, delay: (i % 3) * 0.08 }}
+            className="w-[85%] shrink-0 snap-start sm:w-[calc((100%-1.5rem)/2)] lg:w-[calc((100%-3rem)/3)]"
+          >
+            <Embed id={id} title={`SRD Masum video ${i + 1}`} />
+          </motion.li>
+        ))}
+      </ul>
+      {scrollable && (
+        <div className="mt-6 flex items-center justify-center gap-2">
+          {VIDEO_IDS.map((id, i) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => goTo(i)}
+              aria-label={`Show video ${i + 1}`}
+              aria-current={index === i ? "true" : undefined}
+              className="relative flex h-6 w-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <span className="h-2 w-2 rounded-full bg-hairline transition-colors duration-200" />
+              {index === i && (
+                <motion.span
+                  layoutId="video-dot"
+                  transition={reduce ? { duration: 0 } : spring}
+                  className="absolute h-2 w-2 rounded-full bg-accent"
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Videos() {
   return (
     <section id="videos" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
@@ -428,19 +557,7 @@ function Videos() {
             </a>
           </div>
         </Reveal>
-        <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {VIDEO_IDS.map((id, i) => (
-            <motion.li
-              key={id}
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ ...spring, delay: (i % 3) * 0.08 }}
-            >
-              <Embed id={id} title={`SRD Masum video ${i + 1}`} />
-            </motion.li>
-          ))}
-        </ul>
+        <VideoCarousel />
       </div>
     </section>
   );
