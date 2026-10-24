@@ -8,6 +8,35 @@ function formatTime(sec) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+// Animated bars shown beside the title while the track plays. Pure CSS; static under reduced motion.
+const EQ_BARS = [
+  { delay: "0s", dur: "0.9s" },
+  { delay: "0.2s", dur: "0.7s" },
+  { delay: "0.4s", dur: "1.1s" },
+  { delay: "0.1s", dur: "0.8s" },
+];
+function Equalizer({ playing }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`eq inline-flex h-3.5 shrink-0 items-end gap-[3px] ${playing ? "" : "opacity-40"}`}
+    >
+      {EQ_BARS.map((b, i) => (
+        <span
+          key={i}
+          className={`w-[3px] rounded-sm bg-accent ${playing ? "eq-bar" : ""}`}
+          style={{
+            height: "100%",
+            animationDelay: b.delay,
+            animationDuration: b.dur,
+            transform: playing ? undefined : "scaleY(0.3)",
+          }}
+        />
+      ))}
+    </span>
+  );
+}
+
 // One audio track: custom row, circular play button, custom seek bar.
 // Uses a native HTML5 <audio> element underneath; only one track plays at a time.
 export function AudioTrack({ track, active, setActive }) {
@@ -51,7 +80,10 @@ export function AudioTrack({ track, active, setActive }) {
           <Disc size={26} weight="duotone" className="text-ink/80" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-body text-base font-semibold text-ink">{track.title}</p>
+          <p className="flex items-center gap-2 truncate font-body text-base font-semibold text-ink">
+            <span className="truncate">{track.title}</span>
+            <Equalizer playing={playing} />
+          </p>
           <p className="truncate font-mono text-xs uppercase tracking-wider text-muted">{track.sub}</p>
         </div>
         <button

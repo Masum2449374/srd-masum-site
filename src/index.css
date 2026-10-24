@@ -62,3 +62,36 @@
     scroll-behavior: auto;
   }
 }
+
+/* Hover glow: soft pink halo on buttons and cards. Desktop pointers only, so touch devices get no sticky glow. */
+@media (hover: hover) and (pointer: fine) {
+  .glow-hover {
+    transition: box-shadow 300ms ease, transform 200ms ease, background-color 200ms ease, color 200ms ease;
+  }
+  .glow-hover:hover {
+    box-shadow: 0 0 0 1px rgba(255, 100, 200, 0.35), 0 8px 30px -6px rgba(255, 100, 200, 0.45);
+  }
+}
+
+/* Equalizer: bars bounce while the track plays. */
+@keyframes eq-bounce {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+.eq-bar {
+  transform-origin: bottom;
+  animation-name: eq-bounce;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eq-bar {
+    animation: none !important;
+    transform: scaleY(0.6) !important;
+  }
+  .glow-hover {
+    transition: none;
+  }
+}
+

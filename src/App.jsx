@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import CursorGlow from "./components/CursorGlow.jsx";
+import { fireConfetti } from "./lib/confetti.js";
 import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, SpotifyLogo } from "@phosphor-icons/react";
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
@@ -55,6 +57,7 @@ function IntroLoader() {
 }
 
 function Countdown() {
+  const reduce = useReducedMotion();
   const target = new Date(RELEASE_DATE).getTime();
   const [now, setNow] = useState(() => Date.now());
 
@@ -82,10 +85,16 @@ function Countdown() {
   return (
     <ul className="grid grid-cols-4 gap-3 sm:gap-5">
       {units.map((u) => (
-        <li key={u.label} className="flex flex-col items-center rounded-2xl bg-raised px-2 py-5 ring-1 ring-hairline sm:py-7">
-          <span className="font-display text-3xl tabular-nums tracking-display sm:text-5xl">
+        <li key={u.label} className="glow-hover flex flex-col items-center rounded-2xl bg-raised px-2 py-5 ring-1 ring-hairline sm:py-7">
+          <motion.span
+            key={u.value}
+            initial={reduce ? false : { scale: 1.12, opacity: 0.55 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.35, ease: "easeOut" }}
+            className="inline-block font-display text-3xl tabular-nums tracking-display sm:text-5xl"
+          >
             {String(u.value).padStart(2, "0")}
-          </span>
+          </motion.span>
           <span className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted sm:text-xs">{u.label}</span>
         </li>
       ))}
@@ -121,7 +130,10 @@ function FanMessage() {
     if (Object.keys(next).length) return;
     const subject = encodeURIComponent(`Fan message from ${name.trim()}`);
     const body = encodeURIComponent(`${message.trim()}\n\n— ${name.trim()}`);
-    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    fireConfetti();
+    setTimeout(() => {
+      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+    }, 700);
   };
 
   const inputClass =
@@ -186,14 +198,18 @@ function SectionHeader({ eyebrow, title }) {
 
 function Hero() {
   const reduce = useReducedMotion();
+  const { scrollY } = useScroll();
+  // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
+  const parallaxY = useTransform(scrollY, [0, 900], [0, 120]);
   const words = "SRD Masum".split(" ");
   return (
     <section id="top" className="relative isolate overflow-hidden">
-      <img
+      <motion.img
         src="/images/hero-portrait.jpg"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 -z-10 h-full w-full object-cover object-top opacity-60"
+        style={reduce ? undefined : { y: parallaxY }}
+        className="absolute inset-x-0 -top-[12%] -z-10 h-[124%] w-full object-cover object-top opacity-60 will-change-transform"
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 sm:px-8 sm:pb-24">
@@ -234,7 +250,7 @@ function Hero() {
         >
           <a
             href="#featured"
-            className="inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+            className="glow-hover inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
           >
             Listen now
           </a>
@@ -242,7 +258,7 @@ function Hero() {
             href={CHANNEL_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 rounded-full border border-hairline bg-raised px-6 py-3 text-sm font-medium text-ink transition-colors duration-200 hover:bg-sunk"
+            className="glow-hover inline-flex items-center gap-2 rounded-full border border-hairline bg-raised px-6 py-3 text-sm font-medium text-ink transition-colors duration-200 hover:bg-sunk"
           >
             Watch on YouTube
             <ArrowUpRight size={16} aria-hidden="true" />
@@ -355,7 +371,7 @@ function Music() {
             rel="noopener noreferrer"
             whileTap={{ scale: 0.97 }}
             transition={spring}
-            className="inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
+            className="glow-hover inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
           >
             <SpotifyLogo size={18} weight="fill" aria-hidden="true" />
             Follow on Spotify
@@ -382,7 +398,7 @@ function Gallery() {
                 src={src}
                 alt={`SRD Masum photo ${i + 1}`}
                 loading="lazy"
-                className="aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+                className="glow-hover aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
               />
             </Reveal>
           ))}
@@ -471,7 +487,7 @@ function Contact() {
             onClick={copy}
             whileTap={reduce ? undefined : { scale: 0.96 }}
             transition={spring}
-            className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-sunk px-5 py-3 text-sm font-medium text-ink ring-1 ring-hairline transition-colors hover:bg-canvas sm:self-center"
+            className="glow-hover inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-full bg-sunk px-5 py-3 text-sm font-medium text-ink ring-1 ring-hairline transition-colors hover:bg-canvas sm:self-center"
             aria-live="polite"
           >
             <AnimatePresence mode="popLayout" initial={false}>
@@ -515,7 +531,7 @@ function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label={`${label} (opens in a new tab)`}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
+              className="glow-hover inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
             >
               <Icon size={18} aria-hidden="true" />
             </a>
@@ -530,6 +546,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <IntroLoader />
+      <CursorGlow />
       <Nav />
       <main>
         <Hero />
