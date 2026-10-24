@@ -190,6 +190,7 @@ export function AudioTrack({ track, active, setActive }) {
       <audio
         ref={ref}
         src={track.src}
+        crossOrigin="anonymous"
         preload="metadata"
         onPlay={(e) => {
           setPlaying(true);
