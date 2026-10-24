@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useDecorReduce } from "../lib/motion.js";
+import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
 import { Play, Pause, Disc } from "@phosphor-icons/react";
 import { beatPlay, beatStop, onFrame } from "../lib/beat.js";
 
@@ -45,7 +45,8 @@ const NOTE_GLYPHS = ["🎵", "🎶", "♪"];
 // once its animation ends. Nothing renders under reduced motion or while paused.
 // Notes are spawned and expired from the shared BeatField frame loop (onFrame), not from their own
 // setInterval/setTimeout, so there is one timer on the page while a song plays.
-const NOTE_EVERY_MS = 900;
+const NOTE_EVERY_MS_DESKTOP = 900;
+const NOTE_EVERY_MS_LITE = 1800; // phones spawn at half rate
 const NOTE_LIFE_MS = 2700;
 function MusicNotes({ playing }) {
   const reduce = useDecorReduce();
@@ -61,7 +62,7 @@ function MusicNotes({ playing }) {
     return onFrame((now) => {
       if (document.hidden) return;
       if (!last) last = now;
-      if (now - last >= NOTE_EVERY_MS) {
+      if (now - last >= (isLiteDevice() ? NOTE_EVERY_MS_LITE : NOTE_EVERY_MS_DESKTOP)) {
         last = now;
         n += 1;
         const note = {

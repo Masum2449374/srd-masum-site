@@ -65,9 +65,14 @@ export function beatPlay(el) {
     analyser.connect(ctx.destination);
   }
   if (!sources.has(el)) {
-    const src = ctx.createMediaElementSource(el);
-    src.connect(analyser);
-    sources.set(el, src);
+    try {
+      const src = ctx.createMediaElementSource(el);
+      src.connect(analyser);
+      sources.set(el, src);
+    } catch {
+      // Element already bound to a graph (e.g. an earlier context): skip the beat for this element, playback still works.
+      return;
+    }
   }
   ctx.resume?.();
   current = el;
@@ -80,7 +85,7 @@ export function beatStop(el) {
   notify();
 }
 
-// Called when the app unmounts: releases the analyser and audio context so nothing keeps running.
+// Full teardown. Not called on component unmount (StrictMode mounts twice); the singleton lives for the page.
 export function disposeBeat() {
   current = null;
   if (ctx) ctx.close?.().catch?.(() => {});

@@ -461,6 +461,30 @@ html[data-hero-playing="true"] .hero-title::after {
   }
 }
 
+/* Phones while a song plays: cut the heavy full-hero layers (large painted areas repaint every frame).
+   Kept on phones during playback: playing card border glow, equalizer bars, floating notes (low rate, set in JS).
+   Set by BeatField via <html data-lite-beat="true">. Desktop is unaffected. */
+html[data-lite-beat="true"] .aurora-layer,
+html[data-lite-beat="true"] .hero-orb,
+html[data-lite-beat="true"] .vignette-pulse,
+html[data-lite-beat="true"] .hero-glow,
+html[data-lite-beat="true"] .beat-bg,
+html[data-lite-beat="true"] .sparkle,
+html[data-lite-beat="true"] .snow-layer,
+html[data-lite-beat="true"] .hero-title::after {
+  display: none !important;
+  animation: none !important;
+}
+/* Phones during playback: stop the per-frame scale/rotate on photo/hero/buttons (repaint cost on budget Android). */
+html[data-lite-beat="true"] .beat-photo,
+html[data-lite-beat="true"] .beat-hero,
+html[data-lite-beat="true"] .beat-pop,
+html[data-lite-beat="true"] .beat-tilt {
+  scale: none !important;
+  rotate: none !important;
+  transform: none !important;
+}
+
 /* Pause the hero effects while the hero is scrolled out of view (set from HeroAurora.jsx). */
 html[data-hero-visible="false"] .aurora-layer,
 html[data-hero-visible="false"] .hero-orb,
