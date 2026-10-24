@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "framer-motion";
 import { Play, Pause, Disc } from "@phosphor-icons/react";
 import { beatPlay, beatStop } from "../lib/beat.js";
 
@@ -38,6 +39,66 @@ function Equalizer({ playing }) {
   );
 }
 
+const NOTE_GLYPHS = ["🎵", "🎶", "♪"];
+
+// Music notes float up out of the player while the track plays. Spawns a note every ~900ms and removes it
+// once its animation ends. Nothing renders under reduced motion or while paused.
+function MusicNotes({ playing }) {
+  const reduce = useReducedMotion();
+  const [notes, setNotes] = useState([]);
+
+  useEffect(() => {
+    if (!playing || reduce) {
+      setNotes([]);
+      return;
+    }
+    let n = 0;
+    const removals = new Set();
+    const id = setInterval(() => {
+      n += 1;
+      const note = {
+        key: n,
+        glyph: NOTE_GLYPHS[n % NOTE_GLYPHS.length],
+        left: 8 + Math.random() * 84,
+        drift: `${(Math.random() - 0.5) * 60}px`,
+        spin: `${(Math.random() - 0.5) * 40}deg`,
+        size: 14 + Math.round(Math.random() * 8),
+      };
+      setNotes((list) => [...list.slice(-6), note]);
+      const t = setTimeout(() => {
+        removals.delete(t);
+        setNotes((list) => list.filter((x) => x.key !== note.key));
+      }, 2700);
+      removals.add(t);
+    }, 900);
+    return () => {
+      clearInterval(id);
+      removals.forEach(clearTimeout);
+    };
+  }, [playing, reduce]);
+
+  if (reduce || notes.length === 0) return null;
+  return (
+    <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-0 overflow-visible">
+      {notes.map((note) => (
+        <span
+          key={note.key}
+          className="music-note absolute bottom-0 text-accent"
+          style={{
+            left: `${note.left}%`,
+            fontSize: note.size,
+            "--drift": note.drift,
+            "--spin": note.spin,
+            textShadow: "0 0 10px rgba(255, 100, 200, 0.6)",
+          }}
+        >
+          {note.glyph}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 // One audio track: custom row, circular play button, custom seek bar.
 // Uses a native HTML5 <audio> element underneath; only one track plays at a time.
 export function AudioTrack({ track, active, setActive }) {
@@ -72,7 +133,8 @@ export function AudioTrack({ track, active, setActive }) {
   const pct = duration ? Math.min(100, (current / duration) * 100) : 0;
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-raised p-4 ring-1 ring-hairline sm:p-5">
+    <div className="relative flex flex-col gap-3 rounded-2xl bg-raised p-4 ring-1 ring-hairline sm:p-5">
+      <MusicNotes playing={playing} />
       <div className="flex items-center gap-4">
         <div
           aria-hidden="true"

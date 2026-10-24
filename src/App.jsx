@@ -7,6 +7,8 @@ import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
+import Sparkles from "./components/Sparkles.jsx";
+import Tilt from "./components/Tilt.jsx";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 
@@ -86,7 +88,7 @@ function Countdown() {
   return (
     <ul className="grid grid-cols-4 gap-3 sm:gap-5">
       {units.map((u) => (
-        <li key={u.label} className="glow-hover flex flex-col items-center rounded-2xl bg-raised px-2 py-5 ring-1 ring-hairline sm:py-7">
+        <li key={u.label} className="shine-tile glow-hover relative flex flex-col items-center overflow-hidden rounded-2xl bg-raised px-2 py-5 ring-1 ring-hairline sm:py-7">
           <motion.span
             key={u.value}
             initial={reduce ? false : { scale: 1.12, opacity: 0.55 }}
@@ -105,7 +107,7 @@ function Countdown() {
 
 function NewRelease() {
   return (
-    <section id="new-release" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="new-release" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Coming soon" title="New Release" />
@@ -141,7 +143,7 @@ function FanMessage() {
     "mt-2 w-full rounded-xl border border-hairline bg-sunk px-4 py-3 text-ink placeholder:text-faint focus:border-accent focus:outline-none";
 
   return (
-    <section id="fan-message" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="fan-message" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Fans" title="Send a message" />
@@ -197,12 +199,44 @@ function SectionHeader({ eyebrow, title }) {
   );
 }
 
+// Types text out one letter at a time. Starts after the intro loader on a first visit.
+function Typewriter({ text, delay = 0 }) {
+  const reduce = useReducedMotion();
+  const [count, setCount] = useState(reduce ? text.length : 0);
+  const [caret, setCaret] = useState(!reduce);
+
+  useEffect(() => {
+    if (reduce) return;
+    let i = 0;
+    let t;
+    const step = () => {
+      i += 1;
+      setCount(i);
+      if (i < text.length) t = setTimeout(step, 110);
+      else t = setTimeout(() => setCaret(false), 1800);
+    };
+    t = setTimeout(step, delay);
+    return () => clearTimeout(t);
+  }, [text, delay, reduce]);
+
+  return (
+    <>
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true" className="whitespace-pre">{text.slice(0, count)}</span>
+      {caret && (
+        <span aria-hidden="true" className="type-caret ml-[0.04em] inline-block h-[0.8em] w-[0.06em] translate-y-[0.02em] bg-accent align-middle" />
+      )}
+    </>
+  );
+}
+
 function Hero() {
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
   // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
   const parallaxY = useTransform(scrollY, [0, 900], [0, 120]);
-  const words = "SRD Masum".split(" ");
+  // On a first visit the intro loader covers the page for about 1.4s, so the typing waits for it.
+  const [introDelay] = useState(() => (sessionStorage.getItem("srd-intro-seen") ? 250 : 1700));
   return (
     <section id="top" className="relative isolate overflow-hidden">
       <motion.img
@@ -214,6 +248,7 @@ function Hero() {
       />
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
       <HeroGlow />
+      <Sparkles />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-16 pt-28 sm:px-8 sm:pb-24">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
@@ -224,17 +259,7 @@ function Hero() {
           Artist · Songs · Sound
         </motion.p>
         <h1 className="mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
-          {words.map((w, i) => (
-            <motion.span
-              key={w}
-              initial={reduce ? false : { opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...spring, delay: 0.1 + i * 0.08 }}
-              className="mr-[0.25em] inline-block last:mr-0"
-            >
-              {w}
-            </motion.span>
-          ))}
+          <Typewriter text="SRD Masum" delay={introDelay} />
         </h1>
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 16 }}
@@ -300,7 +325,7 @@ const AUDIO_TRACKS = [
 function Songs() {
   const [activeTrack, setActiveTrack] = useState(null);
   return (
-    <section id="songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="songs" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Bollywood" title="Songs" />
@@ -337,7 +362,7 @@ const GALLERY_PHOTOS = [
 
 function Music() {
   return (
-    <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="music" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Music" />
@@ -388,7 +413,7 @@ function Music() {
 
 function Gallery() {
   return (
-    <section id="gallery" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="gallery" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Photos" title="Gallery" />
@@ -396,12 +421,14 @@ function Gallery() {
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {GALLERY_PHOTOS.map((src, i) => (
             <Reveal as="li" key={src} delay={(i % 3) * 0.08} className="overflow-hidden rounded-2xl ring-1 ring-hairline">
-              <img
-                src={src}
-                alt={`SRD Masum photo ${i + 1}`}
-                loading="lazy"
-                className="glow-hover aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
-              />
+              <Tilt>
+                <img
+                  src={src}
+                  alt={`SRD Masum photo ${i + 1}`}
+                  loading="lazy"
+                  className="glow-hover aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+                />
+              </Tilt>
             </Reveal>
           ))}
         </ul>
@@ -456,7 +483,7 @@ function PressKit() {
   };
 
   return (
-    <section id="press-kit" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="press-kit" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="For press" title="Press Kit" />
@@ -667,7 +694,7 @@ function VideoCarousel() {
 
 function Videos() {
   return (
-    <section id="videos" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="videos" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
@@ -711,7 +738,7 @@ function Contact() {
   };
 
   return (
-    <section id="contact" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="contact" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:flex-row sm:items-center sm:justify-between sm:p-12">
           <div>
