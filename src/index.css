@@ -299,6 +299,11 @@ html[data-hero-playing="true"] .vignette-pulse {
   animation: vignette-pulse 5.5s ease-in-out infinite;
 }
 
+/* Idle hero: snow only. Sparkle dots appear only while a track plays. */
+html:not([data-hero-playing="true"]) .sparkle {
+  display: none !important;
+}
+
 /* Idle hero snowfall: soft warm-coloured flakes drifting slowly down (components/Snow.jsx).
    Transform and opacity only, no blur, so it stays cheap on phones. Fades out while a track plays. */
 .snow-layer {
