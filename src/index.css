@@ -177,7 +177,21 @@
   animation: note-rise 2.6s ease-out forwards;
 }
 
+/* Fan reviews train: two identical copies of the cards slide left by half the track width, so the loop is seamless. */
+@keyframes review-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.review-track {
+  animation-name: review-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .review-track {
+    animation: none !important;
+  }
   .glow-hover {
     transition: none;
   }

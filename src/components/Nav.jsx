@@ -11,6 +11,7 @@ const LINKS = [
   { id: "gallery", label: "Gallery" },
   { id: "videos", label: "Videos" },
   { id: "press-kit", label: "Press Kit" },
+  { id: "reviews", label: "Reviews" },
   { id: "contact", label: "Contact" },
 ];
 

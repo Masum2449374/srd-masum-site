@@ -9,6 +9,7 @@ import Embed from "./components/Embed.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Tilt from "./components/Tilt.jsx";
+import Reviews from "./components/Reviews.jsx";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 
@@ -862,6 +863,7 @@ export default function App() {
         <Gallery />
         <Videos />
         <PressKit />
+        <Reviews />
         <FanMessage />
         <Contact />
       </main>
