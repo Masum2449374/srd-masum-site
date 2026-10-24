@@ -102,6 +102,46 @@ function Featured() {
   );
 }
 
+const SONGS = [
+  { id: "D5CpJFbb3TM", title: "Teri Dulhan Sajaungi", film: "Barsaat (2005)" },
+  { id: "1jjDs69WWUQ", title: "Laal Dupatta", film: "Mujhse Shaadi Karogi (2004)" },
+  { id: "W2mjfazc9eM", title: "Dupatta Tera Nau Rang Da", film: "Partner (2007)" },
+  { id: "jSkBtDg-8lg", title: "Sajan Tumse Pyar Ki Ladai Mein", film: "Maine Pyar Kyun Kiya (2005)" },
+];
+
+function Songs() {
+  return (
+    <section id="songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="Bollywood" title="Songs" />
+        </Reveal>
+        <ul className="grid gap-6 sm:grid-cols-2">
+          {SONGS.map((s, i) => (
+            <Reveal as="li" key={s.id} delay={(i % 2) * 0.08}>
+              <p className="mb-3 font-medium text-ink">
+                {s.title} <span className="font-mono text-xs text-muted">· {s.film}</span>
+              </p>
+              <div className="aspect-video overflow-hidden rounded-xl ring-1 ring-hairline">
+                <iframe
+                  title={`${s.title} official video on YouTube`}
+                  src={`https://www.youtube.com/embed/${s.id}`}
+                  width="100%"
+                  height="100%"
+                  loading="lazy"
+                  allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="block h-full w-full border-0"
+                />
+              </div>
+            </Reveal>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 const GALLERY_PHOTOS = [
   "/images/gallery/photo-1.jpg",
   "/images/gallery/photo-2.jpg",
@@ -303,6 +343,7 @@ export default function App() {
         <Hero />
         <Featured />
         <Music />
+        <Songs />
         <Gallery />
         <Videos />
         <Contact />
