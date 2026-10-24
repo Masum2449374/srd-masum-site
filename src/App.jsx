@@ -374,7 +374,7 @@ function Hero() {
 
 function Featured() {
   return (
-    <section id="featured" className="scroll-mt-20 px-5 py-20 sm:px-8 sm:py-28">
+    <section id="featured" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Now playing" title="Featured" />
@@ -439,7 +439,7 @@ function Songs() {
     <section id="songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <SectionHeader eyebrow="Bollywood" title="Songs" />
+          <SectionHeader eyebrow="Watch" title="Bollywood Songs" />
         </Reveal>
 
         <ul className="mt-10 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:gap-x-6">
@@ -523,7 +523,7 @@ function Gallery() {
         </Reveal>
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {GALLERY_PHOTOS.map((src, i) => (
-            <Reveal as="li" key={src} delay={(i % 3) * 0.08} className="overflow-hidden rounded-2xl ring-1 ring-hairline">
+            <Reveal as="li" key={src} delay={(i % 3) * 0.08} className="overflow-hidden rounded-xl ring-1 ring-hairline">
               <Tilt>
                 <img
                   src={src}

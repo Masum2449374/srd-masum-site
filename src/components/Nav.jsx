@@ -5,12 +5,14 @@ import { spring } from "./Reveal.jsx";
 import { CHANNEL_URL } from "../data/videos.js";
 
 const LINKS = [
+  { id: "audio-songs", label: "Hindi Songs" },
   { id: "bangla-songs", label: "Bangla Songs" },
   { id: "featured", label: "Featured" },
-  { id: "music", label: "Music" },
-  { id: "songs", label: "Songs" },
-  { id: "gallery", label: "Gallery" },
   { id: "videos", label: "Videos" },
+  { id: "music", label: "Music" },
+  { id: "new-release", label: "New Release" },
+  { id: "songs", label: "Bollywood" },
+  { id: "gallery", label: "Gallery" },
   { id: "press-kit", label: "Press Kit" },
   { id: "reviews", label: "Reviews" },
   { id: "contact", label: "Contact" },
@@ -19,7 +21,7 @@ const LINKS = [
 const THEME_KEY = "srd-theme";
 
 export default function Nav() {
-  const [active, setActive] = useState("featured");
+  const [active, setActive] = useState("audio-songs");
   const [theme, setTheme] = useState(() =>
     document.documentElement.classList.contains("light") ? "light" : "dark",
   );
