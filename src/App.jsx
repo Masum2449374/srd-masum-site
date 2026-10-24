@@ -23,7 +23,7 @@ function Hero() {
   return (
     <section id="top" className="relative isolate overflow-hidden">
       <img
-        src="/images/hero.jpg"
+        src="/images/hero-portrait.jpg"
         alt=""
         aria-hidden="true"
         className="absolute inset-0 -z-10 h-full w-full object-cover object-top opacity-60"
