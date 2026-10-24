@@ -5,6 +5,7 @@ import { spring } from "./Reveal.jsx";
 import { CHANNEL_URL } from "../data/videos.js";
 
 const LINKS = [
+  { id: "bangla-songs", label: "Bangla Songs" },
   { id: "featured", label: "Featured" },
   { id: "music", label: "Music" },
   { id: "songs", label: "Songs" },

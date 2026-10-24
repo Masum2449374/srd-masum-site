@@ -16,6 +16,7 @@ import { useDecorReduce } from "./lib/motion.js";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_PLAYLIST_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
+import { BANGLA_TRACKS } from "./data/bangla-songs.js";
 import BeatField from "./components/BeatField.jsx";
 
 const YEAR = new Date().getFullYear();
@@ -335,6 +336,32 @@ function Featured() {
         <Reveal delay={0.08}>
           <Embed playlist={FEATURED_PLAYLIST_ID} title="SRD Masum featured playlist" />
         </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function BanglaSongs() {
+  const [activeTrack, setActiveTrack] = useState(null);
+  return (
+    <section id="bangla-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="Listen" title="Bangla Songs" />
+        </Reveal>
+        {BANGLA_TRACKS.length === 0 ? (
+          <Reveal>
+            <p className="font-mono text-sm text-faint">শীঘ্রই আসছে · coming soon</p>
+          </Reveal>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {BANGLA_TRACKS.map((t) => (
+              <Reveal key={t.id}>
+                <AudioTrack track={t} active={activeTrack === t.id} setActive={setActiveTrack} />
+              </Reveal>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -895,6 +922,7 @@ export default function App() {
       <main>
         <Hero />
         <AudioSongs />
+        <BanglaSongs />
         <Featured />
         <Videos />
         <Music />
