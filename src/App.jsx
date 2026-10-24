@@ -86,7 +86,7 @@ function IntroLoader() {
               }}
             />
             <motion.img
-              src="/images/hero-portrait.jpg"
+              src="/images/avatar.jpg"
               alt="SRD Masum"
               width="176"
               height="176"
