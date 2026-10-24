@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { motion, LayoutGroup } from "framer-motion";
-import { YoutubeLogo, ArrowUpRight } from "@phosphor-icons/react";
+import { motion, LayoutGroup, AnimatePresence, useReducedMotion } from "framer-motion";
+import { YoutubeLogo, ArrowUpRight, Sun, Moon } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
 import { CHANNEL_URL } from "../data/videos.js";
 
@@ -13,8 +13,23 @@ const LINKS = [
   { id: "contact", label: "Contact" },
 ];
 
+const THEME_KEY = "srd-theme";
+
 export default function Nav() {
   const [active, setActive] = useState("featured");
+  const [theme, setTheme] = useState(() =>
+    document.documentElement.classList.contains("light") ? "light" : "dark",
+  );
+  const reduce = useReducedMotion();
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    document.documentElement.classList.toggle("light", next === "light");
+    try {
+      localStorage.setItem(THEME_KEY, next);
+    } catch (e) {}
+    setTheme(next);
+  };
 
   useEffect(() => {
     const sections = LINKS.map((l) => document.getElementById(l.id)).filter(Boolean);
@@ -65,11 +80,34 @@ export default function Nav() {
           </nav>
         </LayoutGroup>
 
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            title={theme === "dark" ? "Light theme" : "Dark theme"}
+            className="glow-hover inline-flex h-9 w-9 items-center justify-center rounded-full text-muted ring-1 ring-hairline transition-colors duration-200 hover:text-ink active:scale-[0.92]"
+          >
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.span
+                key={theme}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, rotate: -90, scale: 0.6 }}
+                animate={reduce ? { opacity: 1 } : { opacity: 1, rotate: 0, scale: 1 }}
+                exit={reduce ? { opacity: 0 } : { opacity: 0, rotate: 90, scale: 0.6 }}
+                transition={reduce ? { duration: 0.15 } : spring}
+                className="inline-flex"
+                aria-hidden="true"
+              >
+                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+              </motion.span>
+            </AnimatePresence>
+          </button>
+
         <a
           href={CHANNEL_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-accent px-3 py-2 text-sm font-medium text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97] sm:px-4"
+          className="inline-flex shrink-0 items-center gap-2 rounded-full bg-accent px-3 py-2 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97] sm:px-4"
         >
           <YoutubeLogo weight="fill" size={18} aria-hidden="true" />
           <span className="hidden sm:inline">YouTube</span>
@@ -77,6 +115,7 @@ export default function Nav() {
           <ArrowUpRight size={14} aria-hidden="true" className="hidden sm:block" />
           <span className="sr-only">(opens in a new tab)</span>
         </a>
+        </div>
       </div>
     </header>
   );

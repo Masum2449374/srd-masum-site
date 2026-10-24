@@ -3,10 +3,30 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --canvas: 14 13 12;
+    --raised: 23 22 20;
+    --sunk: 31 29 27;
+    --hairline: 44 42 39;
+    --ink: 244 241 234;
+    --muted: 163 158 152;
+    --faint: 111 106 100;
+    color-scheme: dark;
+  }
+  :root.light {
+    --canvas: 250 248 245;
+    --raised: 255 255 255;
+    --sunk: 240 237 232;
+    --hairline: 224 219 212;
+    --ink: 22 20 17;
+    --muted: 92 87 81;
+    --faint: 122 116 109;
+    color-scheme: light;
+  }
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 5rem;
-    background-color: #0e0d0c;
+    background-color: rgb(var(--canvas));
   }
   body {
     @apply bg-canvas text-ink font-body antialiased;

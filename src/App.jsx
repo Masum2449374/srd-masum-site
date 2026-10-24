@@ -175,7 +175,7 @@ function FanMessage() {
             </label>
             <button
               type="submit"
-              className="inline-flex items-center gap-2 self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+              className="inline-flex items-center gap-2 self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
             >
               <EnvelopeSimple size={18} aria-hidden="true" />
               Send message
@@ -250,7 +250,7 @@ function Hero() {
         >
           <a
             href="#featured"
-            className="glow-hover inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+            className="glow-hover inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
           >
             Listen now
           </a>

@@ -4,14 +4,15 @@ export default {
   theme: {
     extend: {
       colors: {
-        canvas: "#0e0d0c",
-        raised: "#171614",
-        sunk: "#1f1d1b",
-        hairline: "#2c2a27",
-        ink: "#f4f1ea",
-        muted: "#a39e98",
-        faint: "#6f6a64",
+        canvas: "rgb(var(--canvas) / <alpha-value>)",
+        raised: "rgb(var(--raised) / <alpha-value>)",
+        sunk: "rgb(var(--sunk) / <alpha-value>)",
+        hairline: "rgb(var(--hairline) / <alpha-value>)",
+        ink: "rgb(var(--ink) / <alpha-value>)",
+        muted: "rgb(var(--muted) / <alpha-value>)",
+        faint: "rgb(var(--faint) / <alpha-value>)",
         accent: "#ff64c8",
+        "on-accent": "#0e0d0c",
         "accent-deep": "#391c57",
       },
       fontFamily: {

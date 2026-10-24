@@ -90,7 +90,7 @@ export function AudioTrack({ track, active, setActive }) {
           type="button"
           onClick={toggle}
           aria-label={playing ? `Pause ${track.title}` : `Play ${track.title}`}
-          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-canvas shadow-lg shadow-accent/25 transition hover:scale-105 active:scale-95"
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent shadow-lg shadow-accent/25 transition hover:scale-105 active:scale-95"
         >
           {playing ? <Pause size={20} weight="fill" /> : <Play size={20} weight="fill" className="translate-x-[1px]" />}
         </button>
