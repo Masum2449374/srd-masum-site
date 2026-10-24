@@ -186,7 +186,7 @@ html[data-hero-playing="true"] .hero-glow {
   opacity: calc(var(--beat, 0) * 0.9);
 }
 
-@media (prefers-reduced-motion: reduce) and (hover: hover) {
+@media (prefers-reduced-motion: reduce) {
   .beat-bg,
   .beat-card::before,
   .beat-glow::before {
@@ -276,7 +276,7 @@ html[data-hero-playing="true"] .sparkle {
   animation-iteration-count: infinite;
 }
 
-@media (prefers-reduced-motion: reduce) and (hover: hover) {
+@media (prefers-reduced-motion: reduce) {
   .review-track {
     animation: none !important;
   }
@@ -431,7 +431,7 @@ html[data-hero-playing="true"] .hero-title::after {
   to { transform: translate3d(260%, 0, 0); }
 }
 
-@media (prefers-reduced-motion: reduce) and (hover: hover) {
+@media (prefers-reduced-motion: reduce) {
   .aurora-layer,
   .hero-orb,
   .vignette-pulse {

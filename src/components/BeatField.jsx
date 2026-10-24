@@ -1,15 +1,14 @@
 import { useEffect } from "react";
-import { onBeatChange, getBass, runFrameHooks, setKick, frameHooksCount, isPlaying, setBeatHidden } from "../lib/beat.js";
+import { onBeatChange, getBass, runFrameHooks, setKick, frameHooksCount, isPlaying, beatResume } from "../lib/beat.js";
 import { isTouchDevice, isLiteDevice } from "../lib/motion.js";
 
 // Phones update --beat at 30fps (every ~33ms); desktop stays at display rate.
 const BEAT_MIN_GAP = isTouchDevice() ? 1000 / 30 : 0;
 
 // The ONE requestAnimationFrame loop on the site. It runs only while there is work to do:
-//  - a song is playing (reads bass, writes --beat on <html>), or
+//  - a song is playing (reads the beat, writes --beat on <html>), or
 //  - a frame hook is registered (cursor glow, note spawner).
-// It stops completely when the tab is hidden or when nothing needs it.
-// Beat reactions run on every device; CSS only animates transform and opacity from --beat.
+// It stops completely while the tab is hidden. There is no per-second timer.
 export default function BeatField() {
   useEffect(() => {
     const root = document.documentElement;
@@ -17,19 +16,17 @@ export default function BeatField() {
     let level = 0;
     let written = -1;
     let lastBeat = 0;
-    let hiddenNow = document.hidden;
 
-    const wantsLoop = () => !hiddenNow && !document.hidden && (isPlaying() || frameHooksCount() > 0);
+    const wantsLoop = () => !document.hidden && (isPlaying() || frameHooksCount() > 0);
 
     const tick = (now) => {
       raf = 0;
       if (!wantsLoop()) return;
       if (isPlaying() && now - lastBeat >= BEAT_MIN_GAP) {
         lastBeat = now;
-        // If the analyser tap is not reading (some phones keep it detached or silent), fall back to a
-        // gentle ~110 bpm pulse so the card glow, notes and hero stay alive while the song plays.
+        // No analyser tap (some browsers): a gentle ~110 bpm pulse keeps the glow and hero alive.
         const measured = getBass();
-        const fallback = (Math.sin((now / 545) * Math.PI * 2) + 1) / 2 * 0.45;
+        const fallback = ((Math.sin((now / 545) * Math.PI * 2) + 1) / 2) * 0.45;
         const raw = measured > 0.001 ? measured : fallback;
         level = Math.max(raw, level * 0.85); // quick attack, gentle decay
         if (Math.abs(level - written) > 0.01) {
@@ -41,7 +38,7 @@ export default function BeatField() {
       raf = requestAnimationFrame(tick);
     };
 
-    const kick = () => {
+    const kickLoop = () => {
       if (raf || !wantsLoop()) return;
       raf = requestAnimationFrame(tick);
     };
@@ -49,50 +46,43 @@ export default function BeatField() {
       if (raf) cancelAnimationFrame(raf);
       raf = 0;
     };
-    setKick(kick);
+    setKick(kickLoop);
 
     const off = onBeatChange((playing) => {
       root.classList.toggle("beat-on", playing);
-      // Phones (touch or narrow) cut the heavy hero layers while a song plays; see index.css.
+      // Phones cut the heavy hero layers while a song plays; see index.css.
       root.dataset.liteBeat = playing && isLiteDevice() ? "true" : "false";
       if (playing) {
-        kick();
+        kickLoop();
       } else {
         level = 0;
         written = -1;
         root.style.setProperty("--beat", "0");
-        kick(); // loop exits by itself if no hooks remain
+        kickLoop();
       }
     });
 
-    // Single place that applies the visible/hidden state. Safe to call repeatedly.
-    // The CSS pause rule keys off data-tab-hidden, so it must always reflect the real state:
-    // a stale "true" would freeze every animation until a reload.
-    const applyVisibility = () => {
-      const isHidden = document.hidden;
-      root.dataset.tabHidden = isHidden ? "true" : "false";
-      if (isHidden === hiddenNow) {
-        if (!isHidden) kick(); // already visible: keep the loop alive
-        return;
-      }
-      hiddenNow = isHidden;
-      if (isHidden) {
+    // Only applies on real visibility changes (and pageshow for bfcache returns).
+    // The CSS pause rule keys off data-tab-hidden, so it must reflect the real state.
+    const onVisibility = () => {
+      root.dataset.tabHidden = document.hidden ? "true" : "false";
+      if (document.hidden) {
         stopLoop();
-        setBeatHidden(true);
       } else {
-        setBeatHidden(false); // re-attaches the analyser and resumes the audio context
-        kick();
+        beatResume();
+        kickLoop();
       }
     };
-    const onVisibility = () => applyVisibility();
-
-    applyVisibility();
+    onVisibility();
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pageshow", onVisibility);
     window.addEventListener("focus", onVisibility);
-    // Watchdog: a cheap one-attribute check each second, so a missed event (common on mobile
-    // when returning from another app) cannot leave the page stuck in the hidden state.
-    const watchdog = setInterval(applyVisibility, 1000);
+    // Watchdog every 3s (was 1s): one attribute check, so a missed event on mobile cannot leave the
+    // page stuck in the hidden state.
+    const watchdog = setInterval(() => {
+      const h = document.hidden;
+      if (h !== (root.dataset.tabHidden === "true")) onVisibility();
+    }, 3000);
 
     root.dataset.liteBeat = "false";
 

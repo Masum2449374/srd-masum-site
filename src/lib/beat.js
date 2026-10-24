@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
-// Shared beat source: one Web Audio analyser fed by whichever <audio> element is playing.
-// createMediaElementSource can only run once per element, so the graph is cached per element.
+
+// Visual-only beat source. The <audio> element plays straight to the speakers and is never routed
+// through Web Audio. Where the browser can capture the element's stream, a muted analyser reads that
+// capture (a side tap, its output goes nowhere audible). Browsers without captureStream get the
+// synthetic pulse from BeatField instead. Nothing here can gate or stall playback.
 const listeners = new Set();
 const frameHooks = new Set();
-let sources = new WeakMap();
+let kick = () => {};
 let ctx = null;
 let analyser = null;
 let data = null;
+let tappedEl = null;
 let current = null;
 
 const reducedMotion = () =>
-  typeof window !== "undefined" &&
-  !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches &&
-  !window.matchMedia?.("(hover: none)").matches;
+  typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 function notify() {
   listeners.forEach((fn) => fn(current !== null));
@@ -24,7 +26,6 @@ export function onBeatChange(fn) {
 }
 
 // Extra per-frame work (cursor glow, note spawner) hooks into the single shared loop in BeatField.
-// The loop runs whenever a hook is registered or a song is playing, and stops when neither applies.
 export function onFrame(fn) {
   frameHooks.add(fn);
   kick();
@@ -35,7 +36,6 @@ export function onFrame(fn) {
 }
 
 // Set by BeatField: starts or stops the single shared rAF loop based on demand.
-let kick = () => {};
 export function setKick(fn) {
   kick = fn;
 }
@@ -52,55 +52,43 @@ export function isPlaying() {
   return current !== null;
 }
 
-export function beatPlay(el) {
-  if (reducedMotion() || typeof window === "undefined") return;
+// Side tap: captureStream() copies the element's output into a MediaStream. Only that copy is analysed,
+// and the analyser ends in a zero-gain node, so the speakers never see this graph.
+function attachTap(el) {
+  if (tappedEl === el || typeof window === "undefined") return;
   const AC = window.AudioContext || window.webkitAudioContext;
-  if (!AC) return;
-  if (!ctx) {
-    ctx = new AC();
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = 512;
-    analyser.smoothingTimeConstant = 0.7;
-    data = new Uint8Array(analyser.frequencyBinCount);
-    // The analyser has no output: it is only a tap, so audio never depends on it.
-  }
-  if (!sources.has(el)) {
-    try {
-      const src = ctx.createMediaElementSource(el);
-      // Audio always goes straight to the speakers. The analyser is a side tap that is
-      // detached while the tab is hidden, so no analysis work happens in the background.
-      src.connect(ctx.destination);
-      if (!hidden()) src.connect(analyser);
-      sources.set(el, src);
-    } catch {
-      // Element already bound to a graph (e.g. an earlier context): skip the beat for this element, playback still works.
-      return;
+  const capture = el.captureStream || el.mozCaptureStream;
+  if (!AC || !capture) return;
+  try {
+    if (!ctx) {
+      ctx = new AC();
+      analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      analyser.smoothingTimeConstant = 0.7;
+      data = new Uint8Array(analyser.frequencyBinCount);
+      const mute = ctx.createGain();
+      mute.gain.value = 0;
+      analyser.connect(mute);
+      mute.connect(ctx.destination);
     }
+    ctx.createMediaStreamSource(capture.call(el)).connect(analyser);
+    tappedEl = el;
+  } catch {
+    analyser = null; // no tap on this browser: BeatField's pulse takes over
   }
-  if (!hidden()) ctx.resume?.();
+}
+
+export function beatPlay(el) {
+  if (reducedMotion() || typeof window === "undefined") return; // reduced motion: no beat visuals at all
+  attachTap(el);
+  if (ctx && ctx.state === "suspended") ctx.resume?.().catch?.(() => {});
   current = el;
   notify();
 }
 
-const hidden = () => typeof document !== "undefined" && document.hidden;
-
-// Called by BeatField on visibilitychange. Hidden: drop the analyser tap (zero analysis work).
-// Visible: re-attach it. Audio itself keeps running through the direct connection.
-export function setBeatHidden(isHidden) {
-  if (!ctx || !analyser) return;
-  if (isHidden) {
-    sources.forEach((src) => {
-      try { src.disconnect(analyser); } catch {}
-    });
-    if (current === null) ctx.suspend?.().catch?.(() => {});
-  } else {
-    ctx.resume?.().catch?.(() => {});
-    if (current !== null) {
-      sources.forEach((src) => {
-        try { src.connect(analyser); } catch {}
-      });
-    }
-  }
+// Tab returned: the analyser stays attached, it only needs a resume if the browser suspended it.
+export function beatResume() {
+  if (ctx && ctx.state === "suspended" && current !== null) ctx.resume?.().catch?.(() => {});
 }
 
 export function beatStop(el) {
@@ -109,17 +97,7 @@ export function beatStop(el) {
   notify();
 }
 
-// Full teardown. Not called on component unmount (StrictMode mounts twice); the singleton lives for the page.
-export function disposeBeat() {
-  current = null;
-  if (ctx) ctx.close?.().catch?.(() => {});
-  ctx = null;
-  analyser = null;
-  data = null;
-  sources = new WeakMap();
-}
-
-// Average energy of the low bins (roughly 40–500 Hz), normalised to 0..1.
+// Low-frequency energy normalised to 0..1. Returns 0 when no tap is available.
 export function getBass() {
   if (!analyser || current === null) return 0;
   analyser.getByteFrequencyData(data);
@@ -129,7 +107,7 @@ export function getBass() {
 }
 
 // React hook: true while a song is playing. Used by components that must unmount their animation
-// layers on phones while the beat is active (e.g. snowfall, which only runs while idle).
+// layers while the beat is active.
 export function useBeatPlaying() {
   const [playing, setPlaying] = useState(current !== null);
   useEffect(() => onBeatChange((p) => setPlaying(p)), []);

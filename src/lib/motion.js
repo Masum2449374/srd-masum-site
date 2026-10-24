@@ -1,8 +1,5 @@
 import { useReducedMotion } from "framer-motion";
 
-// Touch devices (phones, tablets) always run the continuous decorative effects, even when the OS
-// "reduce motion" setting is on. Those phones were showing the marquee, sparkles, notes, shine,
-// borders and typewriter frozen. Desktop with a fine pointer still honours reduced motion.
 export function isTouchDevice() {
   return typeof window !== "undefined" && !!window.matchMedia?.("(hover: none)").matches;
 }
@@ -13,7 +10,7 @@ export function isLiteDevice() {
   return isTouchDevice() || (typeof window !== "undefined" && window.innerWidth < 640);
 }
 
+// Honours the OS "reduce motion" setting on every device, phones included.
 export function useDecorReduce() {
-  const reduce = useReducedMotion();
-  return reduce && !isTouchDevice();
+  return useReducedMotion();
 }
