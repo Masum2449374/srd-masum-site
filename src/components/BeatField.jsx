@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { onBeatChange, getBass, runFrameHooks, setKick, frameHooksCount, isPlaying } from "../lib/beat.js";
+import { onBeatChange, getBass, runFrameHooks, setKick, frameHooksCount, isPlaying, setBeatHidden } from "../lib/beat.js";
 import { isTouchDevice, isLiteDevice } from "../lib/motion.js";
 
 // Phones update --beat at 30fps (every ~33ms); desktop stays at display rate.
@@ -62,8 +62,13 @@ export default function BeatField() {
 
     const onVisibility = () => {
       root.dataset.tabHidden = document.hidden ? "true" : "false";
-      if (document.hidden) stopLoop();
-      else kick();
+      if (document.hidden) {
+        stopLoop();
+        setBeatHidden(true);
+      } else {
+        setBeatHidden(false);
+        kick();
+      }
     };
     root.dataset.tabHidden = document.hidden ? "true" : "false";
     root.dataset.liteBeat = "false";

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
 import { Play, Pause, Disc } from "@phosphor-icons/react";
 import { beatPlay, beatStop, onFrame } from "../lib/beat.js";
+import { setMediaSession, setMediaSessionState } from "../lib/mediasession.js";
 
 function formatTime(sec) {
   if (!Number.isFinite(sec) || sec < 0) return "0:00";
@@ -194,15 +195,19 @@ export function AudioTrack({ track, active, setActive }) {
           setPlaying(true);
           setActive(track.id);
           beatPlay(e.currentTarget);
+          setMediaSession(track, e.currentTarget);
+          setMediaSessionState("playing");
         }}
         onPause={(e) => {
           setPlaying(false);
           beatStop(e.currentTarget);
+          setMediaSessionState("paused");
         }}
         onEnded={(e) => {
           setPlaying(false);
           setCurrent(0);
           beatStop(e.currentTarget);
+          setMediaSessionState("paused");
         }}
         onTimeUpdate={(e) => setCurrent(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}

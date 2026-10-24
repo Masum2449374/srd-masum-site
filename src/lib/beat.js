@@ -62,21 +62,45 @@ export function beatPlay(el) {
     analyser.fftSize = 512;
     analyser.smoothingTimeConstant = 0.7;
     data = new Uint8Array(analyser.frequencyBinCount);
-    analyser.connect(ctx.destination);
+    // The analyser has no output: it is only a tap, so audio never depends on it.
   }
   if (!sources.has(el)) {
     try {
       const src = ctx.createMediaElementSource(el);
-      src.connect(analyser);
+      // Audio always goes straight to the speakers. The analyser is a side tap that is
+      // detached while the tab is hidden, so no analysis work happens in the background.
+      src.connect(ctx.destination);
+      if (!hidden()) src.connect(analyser);
       sources.set(el, src);
     } catch {
       // Element already bound to a graph (e.g. an earlier context): skip the beat for this element, playback still works.
       return;
     }
   }
-  ctx.resume?.();
+  if (!hidden()) ctx.resume?.();
   current = el;
   notify();
+}
+
+const hidden = () => typeof document !== "undefined" && document.hidden;
+
+// Called by BeatField on visibilitychange. Hidden: drop the analyser tap (zero analysis work).
+// Visible: re-attach it. Audio itself keeps running through the direct connection.
+export function setBeatHidden(isHidden) {
+  if (!ctx || !analyser) return;
+  if (isHidden) {
+    sources.forEach((src) => {
+      try { src.disconnect(analyser); } catch {}
+    });
+    if (current === null) ctx.suspend?.().catch?.(() => {});
+  } else {
+    ctx.resume?.().catch?.(() => {});
+    if (current !== null) {
+      sources.forEach((src) => {
+        try { src.connect(analyser); } catch {}
+      });
+    }
+  }
 }
 
 export function beatStop(el) {
