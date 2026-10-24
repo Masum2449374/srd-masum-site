@@ -102,6 +102,36 @@ function Featured() {
   );
 }
 
+const GALLERY_PHOTOS = [
+  "/images/gallery/photo-1.jpg",
+  "/images/gallery/photo-2.jpg",
+  "/images/gallery/photo-3.jpg",
+];
+
+function Gallery() {
+  return (
+    <section id="gallery" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="Photos" title="Gallery" />
+        </Reveal>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {GALLERY_PHOTOS.map((src, i) => (
+            <Reveal as="li" key={src} delay={(i % 3) * 0.08} className="overflow-hidden rounded-2xl ring-1 ring-hairline">
+              <img
+                src={src}
+                alt={`SRD Masum photo ${i + 1}`}
+                loading="lazy"
+                className="aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+              />
+            </Reveal>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
 function Videos() {
   const reduce = useReducedMotion();
   return (
@@ -234,6 +264,7 @@ export default function App() {
       <main>
         <Hero />
         <Featured />
+        <Gallery />
         <Videos />
         <Contact />
       </main>
