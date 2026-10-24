@@ -3,4 +3,5 @@
 // id must be unique, src is the path under public/.
 export const BANGLA_TRACKS = [
   { id: "koto-din-bhebechhi-cover", title: "Koto Din Bhebechhi - cover", sub: "", src: "/audio/koto-din-bhebechhi-cover.mp3" },
+  { id: "ayna-nadir-khate-cover", title: "Ayna Nadir Khate", sub: "", src: "/audio/ayna-nadir-khate-cover.mp3" },
 ];
