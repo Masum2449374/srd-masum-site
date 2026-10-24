@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://srd-masum-r35b.folkapps.com/sitemap.xml
