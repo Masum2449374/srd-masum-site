@@ -1,10 +1,9 @@
 import { useMemo } from "react";
-import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
+import { isLiteDevice } from "../lib/motion.js";
 
 // Faint floating sparkles drifting over the hero photo, like slow fireflies.
-// Pure CSS animation on a few positioned dots; fewer on small screens. Nothing under reduced motion.
+// Pure CSS animation on a few positioned dots; fewer on small screens.
 export default function Sparkles() {
-  const reduce = useDecorReduce();
   const lite = isLiteDevice();
 
   const dots = useMemo(() => {
@@ -19,7 +18,6 @@ export default function Sparkles() {
     }));
   }, [lite]);
 
-  if (reduce) return null;
   return (
     <div aria-hidden="true" className="hero-sparkles pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       {dots.map((d) => (

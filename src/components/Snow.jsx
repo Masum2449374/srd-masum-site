@@ -1,12 +1,11 @@
 import { useMemo } from "react";
-import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
+import { isLiteDevice } from "../lib/motion.js";
 
 // Gentle snowfall over the hero while idle: soft warm-coloured flakes (pink, violet, amber) drifting slowly down.
-// Pure CSS animation, no blur or shadow. Fewer flakes on phones. Nothing under reduced motion.
+// Pure CSS animation, no blur or shadow. Fewer flakes on phones.
 const PALETTE = ["#ff8fd6", "#c9a6ff", "#ffc26b", "#ffe1f3"];
 
 export default function Snow() {
-  const reduce = useDecorReduce();
   const lite = isLiteDevice();
 
   const flakes = useMemo(() => {
@@ -23,7 +22,6 @@ export default function Snow() {
     }));
   }, [lite]);
 
-  if (reduce) return null;
   return (
     <div aria-hidden="true" className="snow-layer pointer-events-none absolute inset-0 -z-10 overflow-hidden">
       {flakes.map((f) => (

@@ -1,31 +1,29 @@
 import { useEffect, useMemo, useState } from "react";
-import { useDecorReduce, isLiteDevice } from "../lib/motion.js";
+import { isLiteDevice } from "../lib/motion.js";
 import { onBeatChange } from "../lib/beat.js";
 
 // Hero aurora: soft and low-opacity while idle, full cinematic strength while a track plays: layered drifting colour glow, rising warm bokeh orbs,
 // a breathing vignette at the edges, and a sheen across the title. Everything switches on through
 // <html data-hero-playing="true"> so the CSS in index.css does the animating (no per-frame React renders).
-// Phones run it with fewer layers and orbs (see motion.js); desktop with reduced motion renders nothing.
+// Phones run it with fewer layers and orbs (see motion.js); shows on every device, reduced motion included.
 export default function HeroAurora() {
-  const reduce = useDecorReduce();
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    if (reduce) return;
     const unsubscribe = onBeatChange((p) => setPlaying(p));
     return () => {
       unsubscribe();
       setPlaying(false);
     };
-  }, [reduce]);
+  }, []);
 
   useEffect(() => {
-    const on = playing && !reduce;
+    const on = playing;
     document.documentElement.dataset.heroPlaying = on ? "true" : "false";
     return () => {
       document.documentElement.dataset.heroPlaying = "false";
     };
-  }, [playing, reduce]);
+  }, [playing]);
 
   // Pause all hero animations while the hero is scrolled out of view (CSS reads data-hero-visible).
   useEffect(() => {
@@ -58,7 +56,6 @@ export default function HeroAurora() {
     }));
   }, [lite]);
 
-  if (reduce) return null;
   return (
     <>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">

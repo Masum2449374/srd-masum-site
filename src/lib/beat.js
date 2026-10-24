@@ -13,9 +13,6 @@ let data = null;
 let tappedEl = null;
 let current = null;
 
-const reducedMotion = () =>
-  typeof window !== "undefined" && !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-
 function notify() {
   listeners.forEach((fn) => fn(current !== null));
 }
@@ -79,7 +76,7 @@ function attachTap(el) {
 }
 
 export function beatPlay(el) {
-  if (reducedMotion() || typeof window === "undefined") return; // reduced motion: no beat visuals at all
+  if (typeof window === "undefined") return; // effects run on every device, reduced motion included
   attachTap(el);
   if (ctx && ctx.state === "suspended") ctx.resume?.().catch?.(() => {});
   current = el;

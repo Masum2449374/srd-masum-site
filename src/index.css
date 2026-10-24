@@ -311,16 +311,12 @@ html[data-hero-playing="true"] .hero-sparkles {
 
   .shine-tile::after,
   .type-caret,
-  .sparkle,
   .music-note {
     animation: none !important;
   }
   .shine-tile::after,
   .type-caret,
   .music-note {
-    display: none !important;
-  }
-  .sparkle {
     display: none !important;
   }
 }
@@ -448,18 +444,6 @@ html[data-hero-playing="true"] .hero-title::after {
   to { transform: translate3d(260%, 0, 0); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .aurora-layer,
-  .hero-orb,
-  .vignette-pulse {
-    animation: none !important;
-    transition: none !important;
-    display: none !important;
-  }
-  html[data-hero-playing="true"] .hero-title::after {
-    display: none !important;
-  }
-}
 
 /* Phones and small screens run the same effects with fewer elements (counts set in the JS components).
    Everything is transform and opacity only: no blur, no blend modes, no animated shadows. */
@@ -483,8 +467,6 @@ html[data-hero-playing="true"] .hero-title::after {
    Set by BeatField via <html data-lite-beat="true">. Desktop is unaffected. */
 /* Aurora, orbs, vignette, hero glow and beat background stay on phones: they animate only transform and opacity,
    with fewer orbs and no blur (set in HeroAurora.jsx and motion.js). Only the heavier sparkle/snow/title sheen are cut. */
-html[data-lite-beat="true"] .sparkle,
-html[data-lite-beat="true"] .snow-layer,
 html[data-lite-beat="true"] .hero-title::after {
   display: none !important;
   animation: none !important;
