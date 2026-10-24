@@ -26,7 +26,11 @@ export default function BeatField() {
       if (!wantsLoop()) return;
       if (isPlaying() && now - lastBeat >= BEAT_MIN_GAP) {
         lastBeat = now;
-        const raw = getBass();
+        // If the analyser tap is not reading (some phones keep it detached or silent), fall back to a
+        // gentle ~110 bpm pulse so the card glow, notes and hero stay alive while the song plays.
+        const measured = getBass();
+        const fallback = (Math.sin((now / 545) * Math.PI * 2) + 1) / 2 * 0.45;
+        const raw = measured > 0.001 ? measured : fallback;
         level = Math.max(raw, level * 0.85); // quick attack, gentle decay
         if (Math.abs(level - written) > 0.01) {
           root.style.setProperty("--beat", level.toFixed(3));

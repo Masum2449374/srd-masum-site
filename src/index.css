@@ -464,11 +464,8 @@ html[data-hero-playing="true"] .hero-title::after {
 /* Phones while a song plays: cut the heavy full-hero layers (large painted areas repaint every frame).
    Kept on phones during playback: playing card border glow, equalizer bars, floating notes (low rate, set in JS).
    Set by BeatField via <html data-lite-beat="true">. Desktop is unaffected. */
-html[data-lite-beat="true"] .aurora-layer,
-html[data-lite-beat="true"] .hero-orb,
-html[data-lite-beat="true"] .vignette-pulse,
-html[data-lite-beat="true"] .hero-glow,
-html[data-lite-beat="true"] .beat-bg,
+/* Aurora, orbs, vignette, hero glow and beat background stay on phones: they animate only transform and opacity,
+   with fewer orbs and no blur (set in HeroAurora.jsx and motion.js). Only the heavier sparkle/snow/title sheen are cut. */
 html[data-lite-beat="true"] .sparkle,
 html[data-lite-beat="true"] .snow-layer,
 html[data-lite-beat="true"] .hero-title::after {
