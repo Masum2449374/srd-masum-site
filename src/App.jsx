@@ -1,13 +1,179 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc } from "@phosphor-icons/react";
+import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, SpotifyLogo } from "@phosphor-icons/react";
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
-import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL } from "./data/videos.js";
+import { VIDEO_IDS, FEATURED_VIDEO_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 
 const YEAR = new Date().getFullYear();
+
+// Placeholder target: change this one constant to set the next release date (ISO, local time).
+const RELEASE_DATE = "2026-12-01T00:00:00";
+const RELEASE_NAME = "Next single";
+
+function IntroLoader() {
+  const reduce = useReducedMotion();
+  const [show, setShow] = useState(() => !sessionStorage.getItem("srd-intro-seen"));
+
+  useEffect(() => {
+    if (!show) return;
+    const t = setTimeout(() => {
+      sessionStorage.setItem("srd-intro-seen", "1");
+      setShow(false);
+    }, reduce ? 400 : 1400);
+    return () => clearTimeout(t);
+  }, [show, reduce]);
+
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          key="intro"
+          role="status"
+          aria-label="Loading"
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: reduce ? 0.2 : 0.5, ease: "easeOut" }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-canvas"
+        >
+          <motion.img
+            src="/images/avatar.jpg"
+            alt="SRD Masum logo"
+            width="96"
+            height="96"
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={reduce ? { opacity: 1 } : { opacity: [0.4, 1, 0.4], scale: [0.96, 1, 0.96] }}
+            transition={reduce ? { duration: 0.2 } : { duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+            className="h-24 w-24 rounded-full object-cover ring-1 ring-accent"
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+function Countdown() {
+  const target = new Date(RELEASE_DATE).getTime();
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const diff = Math.max(0, target - now);
+  const units = [
+    { label: "Days", value: Math.floor(diff / 86400000) },
+    { label: "Hours", value: Math.floor((diff / 3600000) % 24) },
+    { label: "Minutes", value: Math.floor((diff / 60000) % 60) },
+    { label: "Seconds", value: Math.floor((diff / 1000) % 60) },
+  ];
+
+  if (diff <= 0) {
+    return (
+      <p className="rounded-2xl bg-raised p-6 text-lg text-ink ring-1 ring-hairline">
+        {RELEASE_NAME} is out now. Thanks for listening, and go press play.
+      </p>
+    );
+  }
+
+  return (
+    <ul className="grid grid-cols-4 gap-3 sm:gap-5">
+      {units.map((u) => (
+        <li key={u.label} className="flex flex-col items-center rounded-2xl bg-raised px-2 py-5 ring-1 ring-hairline sm:py-7">
+          <span className="font-display text-3xl tabular-nums tracking-display sm:text-5xl">
+            {String(u.value).padStart(2, "0")}
+          </span>
+          <span className="mt-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted sm:text-xs">{u.label}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function NewRelease() {
+  return (
+    <section id="new-release" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="Coming soon" title="New Release" />
+          <p className="mb-6 text-muted">{RELEASE_NAME} drops soon. Counting down to the moment.</p>
+          <Countdown />
+        </Reveal>
+      </div>
+    </section>
+  );
+}
+
+function FanMessage() {
+  const [name, setName] = useState("");
+  const [message, setMessage] = useState("");
+  const [errors, setErrors] = useState({});
+
+  const submit = (e) => {
+    e.preventDefault();
+    const next = {};
+    if (!name.trim()) next.name = "Please add your name.";
+    if (!message.trim()) next.message = "Please write a message.";
+    setErrors(next);
+    if (Object.keys(next).length) return;
+    const subject = encodeURIComponent(`Fan message from ${name.trim()}`);
+    const body = encodeURIComponent(`${message.trim()}\n\n— ${name.trim()}`);
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
+  };
+
+  const inputClass =
+    "mt-2 w-full rounded-xl border border-hairline bg-sunk px-4 py-3 text-ink placeholder:text-faint focus:border-accent focus:outline-none";
+
+  return (
+    <section id="fan-message" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+      <div className="mx-auto max-w-6xl">
+        <Reveal>
+          <SectionHeader eyebrow="Fans" title="Send a message" />
+        </Reveal>
+        <Reveal delay={0.08}>
+          <form onSubmit={submit} noValidate className="flex max-w-2xl flex-col gap-5 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:p-10">
+            <label className="flex flex-col text-sm font-medium text-muted">
+              Your name
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                aria-invalid={!!errors.name}
+                aria-describedby={errors.name ? "name-error" : undefined}
+                className={inputClass}
+                placeholder="Jane"
+              />
+              {errors.name && <span id="name-error" className="mt-2 text-xs text-accent">{errors.name}</span>}
+            </label>
+            <label className="flex flex-col text-sm font-medium text-muted">
+              Your message
+              <textarea
+                rows={5}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                aria-invalid={!!errors.message}
+                aria-describedby={errors.message ? "message-error" : undefined}
+                className={`${inputClass} resize-y`}
+                placeholder="Tell SRD Masum what you think"
+              />
+              {errors.message && <span id="message-error" className="mt-2 text-xs text-accent">{errors.message}</span>}
+            </label>
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-canvas transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+            >
+              <EnvelopeSimple size={18} aria-hidden="true" />
+              Send message
+            </button>
+          </form>
+        </Reveal>
+      </div>
+    </section>
+  );
+}
 
 function SectionHeader({ eyebrow, title }) {
   return (
@@ -182,6 +348,21 @@ function Music() {
             />
           </Reveal>
         </div>
+        <Reveal delay={0.12} className="mt-8 flex justify-center sm:justify-start">
+          <motion.a
+            href={SPOTIFY_ARTIST_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            whileTap={{ scale: 0.97 }}
+            transition={spring}
+            className="inline-flex items-center gap-2 rounded-full bg-[#1DB954] px-6 py-3 text-sm font-medium text-black transition-colors hover:bg-[#1ed760]"
+          >
+            <SpotifyLogo size={18} weight="fill" aria-hidden="true" />
+            Follow on Spotify
+            <ArrowUpRight size={16} aria-hidden="true" />
+            <span className="sr-only">(opens in a new tab)</span>
+          </motion.a>
+        </Reveal>
       </div>
     </section>
   );
@@ -321,16 +502,25 @@ function Footer() {
           <Disc size={18} aria-hidden="true" className="text-accent" />
           © {YEAR} SRD Masum. All rights reserved.
         </p>
-        <a
-          href={CHANNEL_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 font-medium text-ink transition-colors hover:text-accent"
-        >
-          YouTube channel
-          <ArrowUpRight size={14} aria-hidden="true" />
-          <span className="sr-only">(opens in a new tab)</span>
-        </a>
+        <div className="flex items-center gap-2">
+          {[
+            { key: "instagram", label: "Instagram", Icon: InstagramLogo },
+            { key: "facebook", label: "Facebook", Icon: FacebookLogo },
+            { key: "youtube", label: "YouTube", Icon: YoutubeLogo },
+            { key: "whatsapp", label: "WhatsApp", Icon: WhatsappLogo },
+          ].map(({ key, label, Icon }) => (
+            <a
+              key={key}
+              href={SOCIAL_LINKS[key]}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`${label} (opens in a new tab)`}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
+            >
+              <Icon size={18} aria-hidden="true" />
+            </a>
+          ))}
+        </div>
       </div>
     </footer>
   );
@@ -339,14 +529,17 @@ function Footer() {
 export default function App() {
   return (
     <div className="min-h-screen">
+      <IntroLoader />
       <Nav />
       <main>
         <Hero />
         <Featured />
         <Music />
+        <NewRelease />
         <Songs />
         <Gallery />
         <Videos />
+        <FanMessage />
         <Contact />
       </main>
       <Footer />
