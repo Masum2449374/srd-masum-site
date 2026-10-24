@@ -48,7 +48,7 @@ export default function Nav() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-hairline bg-canvas/85 backdrop-blur-xl">
+    <header className="beat-nav sticky top-0 z-40 border-b border-hairline bg-canvas/85 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
         <a href="#top" className="flex items-center gap-2 font-display text-lg tracking-display">
           <img src="/images/avatar.jpg" alt="" aria-hidden="true" width="34" height="34" className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-accent" />

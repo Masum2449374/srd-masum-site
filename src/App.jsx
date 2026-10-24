@@ -16,6 +16,7 @@ import { useDecorReduce } from "./lib/motion.js";
 import { AudioTrack, VideoCard } from "./components/SongPlayer.jsx";
 import { VIDEO_IDS, FEATURED_PLAYLIST_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
+import BeatField from "./components/BeatField.jsx";
 
 const YEAR = new Date().getFullYear();
 
@@ -199,7 +200,7 @@ function SectionHeader({ eyebrow, title }) {
   return (
     <div className="mb-8 sm:mb-10">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
-      <h2 className="mt-3 font-display text-3xl tracking-display sm:text-5xl">{title}</h2>
+      <h2 className="beat-heading mt-3 font-display text-3xl tracking-display sm:text-5xl">{title}</h2>
     </div>
   );
 }
@@ -866,6 +867,7 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <IntroLoader />
+      <BeatField />
       <CursorGlow />
       <Nav />
       <main>
