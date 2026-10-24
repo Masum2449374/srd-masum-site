@@ -332,7 +332,7 @@ function AudioSongs() {
     <section id="audio-songs" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
-          <SectionHeader eyebrow="Listen" title="Audio Songs" />
+          <SectionHeader eyebrow="Listen" title="Hindi Songs" />
         </Reveal>
         <div className="flex flex-col gap-3">
           {AUDIO_TRACKS.map((t) => (

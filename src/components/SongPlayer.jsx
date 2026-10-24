@@ -147,7 +147,6 @@ export function AudioTrack({ track, active, setActive }) {
             <span className="truncate">{track.title}</span>
             <Equalizer playing={playing} />
           </p>
-          <p className="truncate font-mono text-xs uppercase tracking-wider text-muted">{track.sub}</p>
         </div>
         <button
           type="button"
