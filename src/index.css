@@ -154,31 +154,15 @@
 .beat-on .hero-glow {
   opacity: calc(0.5 + var(--beat, 0) * 0.5);
 }
-/* Idle hero: a soft, low-opacity version of the playing look (aurora, orbs, glow, vignette, sparkles, snow).
-   Transform and opacity only. Playing rules below raise everything to full strength. */
-html:not([data-hero-playing="true"]) .beat-bg {
+/* Idle hero: snow only. Glow, aurora, orbs, vignette, sparkles and beat background are hidden until a track plays. */
+html:not([data-hero-playing="true"]) .beat-bg,
+html:not([data-hero-playing="true"]) .hero-glow,
+html:not([data-hero-playing="true"]) .aurora-layer,
+html:not([data-hero-playing="true"]) .hero-orb,
+html:not([data-hero-playing="true"]) .vignette-pulse,
+html:not([data-hero-playing="true"]) .hero-sparkles {
   opacity: 0 !important;
   display: none !important;
-}
-html:not([data-hero-playing="true"]) .hero-glow {
-  display: block !important;
-  opacity: 0.28 !important;
-}
-html:not([data-hero-playing="true"]) .aurora-layer {
-  opacity: 0.2 !important;
-  animation: aurora-drift 26s ease-in-out infinite alternate !important;
-}
-html:not([data-hero-playing="true"]) .hero-orb {
-  opacity: calc(var(--o, 0.6) * 0.32) !important;
-  animation-name: orb-rise;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-html:not([data-hero-playing="true"]) .vignette-pulse {
-  opacity: 0.55 !important;
-}
-html[data-hero-playing="true"] .hero-glow {
-  display: block !important;
 }
 .beat-glow {
   position: relative;

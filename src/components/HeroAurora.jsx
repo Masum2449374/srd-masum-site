@@ -2,10 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { isLiteDevice } from "../lib/motion.js";
 import { onBeatChange } from "../lib/beat.js";
 
-// Hero aurora: soft and low-opacity while idle, full cinematic strength while a track plays: layered drifting colour glow, rising warm bokeh orbs,
-// a breathing vignette at the edges, and a sheen across the title. Everything switches on through
-// <html data-hero-playing="true"> so the CSS in index.css does the animating (no per-frame React renders).
-// Phones run it with fewer layers and orbs (see motion.js); shows on every device, reduced motion included.
+// Hero aurora, orbs, vignette and title sheen. Hidden while idle (snow only); they switch on when a track plays,
+// through <html data-hero-playing="true"> so the CSS in index.css does the animating (no per-frame React renders).
+// Phones run it with fewer layers and orbs (see motion.js).
 export default function HeroAurora() {
   const [playing, setPlaying] = useState(false);
 
@@ -56,6 +55,7 @@ export default function HeroAurora() {
     }));
   }, [lite]);
 
+  if (!playing) return null;
   return (
     <>
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
