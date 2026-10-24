@@ -117,6 +117,22 @@ function Songs() {
           <SectionHeader eyebrow="Bollywood" title="Songs" />
         </Reveal>
         <ul className="grid gap-6 sm:grid-cols-2">
+          <Reveal as="li">
+            <p className="mb-3 font-medium text-ink">
+              Laal Dupatta - cover <span className="font-mono text-xs text-muted">· own recording</span>
+            </p>
+            <div className="rounded-xl bg-sunk p-4 ring-1 ring-hairline">
+              <audio
+                controls
+                preload="none"
+                src="/audio/laal-dupatta-cover.mp3"
+                className="w-full"
+                aria-label="Laal Dupatta cover by SRD Masum"
+              >
+                Your browser does not support audio playback.
+              </audio>
+            </div>
+          </Reveal>
           {SONGS.map((s, i) => (
             <Reveal as="li" key={s.id} delay={(i % 2) * 0.08}>
               <p className="mb-3 font-medium text-ink">
