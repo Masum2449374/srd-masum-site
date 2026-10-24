@@ -144,8 +144,8 @@ export function AudioTrack({ track, active, setActive }) {
           <Disc size={26} weight="duotone" className="text-ink/80" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="flex items-center gap-2 truncate font-body text-base font-semibold text-ink">
-            <span className="truncate">{track.title}</span>
+          <p className="flex items-start gap-2 font-body text-base font-semibold leading-snug text-ink">
+            <span className="min-w-0 break-words">{track.title}</span>
             <Equalizer playing={playing} />
           </p>
         </div>

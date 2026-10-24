@@ -220,7 +220,7 @@ export default function Reviews() {
   };
 
   return (
-    <section id="reviews" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="reviews" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <div className="mb-8 sm:mb-10">

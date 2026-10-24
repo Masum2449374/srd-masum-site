@@ -113,7 +113,7 @@ function Countdown() {
 
 function NewRelease() {
   return (
-    <section id="new-release" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="new-release" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Coming soon" title="New Release" />
@@ -149,7 +149,7 @@ function FanMessage() {
     "mt-2 w-full rounded-xl border border-hairline bg-sunk px-4 py-3 text-ink placeholder:text-faint focus:border-accent focus:outline-none";
 
   return (
-    <section id="fan-message" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="fan-message" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Fans" title="Send a message" />
@@ -200,7 +200,7 @@ function SectionHeader({ eyebrow, title }) {
   return (
     <div className="mb-8 sm:mb-10">
       <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">{eyebrow}</p>
-      <h2 className="beat-heading mt-3 font-display text-3xl tracking-display sm:text-5xl">{title}</h2>
+      <h2 className="mt-3 font-display text-3xl tracking-display sm:text-5xl">{title}</h2>
     </div>
   );
 }
@@ -330,7 +330,7 @@ function AudioSongs() {
   const [activeTrack, setActiveTrack] = useState(null);
   if (AUDIO_TRACKS.length === 0) return null;
   return (
-    <section id="audio-songs" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="audio-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Hindi Songs" />
@@ -349,7 +349,7 @@ function AudioSongs() {
 
 function Songs() {
   return (
-    <section id="songs" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Bollywood" title="Songs" />
@@ -378,7 +378,7 @@ const GALLERY_PHOTOS = [
 
 function Music() {
   return (
-    <section id="music" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Music" />
@@ -429,7 +429,7 @@ function Music() {
 
 function Gallery() {
   return (
-    <section id="gallery" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="gallery" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Photos" title="Gallery" />
@@ -499,7 +499,7 @@ function PressKit() {
   };
 
   return (
-    <section id="press-kit" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="press-kit" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="For press" title="Press Kit" />
@@ -710,7 +710,7 @@ function VideoCarousel() {
 
 function Videos() {
   return (
-    <section id="videos" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="videos" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
@@ -754,7 +754,7 @@ function Contact() {
   };
 
   return (
-    <section id="contact" className="scroll-mt-20 border-t border-hairline glow-border px-5 py-20 sm:px-8 sm:py-28">
+    <section id="contact" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:flex-row sm:items-center sm:justify-between sm:p-12">
           <div>
