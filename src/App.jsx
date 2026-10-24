@@ -27,11 +27,11 @@ const RELEASE_DATE = "2026-12-01T00:00:00";
 const RELEASE_NAME = "Next single";
 
 // Photo intro: the portrait in a round frame with a soft pink glow ring, then the name fades in,
-// then the screen slides away into the hero. Shows once per session, tap anywhere to skip, max ~1.5s.
+// then the screen slides away into the hero. Shows once per session, tap anywhere to skip, max ~2.5s.
 // Only transform and opacity animate (one small image, no blur filters, no animated shadows).
-const INTRO_HOLD_MS = 1200; // how long the intro stays before it starts leaving
-const INTRO_EXIT_S = 0.3; // leave animation, so the intro is gone by ~1.5s
-const INTRO_TYPE_DELAY_MS = 1500; // first-visit typewriter starts once the intro has gone
+const INTRO_HOLD_MS = 2000; // how long the intro stays before it starts leaving
+const INTRO_EXIT_S = 0.5; // leave animation, so the intro is gone by ~2.5s
+const INTRO_TYPE_DELAY_MS = 2500; // first-visit typewriter starts once the intro has gone
 
 function IntroLoader() {
   const reduce = useReducedMotion();
