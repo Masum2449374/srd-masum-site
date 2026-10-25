@@ -1,3 +1,4 @@
+import { installGhost } from "./lib/ghost.js";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@fontsource/archivo-black/400.css";
@@ -15,7 +16,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   </React.StrictMode>,
 );
 
-window.__srdBuild = "b11";
+window.__srdBuild = "b12";
+installGhost();
 // PWA: register the app-shell service worker in production only.
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {

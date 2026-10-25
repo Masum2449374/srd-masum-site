@@ -704,3 +704,8 @@ html.light[data-season="halloween"] .season-badge { color: #c2560a; }
 html.light[data-season="christmas"] .season-badge { color: #c81e2a; }
 [data-season="halloween"] .eyebrow { color: #ff9a3d; }
 [data-season="christmas"] .eyebrow { color: #e23b44; }
+
+/* Halloween first-tap ghost flash. */
+.ghost-boo { position: fixed; left: 50%; top: 38%; z-index: 80; pointer-events: none; font-size: 64px; transform: translate(-50%, 0); animation: ghost-boo 2.4s ease-out forwards; }
+@keyframes ghost-boo { 0% { opacity: 0; transform: translate(-50%, 30px) scale(.6); } 20% { opacity: .95; transform: translate(-50%, 0) scale(1.1); } 70% { opacity: .8; transform: translate(-40%, -30px) scale(1); } 100% { opacity: 0; transform: translate(-30%, -80px) scale(.9); } }
+@media (prefers-reduced-motion: reduce) { .ghost-boo { animation: ghost-fade 2.4s ease-out forwards; } @keyframes ghost-fade { 0%,100% { opacity: 0; } 20%,70% { opacity: .9; } } }
