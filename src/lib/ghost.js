@@ -36,20 +36,34 @@ function synth(c) {
   noise.onended = () => out.disconnect();
 }
 
-function flash(x, y) {
+const SVG = `<svg viewBox="-60 -10 220 140" class="ghost-svg" aria-hidden="true"><defs><radialGradient id="gb" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#d9e2ff"/></radialGradient></defs>
+<g class="wing wing-l"><path d="M28 52 C 8 30, -30 18, -56 26 C -44 36, -46 44, -50 52 C -36 50, -30 58, -32 66 C -18 60, -6 64, 0 72 C 8 62, 20 62, 30 66 Z" fill="#cfd6ff" opacity=".88"/></g>
+<g class="wing wing-r"><path d="M72 52 C 92 30, 130 18, 156 26 C 144 36, 146 44, 150 52 C 136 50, 130 58, 132 66 C 118 60, 106 64, 100 72 C 92 62, 80 62, 70 66 Z" fill="#cfd6ff" opacity=".88"/></g>
+<path d="M50 4 C 22 4, 16 30, 16 56 L 16 112 L 28 102 L 39 114 L 50 102 L 61 114 L 72 102 L 84 112 L 84 56 C 84 30, 78 4, 50 4 Z" fill="url(#gb)"/>
+<ellipse cx="38" cy="46" rx="6" ry="8" fill="#1b1430"/><ellipse cx="62" cy="46" rx="6" ry="8" fill="#1b1430"/><ellipse cx="50" cy="68" rx="7" ry="9" fill="#1b1430" opacity=".85"/></svg>`;
+const MAX = 6;
+// Spawn a winged ghost at the tap point: it pops in, unfolds its wings and flaps away off-screen, then is removed.
+function spawn(x, y) {
+  const live = document.querySelectorAll(".wghost");
+  if (live.length >= MAX) live[0].remove();
+  if (!x && !y) { x = innerWidth / 2; y = innerHeight * 0.35; }
   const el = document.createElement("div");
   el.setAttribute("aria-hidden", "true");
-  el.className = "ghost-boo";
-  el.textContent = "👻";
-  if (x != null) { el.style.left = `${x}px`; el.style.top = `${Math.max(40, y - 60)}px`; }
+  el.className = "wghost";
+  const dir = x < innerWidth / 2 ? -1 : 1;
+  el.style.left = `${x}px`; el.style.top = `${y}px`;
+  el.style.setProperty("--dx", `${dir * (90 + Math.random() * 120)}px`);
+  el.style.setProperty("--dy", `${-(innerHeight * 0.6 + y)}px`);
+  el.style.setProperty("--rot", `${dir * (8 + Math.random() * 10)}deg`);
+  el.innerHTML = `<div class="wghost-fly">${SVG}</div>`;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2600);
+  setTimeout(() => el.remove(), 2700);
 }
 
 export function playGhost(x, y) {
   const c = getCtx();
   if (c) synth(c);
-  flash(x, y);
+  spawn(x, y);
   const g = (window.__srdGhost = window.__srdGhost || { count: 0 });
   g.count++;
   g.ctx = c ? c.state : "none";

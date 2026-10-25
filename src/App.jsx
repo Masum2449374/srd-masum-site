@@ -9,7 +9,7 @@ import Embed from "./components/Embed.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Snow from "./components/Snow.jsx";
-import Seasonal, { SeasonBadge, SeasonalTaps, FlyingGhosts, useSeason } from "./components/Seasonal.jsx";
+import Seasonal, { SeasonBadge, SeasonalTaps, useSeason } from "./components/Seasonal.jsx";
 import HeroAurora from "./components/HeroAurora.jsx";
 import Reviews from "./components/Reviews.jsx";
 import FanWall from "./components/FanWall.jsx";
@@ -331,7 +331,6 @@ function Hero() {
       {season === "christmas" ? null : <Snow />}
       <Seasonal season={season} />
       <SeasonalTaps season={season} />
-      <FlyingGhosts season={season} />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-0 pt-28 sm:px-8 sm:pb-24">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
