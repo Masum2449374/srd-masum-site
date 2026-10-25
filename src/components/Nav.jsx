@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sun, Moon, List, X } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
+import { triggerSecret } from "./SecretBurst.jsx";
 
 const LINKS = [
   { id: "audio-songs", label: "Hindi Songs" },
@@ -12,6 +13,7 @@ const LINKS = [
   { id: "new-release", label: "New Release" },
   { id: "songs", label: "Bollywood" },
   { id: "reviews", label: "Reviews" },
+  { id: "fan-wall", label: "Fan Wall" },
   { id: "contact", label: "Contact" },
 ];
 
@@ -24,6 +26,18 @@ export default function Nav() {
     document.documentElement.classList.contains("light") ? "light" : "dark",
   );
   const reduce = useReducedMotion();
+  const tapRef = useRef({ count: 0, last: 0 });
+  // Easter egg: 3 quick taps on the logo/avatar.
+  const onLogoTap = () => {
+    const now = Date.now();
+    const st = tapRef.current;
+    st.count = now - st.last < 900 ? st.count + 1 : 1;
+    st.last = now;
+    if (st.count >= 3) {
+      st.count = 0;
+      triggerSecret();
+    }
+  };
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
 
@@ -92,7 +106,7 @@ export default function Nav() {
   return (
     <header className="pro-nav sticky top-0 z-40 border-b border-hairline">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
-        <a href="#top" className="flex items-center gap-2 font-display text-lg tracking-display">
+        <a href="#top" onClick={onLogoTap} className="flex items-center gap-2 font-display text-lg tracking-display">
           <img src="/images/avatar.jpg" alt="" aria-hidden="true" width="34" height="34" className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-accent" />
           <span>SRD <span className="text-accent">Masum</span></span>
         </a>

@@ -11,6 +11,8 @@ import Sparkles from "./components/Sparkles.jsx";
 import Snow from "./components/Snow.jsx";
 import HeroAurora from "./components/HeroAurora.jsx";
 import Reviews from "./components/Reviews.jsx";
+import FanWall from "./components/FanWall.jsx";
+import SecretBurst from "./components/SecretBurst.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
 import { PlayerProvider, TrackRow, MiniPlayer } from "./components/MiniPlayer.jsx";
@@ -883,6 +885,7 @@ export default function App() {
       <IntroLoader />
       <BeatField />
       <CursorGlow />
+      <SecretBurst />
       <Nav />
       <main>
         <Hero />
@@ -894,6 +897,7 @@ export default function App() {
         <NewRelease />
         <Songs />
         <Reviews />
+        <FanWall />
         <FanMessage />
         <Contact />
       </main>
