@@ -104,17 +104,32 @@ export function SeasonalTaps({ season }) {
   );
 }
 
-// Flying ghosts (Halloween): drift across the upper hero on wavy paths. Each is a ≥44px button;
-// a tap plays the ghost sound, spins/fades it out, and it returns after ~1.6s.
+// Flying ghosts (Halloween): SVG ghosts idle in place with a gentle bob. A tap plays the ghost sound,
+// the ghost unfolds its wings, flaps and flies off on a curved path, then returns (~2.8s) and folds them.
 const GHOSTS = [
-  { top: "6%", size: 34, dur: 19, wave: 3.2, delay: -2, op: 0.55 },
-  { top: "22%", size: 26, dur: 25, wave: 2.6, delay: -11, op: 0.45, rev: true },
-  { top: "36%", size: 40, dur: 31, wave: 4.1, delay: -6, op: 0.5 },
-  { top: "14%", size: 22, dur: 22, wave: 2.2, delay: -17, op: 0.4, rev: true },
+  { left: "8%", top: "8%", size: 52, bob: 3.2, delay: -0.4, op: 0.8, dir: 1 },
+  { left: "68%", top: "20%", size: 44, bob: 2.7, delay: -1.3, op: 0.72, dir: -1 },
+  { left: "38%", top: "34%", size: 58, bob: 3.8, delay: -2.1, op: 0.78, dir: 1 },
+  { left: "82%", top: "4%", size: 40, bob: 2.4, delay: -0.9, op: 0.68, dir: -1 },
 ];
+const FLY_MS = 2800;
+function GhostSvg() {
+  return (
+    <svg viewBox="-60 -10 220 140" className="ghost-svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="gb" cx="50%" cy="35%" r="70%"><stop offset="0" stopColor="#fff" /><stop offset="1" stopColor="#d9e2ff" /></radialGradient>
+      </defs>
+      <g className="wing wing-l"><path d="M28 52 C 8 30, -30 18, -56 26 C -44 36, -46 44, -50 52 C -36 50, -30 58, -32 66 C -18 60, -6 64, 0 72 C 8 62, 20 62, 30 66 Z" fill="#cfd6ff" opacity=".85" /></g>
+      <g className="wing wing-r"><path d="M72 52 C 92 30, 130 18, 156 26 C 144 36, 146 44, 150 52 C 136 50, 130 58, 132 66 C 118 60, 106 64, 100 72 C 92 62, 80 62, 70 66 Z" fill="#cfd6ff" opacity=".85" /></g>
+      <path d="M50 4 C 22 4, 16 30, 16 56 L 16 112 L 28 102 L 39 114 L 50 102 L 61 114 L 72 102 L 84 112 L 84 56 C 84 30, 78 4, 50 4 Z" fill="url(#gb)" />
+      <ellipse cx="38" cy="46" rx="6" ry="8" fill="#1b1430" /><ellipse cx="62" cy="46" rx="6" ry="8" fill="#1b1430" />
+      <ellipse cx="50" cy="68" rx="7" ry="9" fill="#1b1430" opacity=".85" />
+    </svg>
+  );
+}
 export function FlyingGhosts({ season }) {
   const [hidden, setHidden] = useState(() => typeof document !== "undefined" && document.hidden);
-  const [gone, setGone] = useState({});
+  const [flying, setFlying] = useState({});
   useEffect(() => {
     const on = () => setHidden(document.hidden);
     document.addEventListener("visibilitychange", on);
@@ -123,20 +138,20 @@ export function FlyingGhosts({ season }) {
   if (season !== "halloween") return null;
   const tap = (i) => (e) => {
     boo(e);
-    if (gone[i]) return;
-    setGone((g) => ({ ...g, [i]: true }));
-    setTimeout(() => setGone((g) => ({ ...g, [i]: false })), 1600);
+    if (flying[i]) return;
+    setFlying((f) => ({ ...f, [i]: true }));
+    setTimeout(() => setFlying((f) => ({ ...f, [i]: false })), FLY_MS);
   };
   return (
-    <div data-testid="flying-ghosts" className={`pointer-events-none absolute inset-x-0 top-0 z-[5] h-[60%] overflow-hidden ${hidden ? "seasonal-paused" : ""}`}>
+    <div data-testid="flying-ghosts" className={`pointer-events-none absolute inset-x-0 top-0 z-[5] h-[60%] ${hidden ? "seasonal-paused" : ""}`}>
       {GHOSTS.map((g, i) => (
-        <div key={i} className={`fly-ghost-x ${g.rev ? "fly-rev" : ""}`} style={{ top: g.top, animationDuration: `${g.dur}s`, animationDelay: `${g.delay}s` }}>
-          <div className="fly-ghost-y" style={{ animationDuration: `${g.wave}s` }}>
-            <button type="button" onClick={tap(i)} data-deco="ghost" aria-label="Ghost — tap for a boo"
-              className={`season-tap fly-ghost pointer-events-auto flex h-11 min-h-[44px] w-11 min-w-[44px] items-center justify-center ${gone[i] ? "fly-gone" : ""}`}
-              style={{ fontSize: g.size, opacity: g.op }}>👻</button>
-          </div>
-        </div>
+        <button key={i} type="button" onClick={tap(i)} data-deco="ghost" data-flying={flying[i] ? "1" : "0"} aria-label="Ghost — tap to make it fly"
+          className={`season-tap ghost-btn pointer-events-auto absolute flex min-h-[44px] min-w-[44px] items-center justify-center ${flying[i] ? "is-flying" : ""} ${g.dir < 0 ? "fly-left" : ""}`}
+          style={{ left: g.left, top: g.top, width: g.size, height: g.size * 1.15, opacity: g.op }}>
+          <span className="ghost-bob" style={{ animationDuration: `${g.bob}s`, animationDelay: `${g.delay}s` }}>
+            <span className="ghost-flight"><GhostSvg /></span>
+          </span>
+        </button>
       ))}
     </div>
   );
