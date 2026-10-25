@@ -13,7 +13,6 @@ const LINKS = [
   { id: "new-release", label: "New Release" },
   { id: "songs", label: "Bollywood" },
   { id: "gallery", label: "Gallery" },
-  { id: "press-kit", label: "Press Kit" },
   { id: "reviews", label: "Reviews" },
   { id: "contact", label: "Contact" },
 ];
