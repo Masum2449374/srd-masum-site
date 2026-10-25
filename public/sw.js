@@ -1,5 +1,5 @@
 // SRD Masum service worker: caches the app shell only. Audio (mp3, jsDelivr) is never cached.
-const VERSION = "srd-v2";
+const VERSION = "srd-v3";
 const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/images/avatar.jpg"];
 
 self.addEventListener("install", (e) => {
@@ -17,6 +17,7 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   // Never touch audio, range requests or other origins (jsDelivr, YouTube, Spotify).
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/ads/")) return; // ad pages: always straight from the network
   if (req.headers.has("range") || /\.(mp3|m4a|ogg|wav|aac)$/i.test(url.pathname) || req.destination === "audio") return;
 
   if (req.mode === "navigate") {
