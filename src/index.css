@@ -677,3 +677,30 @@ html[data-tab-hidden="true"] *::after {
 /* Lyrics: pulsing ♪ marker during instrumental breaks. */
 @keyframes lyr-note { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.18); } }
 .lyr-note { display: inline-block; animation: lyr-note 1s ease-in-out infinite; transition: opacity .4s; }
+
+/* Seasonal hero decoration. */
+.seasonal-tint { position: absolute; inset: 0; }
+.seasonal-tint-halloween { background: radial-gradient(60% 50% at 15% 20%, rgba(255,122,24,.18), transparent 70%), radial-gradient(55% 45% at 85% 35%, rgba(140,60,220,.18), transparent 70%); }
+.seasonal-tint-christmas { background: radial-gradient(55% 45% at 12% 25%, rgba(220,40,50,.14), transparent 70%), radial-gradient(55% 45% at 88% 30%, rgba(30,160,80,.14), transparent 70%); }
+.season-item { position: absolute; line-height: 1; opacity: .8; will-change: transform; }
+.season-pumpkin { animation: season-bob ease-in-out infinite; filter: drop-shadow(0 0 8px rgba(255,140,30,.45)); }
+.season-bat { animation: season-bat linear infinite; opacity: .65; }
+.season-snow { top: -5%; color: #fff; border-radius: 9999px; animation: season-fall linear infinite; opacity: .75; }
+.season-snow:empty { background: #fff; }
+html.light .season-snow:empty { background: #cfe3ff; }
+html.light .season-snow { color: #9cc4ff; }
+@keyframes season-bob { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-14px) rotate(6deg); } }
+@keyframes season-bat { 0% { transform: translate(-30px, 0) scaleX(1); } 25% { transform: translate(20px,-18px) scaleX(1); } 50% { transform: translate(60px, 6px) scaleX(-1); } 75% { transform: translate(20px, 18px) scaleX(-1); } 100% { transform: translate(-30px, 0) scaleX(1); } }
+@keyframes season-fall { from { transform: translate3d(0,-5vh,0); } to { transform: translate3d(24px,85vh,0); } }
+.seasonal-paused .season-item { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .season-item { animation: none !important; }
+  .season-snow { top: auto; transform: none; }
+}
+.season-badge { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); }
+[data-season="halloween"] .season-badge { color: #ff9a3d; border-color: rgba(255,140,40,.45); background: rgba(120,50,200,.15); }
+[data-season="christmas"] .season-badge { color: #ff5a5f; border-color: rgba(40,170,90,.5); background: rgba(30,160,80,.12); }
+html.light[data-season="halloween"] .season-badge { color: #c2560a; }
+html.light[data-season="christmas"] .season-badge { color: #c81e2a; }
+[data-season="halloween"] .eyebrow { color: #ff9a3d; }
+[data-season="christmas"] .eyebrow { color: #e23b44; }

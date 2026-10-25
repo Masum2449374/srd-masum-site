@@ -9,6 +9,7 @@ import Embed from "./components/Embed.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Snow from "./components/Snow.jsx";
+import Seasonal, { SeasonBadge, useSeason } from "./components/Seasonal.jsx";
 import HeroAurora from "./components/HeroAurora.jsx";
 import Reviews from "./components/Reviews.jsx";
 import FanWall from "./components/FanWall.jsx";
@@ -307,6 +308,7 @@ function Typewriter({ text, delay = 0 }) {
 
 function Hero() {
   const reduce = useReducedMotion();
+  const season = useSeason();
   const { scrollY } = useScroll();
   // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
   const parallaxY = useTransform(scrollY, [0, 900], [0, 120]);
@@ -326,7 +328,8 @@ function Hero() {
       <HeroGlow />
       <HeroAurora />
       <Sparkles />
-      <Snow />
+      {season === "christmas" ? null : <Snow />}
+      <Seasonal season={season} />
       <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-0 pt-28 sm:px-8 sm:pb-24">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
@@ -336,6 +339,7 @@ function Hero() {
         >
           Artist · Songs · Sound
         </motion.p>
+        <SeasonBadge season={season} />
         <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
           <Typewriter text="SRD Masum" delay={introDelay} />
         </h1>

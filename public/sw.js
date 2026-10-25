@@ -1,5 +1,5 @@
 // SRD Masum service worker: caches the app shell only. Audio (mp3, jsDelivr) is never cached.
-const VERSION = "srd-v11";
+const VERSION = "srd-v12";
 const SHELL = ["/", "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png", "/images/avatar.jpg"];
 
 self.addEventListener("install", (e) => {
