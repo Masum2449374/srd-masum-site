@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { motion, LayoutGroup, AnimatePresence, useReducedMotion } from "framer-motion";
-import { YoutubeLogo, ArrowUpRight, Sun, Moon } from "@phosphor-icons/react";
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { Sun, Moon, List, X } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
-import { CHANNEL_URL } from "../data/videos.js";
 
 const LINKS = [
   { id: "audio-songs", label: "Hindi Songs" },
@@ -20,10 +19,13 @@ const THEME_KEY = "srd-theme";
 
 export default function Nav() {
   const [active, setActive] = useState("audio-songs");
+  const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState(() =>
     document.documentElement.classList.contains("light") ? "light" : "dark",
   );
   const reduce = useReducedMotion();
+  const panelRef = useRef(null);
+  const buttonRef = useRef(null);
 
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
@@ -34,6 +36,7 @@ export default function Nav() {
     setTheme(next);
   };
 
+  // highlight the section currently in view (also shown in the menu)
   useEffect(() => {
     const sections = LINKS.map((l) => document.getElementById(l.id)).filter(Boolean);
     const io = new IntersectionObserver(
@@ -48,6 +51,26 @@ export default function Nav() {
     return () => io.disconnect();
   }, []);
 
+  // close on Escape or a tap outside the menu
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e) => e.key === "Escape" && setOpen(false);
+    const onDown = (e) => {
+      if (panelRef.current?.contains(e.target) || buttonRef.current?.contains(e.target)) return;
+      setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("pointerdown", onDown);
+    };
+  }, [open]);
+
+  const fade = reduce
+    ? { duration: 0.12 }
+    : { duration: 0.22, ease: [0.22, 1, 0.36, 1] };
+
   return (
     <header className="pro-nav sticky top-0 z-40 border-b border-hairline">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
@@ -55,33 +78,6 @@ export default function Nav() {
           <img src="/images/avatar.jpg" alt="" aria-hidden="true" width="34" height="34" className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-accent" />
           <span>SRD <span className="text-accent">Masum</span></span>
         </a>
-
-        <LayoutGroup id="nav">
-          <nav aria-label="Primary" className="flex items-center gap-0.5 overflow-x-auto sm:gap-2">
-            {LINKS.map((l) => {
-              const isActive = active === l.id;
-              return (
-                <a
-                  key={l.id}
-                  href={`#${l.id}`}
-                  aria-current={isActive ? "true" : undefined}
-                  className={`relative whitespace-nowrap rounded-full px-2.5 py-2 sm:px-3 text-sm font-medium transition-colors duration-300 ${
-                    isActive ? "text-ink" : "text-muted hover:text-ink"
-                  }`}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="nav-pill"
-                      transition={spring}
-                      className="absolute inset-0 -z-10 rounded-full bg-sunk ring-1 ring-hairline"
-                    />
-                  )}
-                  {l.label}
-                </a>
-              );
-            })}
-          </nav>
-        </LayoutGroup>
 
         <div className="flex shrink-0 items-center gap-2">
           <button
@@ -106,20 +102,57 @@ export default function Nav() {
             </AnimatePresence>
           </button>
 
-        <a
-          href={CHANNEL_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="pro-btn inline-flex shrink-0 items-center gap-2 rounded-full bg-accent px-3 py-2 text-sm font-semibold text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97] sm:px-4"
-        >
-          <YoutubeLogo weight="fill" size={18} aria-hidden="true" />
-          <span className="hidden sm:inline">YouTube</span>
-          <span className="sr-only sm:hidden">YouTube channel</span>
-          <ArrowUpRight size={14} aria-hidden="true" className="hidden sm:block" />
-          <span className="sr-only">(opens in a new tab)</span>
-        </a>
+          <button
+            ref={buttonRef}
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            aria-expanded={open}
+            aria-controls="site-menu"
+            aria-label={open ? "Close menu" : "Open menu"}
+            className="pro-btn inline-flex h-9 w-9 items-center justify-center rounded-full bg-accent text-on-accent transition-transform duration-200 active:scale-[0.92]"
+          >
+            {open ? <X size={18} weight="bold" aria-hidden="true" /> : <List size={18} weight="bold" aria-hidden="true" />}
+          </button>
         </div>
       </div>
+
+      <AnimatePresence>
+        {open && (
+          <motion.nav
+            key="menu-panel"
+            id="site-menu"
+            ref={panelRef}
+            aria-label="Sections"
+            className="absolute left-0 right-0 top-full border-b border-hairline bg-sunk/95 px-5 pb-5 pt-3 shadow-lg sm:px-8"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            transition={fade}
+          >
+            <ul className="mx-auto grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-3">
+              {LINKS.map((l) => {
+                const isActive = active === l.id;
+                return (
+                  <li key={l.id}>
+                    <a
+                      href={`#${l.id}`}
+                      aria-current={isActive ? "true" : undefined}
+                      onClick={() => setOpen(false)}
+                      className={`block rounded-xl px-4 py-3 text-sm font-medium ring-1 transition-colors duration-200 ${
+                        isActive
+                          ? "bg-accent text-on-accent ring-accent"
+                          : "text-muted ring-hairline hover:text-ink"
+                      }`}
+                    >
+                      {l.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </motion.nav>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
