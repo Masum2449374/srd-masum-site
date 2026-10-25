@@ -10,7 +10,6 @@ import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Snow from "./components/Snow.jsx";
 import HeroAurora from "./components/HeroAurora.jsx";
-import Tilt from "./components/Tilt.jsx";
 import Reviews from "./components/Reviews.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
@@ -457,12 +456,6 @@ function Songs() {
   );
 }
 
-const GALLERY_PHOTOS = [
-  "/images/gallery/photo-3.jpg",
-  "/images/gallery/photo-4.jpg",
-  "/images/gallery/photo-5.jpg",
-];
-
 function Music() {
   return (
     <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
@@ -509,32 +502,6 @@ function Music() {
             <span className="sr-only">(opens in a new tab)</span>
           </motion.a>
         </Reveal>
-      </div>
-    </section>
-  );
-}
-
-function Gallery() {
-  return (
-    <section id="gallery" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
-        <Reveal>
-          <SectionHeader eyebrow="Photos" title="Gallery" />
-        </Reveal>
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {GALLERY_PHOTOS.map((src, i) => (
-            <Reveal as="li" key={src} delay={(i % 3) * 0.08} className="overflow-hidden rounded-xl ring-1 ring-hairline">
-              <Tilt>
-                <img
-                  src={src}
-                  alt={`SRD Masum photo ${i + 1}`}
-                  loading="lazy"
-                  className="beat-photo glow-hover aspect-[4/5] w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
-                />
-              </Tilt>
-            </Reveal>
-          ))}
-        </ul>
       </div>
     </section>
   );
@@ -940,7 +907,6 @@ export default function App() {
         <Music />
         <NewRelease />
         <Songs />
-        <Gallery />
         <Reviews />
         <FanMessage />
         <Contact />

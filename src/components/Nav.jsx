@@ -12,7 +12,6 @@ const LINKS = [
   { id: "music", label: "Music" },
   { id: "new-release", label: "New Release" },
   { id: "songs", label: "Bollywood" },
-  { id: "gallery", label: "Gallery" },
   { id: "reviews", label: "Reviews" },
   { id: "contact", label: "Contact" },
 ];
