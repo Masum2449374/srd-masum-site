@@ -831,10 +831,102 @@ function Footer() {
   );
 }
 
+// Curtain reveal: on the first open of a session the screen starts dark, "SRD MASUM" ignites with a
+// fire-like glow, then two velvet panels part and the site is revealed. Tap anywhere to skip.
+// Only transform and opacity animate (no blur filters, no animated shadows). The flame is a plain
+// radial gradient. It sits above the avatar intro (z-50) and clears before the intro is gone.
+const CURTAIN_LETTERS = "SRD MASUM".split("");
+const CURTAIN_EASE = [0.76, 0, 0.24, 1];
+
+function CurtainReveal() {
+  const reduce = useReducedMotion();
+  const [show, setShow] = useState(() => {
+    try {
+      return !sessionStorage.getItem("srd-curtain-seen");
+    } catch {
+      return false;
+    }
+  });
+  const [open, setOpen] = useState(false);
+
+  const finish = () => {
+    try {
+      sessionStorage.setItem("srd-curtain-seen", "1");
+    } catch {
+      /* storage unavailable: the curtain just plays again on the next load */
+    }
+    setShow(false);
+  };
+
+  useEffect(() => {
+    if (!show) return;
+    const t = setTimeout(() => setOpen(true), reduce ? 900 : 1700);
+    return () => clearTimeout(t);
+  }, [show, reduce]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!open) return;
+    const t = setTimeout(finish, reduce ? 650 : 950);
+    return () => clearTimeout(t);
+  }, [open, reduce]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!show) return null;
+
+  const panelStyle = {
+    background: "linear-gradient(90deg, #0b0a09 0%, #171614 100%)",
+  };
+
+  return (
+    <div
+      aria-hidden="true"
+      onPointerDown={() => setOpen(true)}
+      className="fixed inset-0 z-[60] cursor-pointer overflow-hidden"
+    >
+      <motion.div
+        initial={{ x: "0%" }}
+        animate={{ x: open ? "-100%" : "0%" }}
+        transition={{ duration: reduce ? 0.5 : 0.9, ease: CURTAIN_EASE }}
+        style={panelStyle}
+        className="absolute inset-y-0 left-0 w-1/2 will-change-transform"
+      >
+        <div className="absolute inset-y-0 right-0 w-px bg-accent/60" />
+      </motion.div>
+      <motion.div
+        initial={{ x: "0%" }}
+        animate={{ x: open ? "100%" : "0%" }}
+        transition={{ duration: reduce ? 0.5 : 0.9, ease: CURTAIN_EASE }}
+        style={panelStyle}
+        className="absolute inset-y-0 right-0 w-1/2 will-change-transform"
+      >
+        <div className="absolute inset-y-0 left-0 w-px bg-accent/60" />
+      </motion.div>
+      <motion.div
+        animate={{ opacity: open ? 0 : 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        <div className="curtain-flame" />
+        <p className="relative font-display text-[clamp(2.5rem,11vw,7rem)] leading-none tracking-display text-ink">
+          {CURTAIN_LETTERS.map((ch, i) => (
+            <span
+              key={i}
+              className="curtain-letter"
+              style={{ animationDelay: `${reduce ? i * 30 : i * 70}ms` }}
+            >
+              {ch === " " ? "\u00a0" : ch}
+            </span>
+          ))}
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <PlayerProvider>
     <div className="min-h-screen pb-24">
+      <CurtainReveal />
       <IntroLoader />
       <BeatField />
       <CursorGlow />
