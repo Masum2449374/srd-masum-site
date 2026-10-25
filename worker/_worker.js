@@ -3,6 +3,8 @@
 export default {
   async fetch(req, env) {
     const url = new URL(req.url);
+    // Short alias for the lyrics/share page.
+    if (/^\/song\/koto-din-bhebechhi\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/koto-din-bhebechhi-cover/${url.search}`, 301);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") return env.ASSETS.fetch(req);
     const range = req.headers.get("range");
     const res = await env.ASSETS.fetch(new Request(url.toString(), { method: "GET" }));

@@ -14,6 +14,7 @@ const fullQueue = (list) => {
 const readPref = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const writePref = (k, v) => { try { localStorage.setItem(k, String(v)); } catch { /* ignore */ } };
 import ShareButton from "./ShareButton.jsx";
+import LyricsPanel from "./LyricsPanel.jsx";
 import { songFromUrl } from "../lib/share.js";
 import { beatPlay, beatStop } from "../lib/beat.js";
 import {
@@ -218,8 +219,16 @@ export function PlayerProvider({ children }) {
     setMediaSessionPosition(e.currentTarget);
   };
 
+  const seekTo = useCallback((t) => {
+    const a = audioRef.current;
+    if (!a || !Number.isFinite(t)) return;
+    a.currentTime = Math.max(0, t);
+    setCurrent(a.currentTime);
+    if (a.paused) a.play().catch(() => {});
+  }, []);
+
   const value = useMemo(
-    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, highlight, shuffle, repeat, toggleShuffle, cycleRepeat }),
+    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, seekTo, highlight, shuffle, repeat, toggleShuffle, cycleRepeat }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [track, playing, toggle, step, previous, current, duration, scrub, highlight, shuffle, repeat]
   );
@@ -413,6 +422,9 @@ function NowPlaying({ player, scrub, onClose }) {
   const t = player.track;
   const art = t.art || t.cover || "/images/avatar.jpg";
   const ctl = "flex shrink-0 items-center justify-center rounded-full";
+  const hasLyrics = Boolean(t.lyrics);
+  const [showLyrics, setShowLyrics] = useState(false);
+  const lyricsOn = hasLyrics && showLyrics;
   return (
     <motion.div
       role="dialog"
@@ -440,14 +452,27 @@ function NowPlaying({ player, scrub, onClose }) {
         <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Now Playing</p>
         <ShareButton track={t} />
       </div>
-      <div className="relative mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6">
-        <FXCover src={art} playing={player.playing}>
-          <img src={art} alt="" draggable={false}
-            className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/40 transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
-        </FXCover>
-        <div className="mt-8">
-          <p className="truncate text-2xl font-bold text-ink">{t.title}</p>
-          <p className="mt-1 text-sm text-muted">{t.artist || "SRD Masum"}</p>
+      <div className={`relative mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-6 ${lyricsOn ? "pt-2" : "justify-center"}`}>
+        {lyricsOn ? (
+          <LyricsPanel track={t} current={shown} onSeek={player.seekTo} />
+        ) : (
+          <FXCover src={art} playing={player.playing}>
+            <img src={art} alt="" draggable={false}
+              className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/40 transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
+          </FXCover>
+        )}
+        <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex items-end justify-between gap-3`}>
+          <div className="min-w-0">
+            <p className="truncate text-2xl font-bold text-ink">{t.title}</p>
+            <p className="mt-1 text-sm text-muted">{t.artist || "SRD Masum"}</p>
+          </div>
+          {hasLyrics ? (
+            <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"
+              onPointerDownCapture={(e) => e.stopPropagation()}
+              className={`shrink-0 rounded-full border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors ${lyricsOn ? "border-accent bg-accent text-on-accent" : "border-hairline text-ink/80 hover:text-accent"}`}>
+              Lyrics
+            </button>
+          ) : null}
         </div>
         <div className="mt-6" onPointerDownCapture={(e) => e.stopPropagation()}>
           <input

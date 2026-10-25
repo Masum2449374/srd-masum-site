@@ -58,6 +58,18 @@ for (const t of all) {
   h = setMeta(h, /<meta name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${esc(desc)}" />`);
   h = setMeta(h, /<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${img}" />`);
   h = h.replace("</head>", `    <meta property="og:audio" content="${esc(t.src)}" />\n  </head>`);
+  if (t.lyrics) {
+    // Lyrics in the static HTML for search engines: inside #root (React replaces it on mount) + JSON-LD.
+    const body = t.lyrics.split("\n").map((l) => {
+      const m = /^\[(.+)\]$/.exec(l.trim());
+      return m ? `<h3>${xesc(m[1])}</h3>` : l.trim() ? `<p>${xesc(l.trim())}</p>` : "";
+    }).join("");
+    h = h.replace(/<div id="root"><\/div>/, `<div id="root"><article lang="bn" style="max-width:40rem;margin:2rem auto;padding:0 1rem;font-family:'Noto Sans Bengali',sans-serif"><h1>${xesc(t.title)} — লিরিক্স (Lyrics)</h1><p>${xesc(t.artist || "SRD Masum")}</p>${body}</article></div>`);
+    const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, byArtist: { "@type": "MusicGroup", name: t.artist || "SRD Masum" }, url, inLanguage: "bn", recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } };
+    h = h.replace("</head>", `    <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n  </head>`);
+    const first = t.lyrics.split("\n").find((l) => l.trim() && !/^\[|^আহা/.test(l.trim())) || "";
+    h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(`${t.title} lyrics (লিরিক্স) — ${t.artist || "SRD Masum"}. ${first}`)}" />`);
+  }
   const dir = path.join(dist, "song", t.id);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, "index.html"), h);
