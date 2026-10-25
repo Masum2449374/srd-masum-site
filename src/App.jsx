@@ -473,19 +473,6 @@ function Music() {
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Music" />
         </Reveal>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Reveal className="overflow-hidden rounded-xl ring-1 ring-hairline">
-            <iframe
-              title="SRD Masum on Spotify"
-              src="https://open.spotify.com/embed/artist/267kT30bpgEoiGFawat8k6?utm_source=generator&theme=0"
-              width="100%"
-              height="352"
-              loading="lazy"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              className="block w-full border-0"
-            />
-          </Reveal>
-        </div>
         <Reveal delay={0.12} className="mt-8 flex justify-center sm:justify-start">
           <motion.a
             href={SPOTIFY_ARTIST_URL}
