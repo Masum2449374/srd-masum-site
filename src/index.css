@@ -709,3 +709,7 @@ html.light[data-season="christmas"] .season-badge { color: #c81e2a; }
 .ghost-boo { position: fixed; left: 50%; top: 38%; z-index: 80; pointer-events: none; font-size: 64px; transform: translate(-50%, 0); animation: ghost-boo 2.4s ease-out forwards; }
 @keyframes ghost-boo { 0% { opacity: 0; transform: translate(-50%, 30px) scale(.6); } 20% { opacity: .95; transform: translate(-50%, 0) scale(1.1); } 70% { opacity: .8; transform: translate(-40%, -30px) scale(1); } 100% { opacity: 0; transform: translate(-30%, -80px) scale(.9); } }
 @media (prefers-reduced-motion: reduce) { .ghost-boo { animation: ghost-fade 2.4s ease-out forwards; } @keyframes ghost-fade { 0%,100% { opacity: 0; } 20%,70% { opacity: .9; } } }
+.season-tap { cursor: pointer; -webkit-tap-highlight-color: transparent; background: none; border: 0; padding: 0; }
+.season-tap:hover, .season-tap:focus-visible { filter: drop-shadow(0 0 10px rgba(255,140,30,.7)); }
+.season-tap:active { transform: scale(1.25) rotate(-10deg) !important; }
+button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding: 0 1rem; }
