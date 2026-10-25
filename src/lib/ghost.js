@@ -53,11 +53,11 @@ function spawn(x, y) {
   const dir = x < innerWidth / 2 ? -1 : 1;
   el.style.left = `${x}px`; el.style.top = `${y}px`;
   el.style.setProperty("--dx", `${dir * (90 + Math.random() * 120)}px`);
-  el.style.setProperty("--dy", `${-(innerHeight * 0.6 + y)}px`);
+  el.style.setProperty("--dy", `${-(y + 260)}px`);
   el.style.setProperty("--rot", `${dir * (8 + Math.random() * 10)}deg`);
   el.innerHTML = `<div class="wghost-fly">${SVG}</div>`;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 2700);
+  setTimeout(() => el.remove(), 3400);
 }
 
 export function playGhost(x, y) {
