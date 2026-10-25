@@ -20,6 +20,7 @@ import { VIDEO_IDS, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
 import BeatField from "./components/BeatField.jsx";
+import AdSlot from "./components/AdSlot.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 
 const YEAR = new Date().getFullYear();
@@ -890,7 +891,9 @@ export default function App() {
       <Nav />
       <main>
         <Hero />
+        <AdSlot type="banner320" />
         <AudioSongs />
+        <AdSlot type="native" />
         <BanglaSongs />
         <Featured />
         <Videos />
@@ -900,6 +903,7 @@ export default function App() {
         <Reviews />
         <FanWall />
         <FanMessage />
+        <AdSlot type="banner300" />
         <Contact />
       </main>
       <Footer />
