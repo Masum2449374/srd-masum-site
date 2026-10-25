@@ -15,7 +15,7 @@ export const CONTACT_EMAIL = "mstdstudio24@gmail.com";
 // Placeholder social links: replace "#" with the real profile URLs when ready.
 export const SOCIAL_LINKS = {
   instagram: "#",
-  facebook: "#",
+  facebook: "https://www.facebook.com/share/1DV2oJQcFE/",
   youtube: "https://youtube.com/@srdmasum",
   whatsapp: "#",
 };
