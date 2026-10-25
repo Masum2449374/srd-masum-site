@@ -54,11 +54,16 @@ function blip(ac, { freq, slideTo, start, dur, peak }) {
 function play(build) {
   const ac = getCtx();
   if (!ac) return;
-  try {
-    build(ac, ac.currentTime + 0.01);
-  } catch {
-    /* audio unsupported or blocked: stay silent */
-  }
+  const run = () => {
+    try {
+      build(ac, ac.currentTime + 0.01);
+    } catch {
+      /* audio unsupported or blocked: stay silent */
+    }
+  };
+  // Android Chrome can still report "suspended" right after the first gesture. Schedule only once running.
+  if (ac.state === "running" || !ac.resume) run();
+  else ac.resume().then(run).catch(() => {});
 }
 
 // 1) Soft bubble pop when a menu link is tapped.
