@@ -37,6 +37,20 @@ export function PlayerProvider({ children }) {
 
   useEffect(() => () => clearTimeout(scrubTimer.current), []);
 
+  const load = useCallback((t, list, autoplay = true) => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (list) queueRef.current = list;
+    trackRef.current = t;
+    setTrack(t);
+    setCurrent(0);
+    setDuration(t.duration || 0);
+    setMediaSessionMetadata(t);
+    a.src = t.src;
+    a.load();
+    if (autoplay) a.play().catch(() => {});
+  }, []);
+
   // Shared link (/song/<id>/, ?song=<id> or #song-<id>): cue that track, scroll to it and
   // highlight it. Browsers block autoplay, so one tap on play starts it.
   const [highlight, setHighlight] = useState(null);
@@ -52,20 +66,6 @@ export function PlayerProvider({ children }) {
     const off = setTimeout(() => setHighlight(null), 6000);
     return () => { clearTimeout(id); clearTimeout(off); };
   }, [cue]);
-
-  const load = useCallback((t, list, autoplay = true) => {
-    const a = audioRef.current;
-    if (!a) return;
-    if (list) queueRef.current = list;
-    trackRef.current = t;
-    setTrack(t);
-    setCurrent(0);
-    setDuration(t.duration || 0);
-    setMediaSessionMetadata(t);
-    a.src = t.src;
-    a.load();
-    if (autoplay) a.play().catch(() => {});
-  }, []);
 
   const toggle = useCallback(
     (t, list) => {
