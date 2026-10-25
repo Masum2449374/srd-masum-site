@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   </React.StrictMode>,
 );
 
-window.__srdBuild = "b13";
+window.__srdBuild = "b14";
 // PWA: register the app-shell service worker in production only.
 if (import.meta.env.PROD && "serviceWorker" in navigator) {
   window.addEventListener("load", () => {

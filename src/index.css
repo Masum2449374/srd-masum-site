@@ -713,3 +713,21 @@ html.light[data-season="christmas"] .season-badge { color: #c81e2a; }
 .season-tap:hover, .season-tap:focus-visible { filter: drop-shadow(0 0 10px rgba(255,140,30,.7)); }
 .season-tap:active { transform: scale(1.25) rotate(-10deg) !important; }
 button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding: 0 1rem; }
+/* flying ghosts */
+.fly-ghost-x { position: absolute; left: 0; animation: fly-x linear infinite; will-change: transform; }
+.fly-ghost-x.fly-rev { animation-name: fly-x-rev; }
+.fly-ghost-x.fly-rev .fly-ghost { transform: scaleX(-1); }
+.fly-ghost-y { animation: fly-y ease-in-out infinite alternate; }
+.fly-ghost { filter: drop-shadow(0 0 8px rgba(200,220,255,.75)) drop-shadow(0 0 18px rgba(160,120,255,.35)); transition: opacity .3s; }
+.fly-ghost.fly-gone { animation: fly-spin 1.6s ease-in-out forwards; pointer-events: none; }
+@keyframes fly-x { from { transform: translateX(-60px); } to { transform: translateX(calc(100vw + 20px)); } }
+@keyframes fly-x-rev { from { transform: translateX(calc(100vw + 20px)); } to { transform: translateX(-60px); } }
+@keyframes fly-y { from { transform: translateY(-14px); } to { transform: translateY(14px); } }
+@keyframes fly-spin { 0% { transform: rotate(0) scale(1); } 40% { transform: rotate(540deg) scale(1.4); opacity: 0; } 80% { transform: rotate(720deg) scale(.6); opacity: 0; } 100% { transform: rotate(720deg) scale(1); } }
+.seasonal-paused .fly-ghost-x, .seasonal-paused .fly-ghost-y { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .fly-ghost-x, .fly-ghost-y { animation: none; }
+  .fly-ghost-x:nth-child(1) { transform: translateX(8vw); } .fly-ghost-x:nth-child(2) { transform: translateX(70vw); }
+  .fly-ghost-x:nth-child(3) { transform: translateX(40vw); } .fly-ghost-x:nth-child(4) { transform: translateX(82vw); }
+  .fly-ghost.fly-gone { animation: ghost-fade 1.6s ease-out forwards; }
+}
