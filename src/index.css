@@ -673,3 +673,7 @@ html[data-tab-hidden="true"] *::after {
 .np-paused .np-blob { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) { .np-blob { animation: none; } }
 :root.light .np-blob { opacity: .35; }
+
+/* Lyrics: pulsing ♪ marker during instrumental breaks. */
+@keyframes lyr-note { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.18); } }
+.lyr-note { display: inline-block; animation: lyr-note 1s ease-in-out infinite; transition: opacity .4s; }

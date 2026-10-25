@@ -454,7 +454,7 @@ function NowPlaying({ player, scrub, onClose }) {
       </div>
       <div className={`relative mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-6 ${lyricsOn ? "pt-2" : "justify-center"}`}>
         {lyricsOn ? (
-          <LyricsPanel track={t} current={shown} onSeek={player.seekTo} />
+          <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
         ) : (
           <FXCover src={art} playing={player.playing}>
             <img src={art} alt="" draggable={false}

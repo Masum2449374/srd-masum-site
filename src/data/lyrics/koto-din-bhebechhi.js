@@ -44,3 +44,12 @@ export const times = [
   163.0, 171.5, 180.2, 187.3,
   195.3, 199.3, 204.5,
 ];
+
+// When a sung line stops (seconds); null = runs into the next line. Used for ♪ instrumental markers.
+export const ends = (() => {
+  const e = new Array(24).fill(null);
+  e[0] = 9.0; // intro hum
+  e[10] = 98.4; // end of chorus 1 -> instrumental break
+  e[23] = 208.5; // last "ও… ও… উম…" -> outro music
+  return e;
+})();
