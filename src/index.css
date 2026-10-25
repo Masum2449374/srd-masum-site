@@ -726,7 +726,7 @@ button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding
 @keyframes fly-spin { 0% { transform: rotate(0) scale(1); } 40% { transform: rotate(540deg) scale(1.4); opacity: 0; } 80% { transform: rotate(720deg) scale(.6); opacity: 0; } 100% { transform: rotate(720deg) scale(1); } }
 .seasonal-paused .fly-ghost-x, .seasonal-paused .fly-ghost-y { animation-play-state: paused; }
 @media (prefers-reduced-motion: reduce) {
-  .fly-ghost-x, .fly-ghost-y { animation: none; }
+  .fly-ghost-x, .fly-ghost-x.fly-rev, .fly-ghost-y { animation: none; }
   .fly-ghost-x:nth-child(1) { transform: translateX(8vw); } .fly-ghost-x:nth-child(2) { transform: translateX(70vw); }
   .fly-ghost-x:nth-child(3) { transform: translateX(40vw); } .fly-ghost-x:nth-child(4) { transform: translateX(82vw); }
   .fly-ghost.fly-gone { animation: ghost-fade 1.6s ease-out forwards; }
