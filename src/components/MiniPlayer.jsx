@@ -1,5 +1,16 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, Disc, SkipBack, SkipForward } from "@phosphor-icons/react";
+import { Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce } from "@phosphor-icons/react";
+import { AUDIO_TRACKS } from "../data/songs.js";
+import { BANGLA_TRACKS } from "../data/bangla-songs.js";
+
+const ALL_TRACKS = [...AUDIO_TRACKS, ...BANGLA_TRACKS];
+// Queue = the tapped list first, then every other song, so playback continues across sections.
+const fullQueue = (list) => {
+  const l = list && list.length ? list : ALL_TRACKS;
+  return [...l, ...ALL_TRACKS.filter((t) => !l.some((x) => x.id === t.id))];
+};
+const readPref = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
+const writePref = (k, v) => { try { localStorage.setItem(k, String(v)); } catch { /* ignore */ } };
 import ShareButton from "./ShareButton.jsx";
 import { songFromUrl } from "../lib/share.js";
 import { beatPlay, beatStop } from "../lib/beat.js";
@@ -34,13 +45,23 @@ export function PlayerProvider({ children }) {
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
   const [scrub, setScrub] = useState(null);
+  const [shuffle, setShuffle] = useState(() => readPref("srd-shuffle", "0") === "1");
+  const [repeat, setRepeat] = useState(() => readPref("srd-repeat", "off")); // off | all | one
+  const shuffleRef = useRef(shuffle);
+  const repeatRef = useRef(repeat);
+  const historyRef = useRef([]); // played ids, for "previous" while shuffling
+  useEffect(() => { shuffleRef.current = shuffle; writePref("srd-shuffle", shuffle ? "1" : "0"); }, [shuffle]);
+  useEffect(() => { repeatRef.current = repeat; writePref("srd-repeat", repeat); }, [repeat]);
+  const toggleShuffle = useCallback(() => setShuffle((v) => !v), []);
+  const cycleRepeat = useCallback(() => setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off")), []);
 
   useEffect(() => () => clearTimeout(scrubTimer.current), []);
 
   const load = useCallback((t, list, autoplay = true) => {
     const a = audioRef.current;
     if (!a) return;
-    if (list) queueRef.current = list;
+    if (list || !queueRef.current.length) queueRef.current = fullQueue(list);
+    if (trackRef.current && trackRef.current.id !== t.id) historyRef.current = [...historyRef.current.slice(-50), trackRef.current.id];
     trackRef.current = t;
     setTrack(t);
     setCurrent(0);
@@ -87,6 +108,17 @@ export function PlayerProvider({ children }) {
       const q = queueRef.current;
       const t = trackRef.current;
       if (!t || !q.length) return false;
+      if (shuffleRef.current && q.length > 1) {
+        if (dir < 0) {
+          const prevId = historyRef.current.pop();
+          const prev = prevId && q.find((x) => x.id === prevId);
+          if (prev) { const h = historyRef.current; load(prev, null); historyRef.current = h; return true; }
+        } else {
+          const others = q.filter((x) => x.id !== t.id);
+          load(others[Math.floor(Math.random() * others.length)], null);
+          return true;
+        }
+      }
       let j = q.findIndex((x) => x.id === t.id) + dir;
       if (wrap) j = (j + q.length) % q.length;
       if (j < 0 || j >= q.length) return false;
@@ -163,8 +195,13 @@ export function PlayerProvider({ children }) {
   const onEnded = (e) => {
     setPlaying(false);
     beatStop(e.currentTarget);
-    // Auto-advance to the next track in the same list. At the end of the list, stop.
-    if (!step(1, false)) {
+    // Repeat one: replay. Otherwise auto-advance; at the end of the queue wrap only on repeat-all.
+    if (repeatRef.current === "one") {
+      e.currentTarget.currentTime = 0;
+      e.currentTarget.play().catch(() => {});
+      return;
+    }
+    if (!step(1, repeatRef.current === "all")) {
       setCurrent(0);
       setMediaSessionState("paused");
     }
@@ -180,9 +217,9 @@ export function PlayerProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, highlight }),
+    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, highlight, shuffle, repeat, toggleShuffle, cycleRepeat }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [track, playing, toggle, step, previous, current, duration, scrub, highlight]
+    [track, playing, toggle, step, previous, current, duration, scrub, highlight, shuffle, repeat]
   );
 
   return (
@@ -293,6 +330,16 @@ function MiniBar({ player, scrub }) {
         </div>
         <button
           type="button"
+          onClick={player.toggleShuffle}
+          aria-label="Shuffle"
+          aria-pressed={player.shuffle}
+          data-testid="shuffle"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${player.shuffle ? "text-accent" : "text-ink/50"}`}
+        >
+          <Shuffle size={16} weight="bold" />
+        </button>
+        <button
+          type="button"
           onClick={player.previous}
           aria-label="Previous"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink/80 hover:text-accent"
@@ -314,6 +361,15 @@ function MiniBar({ player, scrub }) {
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink/80 hover:text-accent"
         >
           <SkipForward size={18} weight="fill" />
+        </button>
+        <button
+          type="button"
+          onClick={player.cycleRepeat}
+          aria-label={`Repeat: ${player.repeat}`}
+          data-testid="repeat"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${player.repeat !== "off" ? "text-accent" : "text-ink/50"}`}
+        >
+          {player.repeat === "one" ? <RepeatOnce size={16} weight="bold" /> : <Repeat size={16} weight="bold" />}
         </button>
       </div>
     </div>
