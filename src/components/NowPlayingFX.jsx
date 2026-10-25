@@ -44,7 +44,7 @@ export function FXCover({ src, playing, children }) {
     const cv = canvas.current; if (!cv) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const g = cv.getContext("2d");
-    const spec = new Uint8Array(BARS);
+    const spec = new Uint8Array(BARS), half = new Uint8Array(BARS / 4);
     let raf = 0, smooth = 0, silentSince = 0, sim = false;
     // Simulated beat (used when the analyser has no real data, e.g. a silent capture on some phones):
     // ~118 BPM kick with exponential decay, bass-weighted bins, per-bar random jitter.
@@ -69,7 +69,15 @@ export function FXCover({ src, playing, children }) {
     size(); window.addEventListener("resize", size);
     const draw = (now) => {
       const w = cv.clientWidth, h = cv.clientHeight, cx = w / 2, cy = h / 2;
-      let live = !window.__srdForceSim && getSpectrum(spec);
+      let live = !window.__srdForceSim && getSpectrum(half);
+      if (live) {
+        // Mirror the low-to-high spectrum around the ring (bass at the top) and lift the quieter highs,
+        // so the whole ring moves instead of one quadrant.
+        for (let i = 0; i < BARS; i++) {
+          const q = i % (BARS / 2), k = q < BARS / 4 ? q : BARS / 2 - 1 - q; // 4-fold: bass top+bottom
+          spec[i] = Math.min(255, half[k] * (1 + (k / (BARS / 4)) * 1.6));
+        }
+      }
       let mx = 0, mn = 255;
       if (live) {
         for (let i = 0; i < BARS; i++) { if (spec[i] > mx) mx = spec[i]; if (spec[i] < mn) mn = spec[i]; }

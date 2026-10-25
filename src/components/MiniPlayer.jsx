@@ -264,12 +264,16 @@ export function TrackRow({ track, list }) {
         isActive ? "bg-raised ring-1 ring-accent/40" : "hover:bg-raised/60"
       } ${isPlaying ? "beat-glow beat-card" : ""} ${player?.highlight === track.id ? "ring-2 ring-accent" : ""}`}
     >
-      <div
-        aria-hidden="true"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent via-[#0a3d91] to-accent-deep"
-      >
-        <Disc size={18} weight="duotone" className="text-ink/80" />
-      </div>
+      {(track).cover ? (
+          <img src={(track).thumb || (track).cover} alt="" aria-hidden="true" width="40" height="40" loading="lazy" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+        ) : (
+        <div
+          aria-hidden="true"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent via-[#0a3d91] to-accent-deep"
+        >
+          <Disc size={18} weight="duotone" className="text-ink/80" />
+        </div>
+        )}
       <div className="min-w-0 flex-1">
         <p className={`truncate text-[15px] font-semibold leading-tight ${isActive ? "text-accent" : "text-ink"}`}>
           {track.title}
@@ -337,12 +341,16 @@ function MiniBar({ player, scrub }) {
         style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, #2c2a27 ${pct}%)` }}
       />
       <div className="mx-auto flex max-w-6xl items-center gap-3 py-2">
+        {(player.track).cover ? (
+          <img src={(player.track).thumb || (player.track).cover} alt="" aria-hidden="true" width="40" height="40" loading="lazy" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+        ) : (
         <div
           aria-hidden="true"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent via-[#0a3d91] to-accent-deep"
         >
           <Disc size={18} weight="duotone" className="text-ink/80" />
         </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-ink">{player.track.title}</p>
           <p className="font-mono text-[11px] tabular-nums text-muted">
@@ -439,7 +447,7 @@ function NowPlaying({ player, scrub, onClose }) {
         </FXCover>
         <div className="mt-8">
           <p className="truncate text-2xl font-bold text-ink">{t.title}</p>
-          <p className="mt-1 text-sm text-muted">SRD Masum</p>
+          <p className="mt-1 text-sm text-muted">{t.artist || "SRD Masum"}</p>
         </div>
         <div className="mt-6" onPointerDownCapture={(e) => e.stopPropagation()}>
           <input
