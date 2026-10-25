@@ -428,12 +428,10 @@ html[data-hero-playing="true"] .hero-sparkles {
     transform: scaleY(0.6) !important;
   }
 
-  .shine-tile::after,
   .type-caret,
   .music-note {
     animation: none !important;
   }
-  .shine-tile::after,
   .type-caret,
   .music-note {
     display: none !important;
