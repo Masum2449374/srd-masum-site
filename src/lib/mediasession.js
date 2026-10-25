@@ -1,5 +1,8 @@
 // Lock-screen / notification controls via the Media Session API. Safe no-op where unsupported.
-const ARTWORK_SRC = "/images/avatar.jpg";
+const ARTWORK = [
+  { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+  { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+];
 const supported = () => typeof navigator !== "undefined" && "mediaSession" in navigator;
 
 export function setMediaSessionMetadata(track) {
@@ -10,7 +13,7 @@ export function setMediaSessionMetadata(track) {
         title: track.title,
         artist: "SRD Masum",
         album: "SRD Masum",
-        artwork: [{ src: ARTWORK_SRC, sizes: "512x512", type: "image/jpeg" }],
+        artwork: ARTWORK.map((a) => ({ ...a, src: new URL(a.src, location.origin).href })),
       });
     }
   } catch {

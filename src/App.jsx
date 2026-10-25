@@ -20,6 +20,7 @@ import { VIDEO_IDS, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
 import BeatField from "./components/BeatField.jsx";
+import InstallPrompt from "./components/InstallPrompt.jsx";
 
 const YEAR = new Date().getFullYear();
 
@@ -903,6 +904,7 @@ export default function App() {
       </main>
       <Footer />
       <MiniPlayer />
+      <InstallPrompt />
     </div>
     </PlayerProvider>
   );

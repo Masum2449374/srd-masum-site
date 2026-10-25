@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Disc, SkipBack, SkipForward } from "@phosphor-icons/react";
+import ShareButton from "./ShareButton.jsx";
+import { songFromUrl } from "../lib/share.js";
 import { beatPlay, beatStop } from "../lib/beat.js";
 import {
   setMediaSessionMetadata,
@@ -35,7 +37,23 @@ export function PlayerProvider({ children }) {
 
   useEffect(() => () => clearTimeout(scrubTimer.current), []);
 
-  const load = useCallback((t, list) => {
+  // Shared link (/song/<id>/, ?song=<id> or #song-<id>): cue that track, scroll to it and
+  // highlight it. Browsers block autoplay, so one tap on play starts it.
+  const [highlight, setHighlight] = useState(null);
+  const cue = useCallback((t, list) => load(t, list, false), [load]);
+  useEffect(() => {
+    const hit = songFromUrl();
+    if (!hit) return;
+    cue(hit.track, hit.list);
+    setHighlight(hit.track.id);
+    const id = setTimeout(() => {
+      document.querySelector(`[data-track-row="${hit.track.id}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 600);
+    const off = setTimeout(() => setHighlight(null), 6000);
+    return () => { clearTimeout(id); clearTimeout(off); };
+  }, [cue]);
+
+  const load = useCallback((t, list, autoplay = true) => {
     const a = audioRef.current;
     if (!a) return;
     if (list) queueRef.current = list;
@@ -46,7 +64,7 @@ export function PlayerProvider({ children }) {
     setMediaSessionMetadata(t);
     a.src = t.src;
     a.load();
-    a.play().catch(() => {});
+    if (autoplay) a.play().catch(() => {});
   }, []);
 
   const toggle = useCallback(
@@ -162,9 +180,9 @@ export function PlayerProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ track, playing, toggle, step, current, duration, onScrub, endScrub }),
+    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, highlight }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [track, playing, toggle, step, current, duration, scrub]
+    [track, playing, toggle, step, previous, current, duration, scrub, highlight]
   );
 
   return (
@@ -201,9 +219,10 @@ export function TrackRow({ track, list }) {
   return (
     <div
       data-track-row={track.id}
-      className={`flex h-[60px] items-center gap-3 rounded-xl px-2 transition-colors ${
+      id={`song-${track.id}`}
+      className={`flex h-[60px] scroll-mt-24 items-center gap-3 rounded-xl px-2 transition-colors ${
         isActive ? "bg-raised ring-1 ring-accent/40" : "hover:bg-raised/60"
-      } ${isPlaying ? "beat-glow beat-card" : ""}`}
+      } ${isPlaying ? "beat-glow beat-card" : ""} ${player?.highlight === track.id ? "ring-2 ring-accent" : ""}`}
     >
       <div
         aria-hidden="true"
@@ -219,6 +238,7 @@ export function TrackRow({ track, list }) {
       <span className="shrink-0 font-mono text-[11px] tabular-nums text-muted">
         {shownDuration ? formatTime(shownDuration) : ""}
       </span>
+      <ShareButton track={track} />
       <button
         type="button"
         onClick={() => player.toggle(track, list)}
@@ -273,7 +293,7 @@ function MiniBar({ player, scrub }) {
         </div>
         <button
           type="button"
-          onClick={() => player.step(-1, true)}
+          onClick={player.previous}
           aria-label="Previous"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink/80 hover:text-accent"
         >
