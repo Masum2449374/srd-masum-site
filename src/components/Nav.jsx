@@ -67,6 +67,28 @@ export default function Nav() {
     };
   }, [open]);
 
+  // Tapping a menu link: close the menu, then scroll exactly once. The native hash jump is cancelled so it
+  // can't fight the menu exit animation or the page's own smooth-scroll (that was the shake on phones).
+  // The scroll waits two frames so the menu has left before the page starts moving.
+  const goTo = (e, id) => {
+    e.preventDefault();
+    const target = document.getElementById(id);
+    setOpen(false);
+    if (!target) return;
+    const header = document.querySelector(".pro-nav");
+    const offset = (header?.offsetHeight || 64) + 8;
+    const smooth = !reduce && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        window.scrollTo({ top: Math.max(0, top), behavior: smooth ? "smooth" : "instant" });
+        try {
+          history.replaceState(null, "", `#${id}`);
+        } catch (err) {}
+      }),
+    );
+  };
+
   const fade = reduce
     ? { duration: 0.12 }
     : { duration: 0.22, ease: [0.22, 1, 0.36, 1] };
@@ -137,7 +159,7 @@ export default function Nav() {
                     <a
                       href={`#${l.id}`}
                       aria-current={isActive ? "true" : undefined}
-                      onClick={() => setOpen(false)}
+                      onClick={(e) => goTo(e, l.id)}
                       className={`block rounded-xl px-4 py-3 text-sm font-medium ring-1 transition-colors duration-200 ${
                         isActive
                           ? "bg-accent text-on-accent ring-accent"
