@@ -412,11 +412,14 @@ html[data-hero-playing="true"] .hero-sparkles {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
+/* Desktop only: hovering the train pauses it. Touch screens never pause (a tap can leave a sticky hover). */
+@media (hover: hover) {
+  .reviews-wrap:hover .review-track {
+    animation-play-state: paused;
+  }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .review-track {
-    animation: none !important;
-  }
   .glow-hover {
     transition: none;
   }

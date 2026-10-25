@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { useDecorReduce } from "../lib/motion.js";
 import { Star, ChatCircleText } from "@phosphor-icons/react";
 import Reveal from "./Reveal.jsx";
 
@@ -65,9 +64,6 @@ function ReviewCard({ review }) {
 // Continuous loop: the list is repeated so the track is always wider than the screen.
 // The second copy is hidden from assistive tech and the loop resets seamlessly at -50%.
 function ReviewMarquee({ reviews }) {
-  const reduce = useDecorReduce();
-  const [paused, setPaused] = useState(false);
-
   const items = useMemo(() => {
     if (!reviews.length) return [];
     const copies = Math.max(1, Math.ceil(6 / reviews.length));
@@ -77,28 +73,15 @@ function ReviewMarquee({ reviews }) {
   }, [reviews]);
 
   const duration = Math.max(20, items.length * 4);
-  const pause = () => setPaused(true);
-  const resume = () => setPaused(false);
-
   return (
     <div
       className="reviews-wrap relative overflow-hidden"
-      onMouseEnter={pause}
-      onMouseLeave={resume}
-      onTouchStart={pause}
-      onTouchEnd={resume}
-      onTouchCancel={resume}
-      onFocus={pause}
-      onBlur={resume}
     >
       <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-canvas to-transparent sm:w-24" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-canvas to-transparent sm:w-24" aria-hidden="true" />
       <div
         className="review-track flex w-max py-2"
-        style={{
-          animationDuration: `${duration}s`,
-          animationPlayState: paused || reduce ? "paused" : "running",
-        }}
+        style={{ animationDuration: `${duration}s` }}
       >
         {[0, 1].map((copy) => (
           <ul key={copy} aria-hidden={copy === 1 ? "true" : undefined} className="flex shrink-0 gap-5 pr-5">
@@ -226,7 +209,7 @@ export default function Reviews() {
           <div className="mb-8 sm:mb-10">
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Fan reviews</p>
             <h2 className="mt-3 font-display text-3xl tracking-display sm:text-5xl">Reviews</h2>
-            <p className="mt-4 max-w-xl text-muted">What fans are saying. Hover or touch the train to pause it.</p>
+            <p className="mt-4 max-w-xl text-muted">What fans are saying. Hover the train on desktop to pause it.</p>
           </div>
         </Reveal>
         <Reveal delay={0.08}>
