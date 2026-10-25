@@ -660,3 +660,16 @@ html[data-tab-hidden="true"] *::after {
   animation-play-state: paused !important;
 }
 
+
+/* Now Playing effects */
+.np-glow { background: radial-gradient(circle, rgba(11,108,240,.75) 0%, rgba(90,162,255,.35) 45%, transparent 70%); filter: blur(28px); opacity: .5; will-change: transform, opacity; }
+.np-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .55; will-change: transform; }
+.np-blob1 { top: -25vmax; left: -20vmax; animation: npb1 18s ease-in-out infinite alternate; }
+.np-blob2 { bottom: -30vmax; right: -25vmax; animation: npb2 22s ease-in-out infinite alternate; }
+.np-blob3 { top: 30%; left: 30%; width: 45vmax; height: 45vmax; opacity: .35; animation: npb3 26s ease-in-out infinite alternate; }
+@keyframes npb1 { to { transform: translate(18vmax, 22vmax) scale(1.15); } }
+@keyframes npb2 { to { transform: translate(-20vmax, -18vmax) scale(1.2); } }
+@keyframes npb3 { to { transform: translate(-25vmax, 10vmax) scale(.85); } }
+.np-paused .np-blob { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .np-blob { animation: none; } }
+:root.light .np-blob { opacity: .35; }

@@ -110,3 +110,13 @@ export function useBeatPlaying() {
   useEffect(() => onBeatChange((p) => setPlaying(p)), []);
   return playing;
 }
+
+// Fills `out` (Uint8Array) with the current frequency bins. Returns false when no tap exists,
+// so callers fall back to an idle animation.
+export function getSpectrum(out) {
+  if (!analyser || current === null) return false;
+  analyser.getByteFrequencyData(data);
+  const n = out.length, step = Math.max(1, Math.floor((data.length * 0.6) / n));
+  for (let i = 0; i < n; i++) out[i] = data[i * step + 1] || 0;
+  return true;
+}

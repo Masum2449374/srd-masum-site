@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
+import { FXBackground, FXCover } from "./NowPlayingFX.jsx";
 import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
 
@@ -419,10 +420,10 @@ function NowPlaying({ player, scrub, onClose }) {
       dragElastic={{ top: 0, bottom: 0.6 }}
       dragListener={true}
       onDragEnd={(_, info) => { if (info.offset.y > 120 || info.velocity.y > 600) onClose(); }}
-      className="fixed inset-0 z-[60] flex cursor-default flex-col bg-canvas text-ink"
+      className="fixed inset-0 z-[60] flex cursor-default overflow-hidden flex-col bg-canvas text-ink"
       style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-accent/25 via-transparent to-transparent" />
+      <div className={player.playing ? "" : "np-paused"}><FXBackground src={art} /></div>
       <div className="relative flex items-center justify-between px-4 pt-3">
         <button type="button" onClick={onClose} aria-label="Close" data-testid="np-close" className={`${ctl} h-11 w-11 text-ink/80 hover:text-accent`}>
           <CaretDown size={26} weight="bold" />
@@ -431,8 +432,10 @@ function NowPlaying({ player, scrub, onClose }) {
         <ShareButton track={t} />
       </div>
       <div className="relative mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6">
-        <img src={art} alt="" draggable={false}
-          className={`mx-auto aspect-square w-full max-w-[340px] rounded-3xl object-cover shadow-2xl ring-1 ring-hairline transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
+        <FXCover src={art} playing={player.playing}>
+          <img src={art} alt="" draggable={false}
+            className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/40 transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
+        </FXCover>
         <div className="mt-8">
           <p className="truncate text-2xl font-bold text-ink">{t.title}</p>
           <p className="mt-1 text-sm text-muted">SRD Masum</p>
