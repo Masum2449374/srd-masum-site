@@ -51,6 +51,7 @@ function spawn(x, y) {
   el.setAttribute("aria-hidden", "true");
   el.className = "wghost";
   const dir = x < innerWidth / 2 ? 1 : -1; // drift toward the centre so it stays on screen
+  x = Math.min(innerWidth - 66, Math.max(66, x)); // keep the whole ghost on screen
   el.style.left = `${x}px`; el.style.top = `${y}px`;
   el.style.setProperty("--dx", `${dir * (60 + Math.random() * 70)}px`);
   el.style.setProperty("--dy", `${-(y + 260)}px`);
