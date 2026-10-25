@@ -138,13 +138,11 @@ html {
   box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.8);
 }
 
-/* Dropdown menu: animated with transform + opacity only, promoted to its own layer so the open
-   doesn't force a repaint of the header or the page underneath. */
+/* Dropdown menu: no animation, no will-change/transform/contain. It just appears, so opening it
+   does not promote a layer or repaint the sticky header and the page behind it. */
 .pro-nav-menu {
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  contain: layout paint;
+  animation: none;
+  transition: none;
 }
 
 /* Hero bottom blend so the hero melts into the next section. */

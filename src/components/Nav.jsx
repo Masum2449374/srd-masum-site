@@ -89,10 +89,6 @@ export default function Nav() {
     );
   };
 
-  const fade = reduce
-    ? { duration: 0.12 }
-    : { duration: 0.22, ease: [0.22, 1, 0.36, 1] };
-
   return (
     <header className="pro-nav sticky top-0 z-40 border-b border-hairline">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5 sm:px-8">
@@ -138,43 +134,37 @@ export default function Nav() {
         </div>
       </div>
 
-      <AnimatePresence>
-        {open && (
-          <motion.nav
-            key="menu-panel"
-            id="site-menu"
-            ref={panelRef}
-            aria-label="Sections"
-            className="pro-nav-menu absolute left-0 right-0 top-full border-b border-hairline bg-sunk px-5 pb-5 pt-3 sm:px-8"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -10 }}
-            animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10 }}
-            transition={fade}
-          >
-            <ul className="mx-auto grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-3">
-              {LINKS.map((l) => {
-                const isActive = active === l.id;
-                return (
-                  <li key={l.id}>
-                    <a
-                      href={`#${l.id}`}
-                      aria-current={isActive ? "true" : undefined}
-                      onClick={(e) => goTo(e, l.id)}
-                      className={`block rounded-xl px-4 py-3 text-sm font-medium ring-1 transition-colors duration-200 ${
-                        isActive
-                          ? "bg-accent text-on-accent ring-accent"
-                          : "text-muted ring-hairline hover:text-ink"
-                      }`}
-                    >
-                      {l.label}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+      {/* Menu opens instantly: no animation, so nothing is repainted or re-composited while it appears. */}
+      {open && (
+        <nav
+          id="site-menu"
+          ref={panelRef}
+          aria-label="Sections"
+          className="pro-nav-menu absolute left-0 right-0 top-full border-b border-hairline bg-sunk px-5 pb-5 pt-3 sm:px-8"
+        >
+          <ul className="mx-auto grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-3">
+            {LINKS.map((l) => {
+              const isActive = active === l.id;
+              return (
+                <li key={l.id}>
+                  <a
+                    href={`#${l.id}`}
+                    aria-current={isActive ? "true" : undefined}
+                    onClick={(e) => goTo(e, l.id)}
+                    className={`block rounded-xl px-4 py-3 text-sm font-medium ring-1 ${
+                      isActive
+                        ? "bg-accent text-on-accent ring-accent"
+                        : "text-muted ring-hairline"
+                    }`}
+                  >
+                    {l.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      )}
     </header>
   );
 }
