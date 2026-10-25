@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce } from "@phosphor-icons/react";
+import { Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown } from "@phosphor-icons/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
 
@@ -289,7 +290,23 @@ export function TrackRow({ track, list }) {
 }
 
 // Sticky bar at the bottom of the viewport. Shows only while a track is loaded.
+// Tapping the bar (not a button or the seek bar) opens the full-screen Now Playing view.
 function MiniBar({ player, scrub }) {
+  const [open, setOpen] = useState(false);
+  // Android back closes the view: opening pushes a history entry, popstate closes it.
+  useEffect(() => {
+    if (!open) return;
+    history.pushState({ srdNowPlaying: 1 }, "");
+    const onPop = () => setOpen(false);
+    window.addEventListener("popstate", onPop);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { window.removeEventListener("popstate", onPop); document.body.style.overflow = prev; };
+  }, [open]);
+  const close = useCallback(() => {
+    if (history.state?.srdNowPlaying) history.back(); // popstate -> setOpen(false)
+    else setOpen(false);
+  }, []);
   if (!player.track) return null;
   const shown = scrub ?? player.current;
   const max = player.duration || 0;
@@ -298,7 +315,9 @@ function MiniBar({ player, scrub }) {
     <div
       role="region"
       aria-label="Now playing"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-hairline bg-sunk px-3 pb-[env(safe-area-inset-bottom)] pt-2"
+      data-testid="minibar"
+      onClick={(e) => { if (!e.target.closest("button,input,a")) setOpen(true); }}
+      className="fixed inset-x-0 bottom-0 z-50 cursor-pointer border-t border-hairline bg-sunk px-3 pb-[env(safe-area-inset-bottom)] pt-2"
     >
       <input
         type="range"
@@ -372,6 +391,80 @@ function MiniBar({ player, scrub }) {
           {player.repeat === "one" ? <RepeatOnce size={16} weight="bold" /> : <Repeat size={16} weight="bold" />}
         </button>
       </div>
+      <AnimatePresence>{open ? <NowPlaying player={player} scrub={scrub} onClose={close} /> : null}</AnimatePresence>
     </div>
+  );
+}
+
+function NowPlaying({ player, scrub, onClose }) {
+  const shown = scrub ?? player.current;
+  const max = player.duration || 0;
+  const pct = max ? Math.min(100, (shown / max) * 100) : 0;
+  const t = player.track;
+  const art = t.art || t.cover || "/images/avatar.jpg";
+  const ctl = "flex shrink-0 items-center justify-center rounded-full";
+  return (
+    <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Now Playing"
+      data-testid="nowplaying"
+      onClick={(e) => e.stopPropagation()}
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      exit={{ y: "100%" }}
+      transition={{ type: "spring", damping: 32, stiffness: 300 }}
+      drag="y"
+      dragConstraints={{ top: 0, bottom: 0 }}
+      dragElastic={{ top: 0, bottom: 0.6 }}
+      dragListener={true}
+      onDragEnd={(_, info) => { if (info.offset.y > 120 || info.velocity.y > 600) onClose(); }}
+      className="fixed inset-0 z-[60] flex cursor-default flex-col bg-canvas text-ink"
+      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-accent/25 via-transparent to-transparent" />
+      <div className="relative flex items-center justify-between px-4 pt-3">
+        <button type="button" onClick={onClose} aria-label="Close" data-testid="np-close" className={`${ctl} h-11 w-11 text-ink/80 hover:text-accent`}>
+          <CaretDown size={26} weight="bold" />
+        </button>
+        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Now Playing</p>
+        <ShareButton track={t} />
+      </div>
+      <div className="relative mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-6">
+        <img src={art} alt="" draggable={false}
+          className={`mx-auto aspect-square w-full max-w-[340px] rounded-3xl object-cover shadow-2xl ring-1 ring-hairline transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
+        <div className="mt-8">
+          <p className="truncate text-2xl font-bold text-ink">{t.title}</p>
+          <p className="mt-1 text-sm text-muted">SRD Masum</p>
+        </div>
+        <div className="mt-6" onPointerDownCapture={(e) => e.stopPropagation()}>
+          <input
+            type="range" min={0} max={max} step={0.1} value={shown}
+            onChange={(e) => player.onScrub(Number(e.target.value))}
+            onPointerUp={player.endScrub} onTouchEnd={player.endScrub} onKeyUp={player.endScrub} onBlur={player.endScrub}
+            aria-label={`Seek ${t.title}`} data-testid="np-seek"
+            className="seek w-full"
+            style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, rgb(var(--hairline)) ${pct}%)` }}
+          />
+          <div className="mt-1 flex justify-between font-mono text-xs tabular-nums text-muted">
+            <span data-testid="np-elapsed">{formatTime(shown)}</span><span>{formatTime(max)}</span>
+          </div>
+        </div>
+        <div className="mt-6 flex items-center justify-between">
+          <button type="button" onClick={player.toggleShuffle} aria-label="Shuffle" aria-pressed={player.shuffle}
+            className={`${ctl} h-11 w-11 ${player.shuffle ? "text-accent" : "text-ink/50"}`}><Shuffle size={22} weight="bold" /></button>
+          <button type="button" onClick={player.previous} aria-label="Previous" className={`${ctl} h-14 w-14 text-ink`}><SkipBack size={30} weight="fill" /></button>
+          <button type="button" onClick={() => player.toggle(t)} aria-label={player.playing ? "Pause" : "Play"} data-testid="np-play"
+            className={`${ctl} h-20 w-20 bg-accent text-on-accent shadow-lg active:scale-95`}>
+            {player.playing ? <Pause size={34} weight="fill" /> : <Play size={34} weight="fill" className="translate-x-[2px]" />}
+          </button>
+          <button type="button" onClick={() => player.step(1, true)} aria-label="Next" data-testid="np-next" className={`${ctl} h-14 w-14 text-ink`}><SkipForward size={30} weight="fill" /></button>
+          <button type="button" onClick={player.cycleRepeat} aria-label={`Repeat: ${player.repeat}`}
+            className={`${ctl} h-11 w-11 ${player.repeat !== "off" ? "text-accent" : "text-ink/50"}`}>
+            {player.repeat === "one" ? <RepeatOnce size={22} weight="bold" /> : <Repeat size={22} weight="bold" />}
+          </button>
+        </div>
+      </div>
+    </motion.div>
   );
 }
