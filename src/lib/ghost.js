@@ -50,9 +50,9 @@ function spawn(x, y) {
   const el = document.createElement("div");
   el.setAttribute("aria-hidden", "true");
   el.className = "wghost";
-  const dir = x < innerWidth / 2 ? -1 : 1;
+  const dir = x < innerWidth / 2 ? 1 : -1; // drift toward the centre so it stays on screen
   el.style.left = `${x}px`; el.style.top = `${y}px`;
-  el.style.setProperty("--dx", `${dir * (90 + Math.random() * 120)}px`);
+  el.style.setProperty("--dx", `${dir * (60 + Math.random() * 70)}px`);
   el.style.setProperty("--dy", `${-(y + 260)}px`);
   el.style.setProperty("--rot", `${dir * (8 + Math.random() * 10)}deg`);
   el.innerHTML = `<div class="wghost-fly">${SVG}</div>`;
