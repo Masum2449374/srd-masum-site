@@ -48,7 +48,7 @@ export function FXCover({ src, playing, children }) {
     let raf = 0, smooth = 0, silentSince = 0, sim = false;
     // Simulated beat (used when the analyser has no real data, e.g. a silent capture on some phones):
     // ~118 BPM kick with exponential decay, bass-weighted bins, per-bar random jitter.
-    const jitter = new Float32Array(BARS);
+    const jitter = new Float32Array(BARS), prev = new Uint8Array(BARS);
     let lastBeat = 0, beatLen = 508, accent = 1;
     const simulate = (now) => {
       if (now - lastBeat > beatLen) { lastBeat = now; beatLen = 480 + Math.random() * 60; accent = Math.random() < 0.25 ? 1.25 : 0.8 + Math.random() * 0.3; }
@@ -70,9 +70,13 @@ export function FXCover({ src, playing, children }) {
     const draw = (now) => {
       const w = cv.clientWidth, h = cv.clientHeight, cx = w / 2, cy = h / 2;
       let live = !window.__srdForceSim && getSpectrum(spec);
+      let mx = 0, mn = 255;
       if (live) {
-        let sum = 0; for (let i = 0; i < BARS; i++) sum += spec[i];
-        if (sum < BARS * 2) { if (!silentSince) silentSince = now; if (now - silentSince > 1000) sim = true; }
+        for (let i = 0; i < BARS; i++) { if (spec[i] > mx) mx = spec[i]; if (spec[i] < mn) mn = spec[i]; }
+        // Track how much the spectrum changes between frames: a frozen or near-flat spectrum is silence too.
+        let d = 0; for (let i = 0; i < BARS; i++) { d += Math.abs(spec[i] - prev[i]); prev[i] = spec[i]; }
+        const dead = mx < 24 || mx - mn < 12 || d < BARS * 0.5;
+        if (dead) { if (!silentSince) silentSince = now; if (now - silentSince > 1000) sim = true; }
         else { silentSince = 0; sim = false; }
         if (sim) live = false;
       }
@@ -81,24 +85,34 @@ export function FXCover({ src, playing, children }) {
       smooth += (bass - smooth) * 0.35;
       g.clearRect(0, 0, w, h);
       const R = Math.min(w, h) * 0.355;
-      g.lineCap = "round"; g.lineWidth = 3;
+      g.lineCap = "round"; g.lineWidth = 4;
       for (let i = 0; i < BARS; i++) {
-        const v = spec[i] / 255, ang = (i / BARS) * Math.PI * 2 - Math.PI / 2, len = 6 + v * R * 0.32;
+        const v = spec[i] / 255, ang = (i / BARS) * Math.PI * 2 - Math.PI / 2, len = 4 + Math.pow(v, 1.3) * R * 0.6;
         const c = Math.cos(ang), s = Math.sin(ang);
         g.strokeStyle = `hsla(${210 + v * 60},100%,${55 + v * 20}%,${0.35 + v * 0.65})`;
         g.beginPath(); g.moveTo(cx + c * (R + 4), cy + s * (R + 4)); g.lineTo(cx + c * (R + 4 + len), cy + s * (R + 4 + len)); g.stroke();
       }
-      if (cover.current) cover.current.style.transform = `scale(${1 + smooth * 0.06})`;
+      if (cover.current) cover.current.style.transform = `scale(${1 + smooth * 0.08})`;
+      if (dbg) dbg.textContent = `fx ${cv.dataset.mode} max=${mx} min=${mn} rm=${reduce ? 1 : 0} play=${playing ? 1 : 0} hid=${document.hidden ? 1 : 0} ${window.__srdSW || "sw?"} ${window.__srdBuild}`;
       if (glow.current) { glow.current.style.opacity = String(0.35 + smooth * 0.65); glow.current.style.transform = `scale(${1 + smooth * 0.12})`; }
     };
     const loop = (now) => { draw(now); raf = requestAnimationFrame(loop); };
-    const start = () => { if (!raf && playing && !document.hidden && !reduce) raf = requestAnimationFrame(loop); };
+    // Reduced motion (Android "Remove animations") still animates the bars; only background drift stops.
+    const start = () => { if (!raf && playing && !document.hidden) raf = requestAnimationFrame(loop); };
     const stop = () => { cancelAnimationFrame(raf); raf = 0; };
     const vis = () => (document.hidden ? stop() : start());
-    if (reduce || !playing) draw(performance.now()); // one static frame
+    let dbg = null;
+    if (/[?&]fxdebug/.test(location.search)) {
+      dbg = document.createElement("div");
+      dbg.setAttribute("data-testid", "fxdebug");
+      dbg.style.cssText = "position:fixed;left:4px;bottom:4px;z-index:9999;font:11px monospace;background:#000c;color:#0f0;padding:3px 5px;border-radius:4px;pointer-events:none";
+      document.body.appendChild(dbg);
+    }
+    draw(performance.now());
     start();
+    const kick = setTimeout(start, 300); // start again once play has settled
     document.addEventListener("visibilitychange", vis);
-    return () => { stop(); document.removeEventListener("visibilitychange", vis); window.removeEventListener("resize", size); };
+    return () => { stop(); clearTimeout(kick); dbg?.remove(); document.removeEventListener("visibilitychange", vis); window.removeEventListener("resize", size); };
   }, [playing]);
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[280px]" data-testid="np-fx">
