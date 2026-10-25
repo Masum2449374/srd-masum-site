@@ -14,7 +14,7 @@ import Reviews from "./components/Reviews.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
 import { PlayerProvider, TrackRow, MiniPlayer } from "./components/MiniPlayer.jsx";
-import { VIDEO_IDS, FEATURED_PLAYLIST_ID, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
+import { VIDEO_IDS, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
 import BeatField from "./components/BeatField.jsx";
@@ -379,7 +379,17 @@ function Featured() {
           <SectionHeader eyebrow="Now playing" title="Featured" />
         </Reveal>
         <Reveal delay={0.08}>
-          <Embed playlist={FEATURED_PLAYLIST_ID} title="SRD Masum featured playlist" />
+          <div className="overflow-hidden rounded-xl ring-1 ring-hairline">
+            <iframe
+              title="SRD Masum featured track on Spotify"
+              src="https://open.spotify.com/embed/track/0wqbduMup8NkUnRVEERKqb"
+              width="100%"
+              height="352"
+              loading="lazy"
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+              className="block w-full border-0"
+            />
+          </div>
         </Reveal>
       </div>
     </section>
