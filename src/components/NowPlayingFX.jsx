@@ -45,7 +45,23 @@ export function FXCover({ src, playing, children }) {
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const g = cv.getContext("2d");
     const spec = new Uint8Array(BARS);
-    let raf = 0, smooth = 0, t0 = performance.now();
+    let raf = 0, smooth = 0, silentSince = 0, sim = false;
+    // Simulated beat (used when the analyser has no real data, e.g. a silent capture on some phones):
+    // ~118 BPM kick with exponential decay, bass-weighted bins, per-bar random jitter.
+    const jitter = new Float32Array(BARS);
+    let lastBeat = 0, beatLen = 508, accent = 1;
+    const simulate = (now) => {
+      if (now - lastBeat > beatLen) { lastBeat = now; beatLen = 480 + Math.random() * 60; accent = Math.random() < 0.25 ? 1.25 : 0.8 + Math.random() * 0.3; }
+      const env = Math.exp(-(now - lastBeat) / 170) * accent;
+      for (let i = 0; i < BARS; i++) {
+        jitter[i] += ((Math.random() - 0.5) * 0.6 - jitter[i]) * 0.2;
+        const f = i / BARS, pos = Math.min(f, 1 - f) * 2; // symmetric: bass at top/bottom of ring
+        const w = 1 - pos * 0.6;
+        const v = 40 + 170 * env * w + 50 * (0.5 + jitter[i]) * (0.4 + pos) + 25 * Math.sin(now / 300 + i);
+        spec[i] = Math.max(0, Math.min(255, v));
+      }
+      return Math.min(1, 0.2 + env * 0.75);
+    };
     const size = () => {
       const r = cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1);
       cv.width = r.width * dpr; cv.height = r.height * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -53,10 +69,15 @@ export function FXCover({ src, playing, children }) {
     size(); window.addEventListener("resize", size);
     const draw = (now) => {
       const w = cv.clientWidth, h = cv.clientHeight, cx = w / 2, cy = h / 2;
-      const live = getSpectrum(spec);
-      const tt = (now - t0) / 1000;
-      if (!live) for (let i = 0; i < BARS; i++) spec[i] = 60 + 40 * Math.sin(tt * 1.6 + i * 0.35); // idle
-      const bass = live ? getBass() : 0.25 + 0.1 * Math.sin(tt * 2);
+      let live = !window.__srdForceSim && getSpectrum(spec);
+      if (live) {
+        let sum = 0; for (let i = 0; i < BARS; i++) sum += spec[i];
+        if (sum < BARS * 2) { if (!silentSince) silentSince = now; if (now - silentSince > 1000) sim = true; }
+        else { silentSince = 0; sim = false; }
+        if (sim) live = false;
+      }
+      const bass = live ? getBass() : simulate(now);
+      cv.dataset.mode = live ? "live" : "sim";
       smooth += (bass - smooth) * 0.35;
       g.clearRect(0, 0, w, h);
       const R = Math.min(w, h) * 0.355;

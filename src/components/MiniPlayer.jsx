@@ -230,6 +230,7 @@ export function PlayerProvider({ children }) {
       <audio
         ref={audioRef}
         preload="auto"
+        crossOrigin="anonymous"
         className="hidden"
         onPlay={onPlay}
         onPause={onPause}
