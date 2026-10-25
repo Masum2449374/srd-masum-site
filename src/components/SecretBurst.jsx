@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./fanwall.css";
+import { playSparkleChime } from "../lib/sounds.js";
 
 const EVENT = "srd-secret";
 const COLORS = ["#0b6cf0", "#ffffff", "#0a3d91", "#8cc2ff", "#7fb6ff"];
@@ -14,7 +15,10 @@ export default function SecretBurst() {
   const [burst, setBurst] = useState(0);
 
   useEffect(() => {
-    const on = () => setBurst(Date.now());
+    const on = () => {
+      playSparkleChime();
+      setBurst(Date.now());
+    };
     window.addEventListener(EVENT, on);
     return () => window.removeEventListener(EVENT, on);
   }, []);

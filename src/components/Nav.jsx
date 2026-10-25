@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sun, Moon, List, X } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
 import { triggerSecret } from "./SecretBurst.jsx";
+import { playTapPop } from "../lib/sounds.js";
 
 const LINKS = [
   { id: "audio-songs", label: "Hindi Songs" },
@@ -90,6 +91,7 @@ export default function Nav() {
   // The scroll waits two frames so the menu has left before the page starts moving.
   const goTo = (e, id) => {
     e.preventDefault();
+    playTapPop();
     const target = document.getElementById(id);
     setOpen(false);
     if (!target) return;

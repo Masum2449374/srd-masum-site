@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Reveal from "./Reveal.jsx";
+import { playNotePop } from "../lib/sounds.js";
 import "./fanwall.css";
 
 const KEY = "srd-fanwall";
@@ -83,6 +84,7 @@ export default function FanWall() {
     const next = [...mine, note];
     setMine(next);
     saveMine(next);
+    playNotePop();
     setName("");
     setMessage("");
     setError("");
