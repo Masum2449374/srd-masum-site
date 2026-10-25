@@ -25,7 +25,7 @@ const YEAR = new Date().getFullYear();
 const RELEASE_DATE = "2026-12-01T00:00:00";
 const RELEASE_NAME = "Next single";
 
-// Photo intro: the portrait in a round frame with a soft pink glow ring, then the name fades in,
+// Photo intro: the portrait in a round frame with a soft blue glow ring, then the name fades in,
 // then the screen slides away into the hero. Shows once per session, tap anywhere to skip, max ~2.5s.
 // Only transform and opacity animate (one small image, no blur filters, no animated shadows).
 const INTRO_HOLD_MS = 2000; // how long the intro stays before it starts leaving
@@ -81,7 +81,7 @@ function IntroLoader() {
               className="pointer-events-none absolute -inset-5 rounded-full"
               style={{
                 background:
-                  "radial-gradient(circle, rgba(255,100,200,0) 58%, rgba(255,120,210,0.55) 66%, rgba(255,100,200,0.18) 74%, rgba(255,100,200,0) 80%)",
+                  "radial-gradient(circle, rgba(11,108,240,0) 58%, rgba(90,160,255,0.55) 66%, rgba(11,108,240,0.18) 74%, rgba(11,108,240,0) 80%)",
               }}
             />
             <motion.img

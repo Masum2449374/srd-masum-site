@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { onFrame } from "../lib/beat.js";
 
-// Soft pink light that follows the mouse. Desktop with a fine pointer only;
+// Soft blue light that follows the mouse. Desktop with a fine pointer only;
 // skipped entirely on touch devices and when the user prefers reduced motion.
 // Runs on the shared frame loop (onFrame in lib/beat.js) and only does work while the pointer is over the page.
 export default function CursorGlow() {
@@ -60,7 +60,7 @@ export default function CursorGlow() {
       aria-hidden="true"
       className="cursor-glow pointer-events-none fixed left-0 top-0 z-[1] h-[400px] w-[400px] rounded-full opacity-0 transition-opacity duration-300"
       style={{
-        background: "radial-gradient(circle, rgba(255,100,200,0.14) 0%, rgba(255,100,200,0.05) 40%, transparent 70%)",
+        background: "radial-gradient(circle, rgba(11,108,240,0.14) 0%, rgba(11,108,240,0.05) 40%, transparent 70%)",
       }}
     />
   );

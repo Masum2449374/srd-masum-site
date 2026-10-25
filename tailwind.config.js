@@ -11,9 +11,9 @@ export default {
         ink: "rgb(var(--ink) / <alpha-value>)",
         muted: "rgb(var(--muted) / <alpha-value>)",
         faint: "rgb(var(--faint) / <alpha-value>)",
-        accent: "#ff64c8",
-        "on-accent": "#0e0d0c",
-        "accent-deep": "#391c57",
+        accent: "#0b6cf0",
+        "on-accent": "#ffffff",
+        "accent-deep": "#0a2a6b",
       },
       fontFamily: {
         display: ['"Archivo Black"', "system-ui", "sans-serif"],

@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { isLiteDevice } from "../lib/motion.js";
 
-// Gentle snowfall over the hero while idle: soft warm-coloured flakes (pink, violet, amber) drifting slowly down.
+// Gentle snowfall over the hero while idle: soft white and blue flakes (white and light blue) drifting slowly down.
 // Pure CSS animation, no blur or shadow. Fewer flakes on phones.
-const PALETTE = ["#ff8fd6", "#c9a6ff", "#ffc26b", "#ffe1f3"];
+const PALETTE = ["#ffffff", "#7fb6ff", "#9cc8ff", "#e6f1ff"];
 
 export default function Snow() {
   const lite = isLiteDevice();

@@ -207,7 +207,7 @@ export function TrackRow({ track, list }) {
     >
       <div
         aria-hidden="true"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent via-[#7a2e6b] to-accent-deep"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent via-[#0a3d91] to-accent-deep"
       >
         <Disc size={18} weight="duotone" className="text-ink/80" />
       </div>
@@ -256,12 +256,12 @@ function MiniBar({ player, scrub }) {
         onBlur={player.endScrub}
         aria-label={`Seek ${player.track.title}`}
         className="seek w-full"
-        style={{ background: `linear-gradient(to right, #ff64c8 ${pct}%, #2c2a27 ${pct}%)` }}
+        style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, #2c2a27 ${pct}%)` }}
       />
       <div className="mx-auto flex max-w-6xl items-center gap-3 py-2">
         <div
           aria-hidden="true"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent via-[#7a2e6b] to-accent-deep"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-accent via-[#0a3d91] to-accent-deep"
         >
           <Disc size={18} weight="duotone" className="text-ink/80" />
         </div>

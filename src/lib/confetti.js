@@ -1,5 +1,5 @@
 // Lightweight canvas confetti burst. No dependencies. Does nothing when the user prefers reduced motion.
-const COLORS = ["#ff64c8", "#ffffff", "#7a2e6b", "#ffb3e6", "#c9a6ff"];
+const COLORS = ["#0b6cf0", "#ffffff", "#0a3d91", "#8cc2ff", "#7fb6ff"];
 
 export function fireConfetti({ count = 90, duration = 1800 } = {}) {
   if (typeof window === "undefined") return;
