@@ -490,6 +490,17 @@ function Music() {
             <span className="sr-only">(opens in a new tab)</span>
           </motion.a>
         </Reveal>
+        <Reveal delay={0.18} className="mt-8 overflow-hidden rounded-xl ring-1 ring-hairline">
+          <iframe
+            title="SRD Masum on Spotify"
+            src="https://open.spotify.com/embed/artist/267kT30bpgEoiGFawat8k6?utm_source=generator&theme=0"
+            width="100%"
+            height="352"
+            loading="lazy"
+            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+            className="block w-full border-0"
+          />
+        </Reveal>
       </div>
     </section>
   );
