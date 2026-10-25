@@ -145,10 +145,10 @@ export default function Nav() {
             id="site-menu"
             ref={panelRef}
             aria-label="Sections"
-            className="absolute left-0 right-0 top-full border-b border-hairline bg-sunk/95 px-5 pb-5 pt-3 shadow-lg sm:px-8"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            className="pro-nav-menu absolute left-0 right-0 top-full border-b border-hairline bg-sunk px-5 pb-5 pt-3 sm:px-8"
+            initial={reduce ? { opacity: 0 } : { opacity: 0, y: -10 }}
             animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            exit={reduce ? { opacity: 0 } : { opacity: 0, y: -10 }}
             transition={fade}
           >
             <ul className="mx-auto grid max-w-6xl grid-cols-2 gap-2 sm:grid-cols-3">

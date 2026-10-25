@@ -131,12 +131,20 @@ html {
   box-shadow: 0 18px 40px -28px rgba(10,20,40, 0.35);
 }
 
-/* Nav: glassy, slightly brighter bottom edge while the page scrolls under it. */
+/* Nav: solid, nearly opaque bar. No backdrop blur: a blur behind the header re-renders every frame while the
+   menu animates in, which made the open shake on budget Android phones. */
 .pro-nav {
-  background: linear-gradient(180deg, rgb(var(--canvas) / 0.92), rgb(var(--canvas) / 0.78));
-  -webkit-backdrop-filter: saturate(140%) blur(18px);
-  backdrop-filter: saturate(140%) blur(18px);
+  background: linear-gradient(180deg, rgb(var(--canvas) / 0.98), rgb(var(--canvas) / 0.95));
   box-shadow: 0 10px 30px -22px rgba(0, 0, 0, 0.8);
+}
+
+/* Dropdown menu: animated with transform + opacity only, promoted to its own layer so the open
+   doesn't force a repaint of the header or the page underneath. */
+.pro-nav-menu {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint;
 }
 
 /* Hero bottom blend so the hero melts into the next section. */
