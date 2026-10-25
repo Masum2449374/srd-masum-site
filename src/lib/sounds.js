@@ -1,16 +1,8 @@
 // Tiny cute UI sounds made with Web Audio oscillators. No audio files.
 // Only called from explicit user actions (tap, submit, easter egg). Never autoplays.
-// Very low gain so it stays gentle. Silent when the OS reduce-motion setting is on.
+// Very low gain so it stays gentle. Audio is NOT tied to the OS reduce-motion setting (that only affects visuals).
 
 let ctx = null;
-
-function reduceMotionOn() {
-  try {
-    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-  } catch {
-    return false;
-  }
-}
 
 function getCtx() {
   if (typeof window === "undefined") return null;
@@ -25,6 +17,22 @@ function getCtx() {
   }
   if (ctx.state === "suspended") ctx.resume?.().catch(() => {});
   return ctx;
+}
+
+// Android Chrome keeps AudioContext suspended until a user gesture. resume() must be called synchronously
+// inside a touch/pointer/click handler, so we unlock on the first real touch (capture phase, passive).
+// Once unlocked the context stays running; we also re-resume on every gesture in case the OS suspended it.
+if (typeof window !== "undefined") {
+  const unlock = () => {
+    try {
+      getCtx();
+    } catch {
+      /* ignore */
+    }
+  };
+  ["touchstart", "touchend", "pointerdown", "mousedown", "keydown"].forEach((type) =>
+    window.addEventListener(type, unlock, { capture: true, passive: true }),
+  );
 }
 
 // One note: a sine with a quick pitch slide and a soft envelope.
@@ -44,7 +52,6 @@ function blip(ac, { freq, slideTo, start, dur, peak }) {
 }
 
 function play(build) {
-  if (reduceMotionOn()) return;
   const ac = getCtx();
   if (!ac) return;
   try {
