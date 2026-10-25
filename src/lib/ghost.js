@@ -42,6 +42,26 @@ const SVG = `<svg viewBox="-60 -10 220 140" class="ghost-svg" aria-hidden="true"
 <path d="M50 4 C 22 4, 16 30, 16 56 L 16 112 L 28 102 L 39 114 L 50 102 L 61 114 L 72 102 L 84 112 L 84 56 C 84 30, 78 4, 50 4 Z" fill="url(#gb)"/>
 <ellipse cx="38" cy="46" rx="6" ry="8" fill="#1b1430"/><ellipse cx="62" cy="46" rx="6" ry="8" fill="#1b1430"/><ellipse cx="50" cy="68" rx="7" ry="9" fill="#1b1430" opacity=".85"/></svg>`;
 const MAX = 6;
+// Drive the wings with rAF by writing the SVG transform attribute directly (robust on Android Chrome,
+// and unaffected by prefers-reduced-motion): unfold over 0.3s, then flap ~5x/s from the shoulder pivot.
+function flap(el) {
+  const l = el.querySelector(".wing-l"), r = el.querySelector(".wing-r");
+  const t0 = performance.now();
+  const step = (now) => {
+    if (!el.isConnected) return;
+    const t = (now - t0) / 1000;
+    const open = Math.min(1, Math.max(0, (t - 0.08) / 0.3));
+    const s = open * 1.15;
+    const a = open * 36 * Math.sin(t * Math.PI * 2 * 5);
+    const sy = s * (1 - 0.18 * (1 - Math.cos(t * Math.PI * 2 * 5)) / 2);
+    l.setAttribute("transform", `translate(28 58) rotate(${a.toFixed(1)}) scale(${s.toFixed(3)} ${sy.toFixed(3)}) translate(-28 -58)`);
+    r.setAttribute("transform", `translate(72 58) rotate(${(-a).toFixed(1)}) scale(${s.toFixed(3)} ${sy.toFixed(3)}) translate(-72 -58)`);
+    el.dataset.wing = a.toFixed(1);
+    requestAnimationFrame(step);
+  };
+  l.setAttribute("transform", "scale(0)"); r.setAttribute("transform", "scale(0)");
+  requestAnimationFrame(step);
+}
 // Spawn a winged ghost at the tap point: it pops in, unfolds its wings and flaps away off-screen, then is removed.
 function spawn(x, y) {
   const live = document.querySelectorAll(".wghost");
@@ -58,6 +78,7 @@ function spawn(x, y) {
   el.style.setProperty("--rot", `${dir * (8 + Math.random() * 10)}deg`);
   el.innerHTML = `<div class="wghost-fly">${SVG}</div>`;
   document.body.appendChild(el);
+  flap(el);
   setTimeout(() => el.remove(), 3400);
 }
 
