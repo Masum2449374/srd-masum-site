@@ -8,10 +8,13 @@ const ADS = {
   banner300: { file: "b300", w: 300, h: 250 },
   native: { file: "native", w: "100%", h: 0 },
 };
-const FILL_TIMEOUT_MS = 8000;
+const FILL_TIMEOUT_MS = 15000;
 
-export default function AdSlot({ type }) {
-  const ad = ADS[type];
+const deskMq = () => typeof window !== "undefined" && window.matchMedia && window.matchMedia("(min-width: 1024px)").matches;
+
+export default function AdSlot({ type, desktopOnly = false }) {
+  const [isDesk] = useState(deskMq);
+  const ad = desktopOnly && !isDesk ? null : ADS[type];
   const ref = useRef(null);
   const frame = useRef(null);
   const [near, setNear] = useState(false);
@@ -50,7 +53,7 @@ export default function AdSlot({ type }) {
   const fixed = typeof ad.w === "number";
   return (
     <aside ref={ref} data-ad-slot={type} data-ad-filled={filled ? "1" : "0"} aria-label="Advertisement"
-      className="relative z-0 mx-auto flex w-full max-w-3xl flex-col items-center px-5"
+      className={`relative z-0 mx-auto flex w-full max-w-3xl flex-col items-center px-5 ${type === "native" ? "lg:max-w-[1240px]" : ""}`}
       style={filled ? { margin: "2rem auto" } : { height: 1, overflow: "hidden" }}>
       {filled && <span className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Advertisement</span>}
       {near && (

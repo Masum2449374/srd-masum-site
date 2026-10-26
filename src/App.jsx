@@ -1005,6 +1005,7 @@ export default function App() {
       <main>
         <Hero />
         <PlaylistSection />
+        <AdSlot type="banner300" desktopOnly />
         <Music />
         <AdSlot type="banner320" />
         <AudioSongs />
