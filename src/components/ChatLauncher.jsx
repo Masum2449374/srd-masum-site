@@ -4,7 +4,7 @@ import { ChatCircleDots, X } from "@phosphor-icons/react";
 // Floating "Ask SRD" button. The panel (and its code) only loads on first open.
 const ChatPanel = lazy(() => import("./ChatPanel.jsx"));
 
-const LINES = ["হ্যালো 💙 কোন গান খুঁজছো?", "গানের কথা জিজ্ঞেস করো ✨", "Ask me about any song 🎵", "আজ কোন গানে মন ভালো করবে? 🎶"];
+const LINES = ["হ্যালো 💙 কোন গান খুঁজছো?", "গানের কথা জিজ্ঞেস করো ✨", "I'm Mira 💙 Ask me about any song 🎵", "আজ কোন গানে মন ভালো করবে? 🎶"];
 const KEY = "srd-chat-teaser-off";
 const off = () => { try { return sessionStorage.getItem(KEY) === "1"; } catch { return false; } };
 // Soft two-note bell via Web Audio; only after a user gesture (autoplay policy).
@@ -67,11 +67,11 @@ export default function ChatLauncher() {
               <i>💙</i><i>🩷</i><i>💙</i>
             </span>
           )}
-          <button type="button" onClick={toggle} aria-label={open ? "Close chat" : "Chat with SRD Masum assistant"}
+          <button type="button" onClick={toggle} aria-label={open ? "Close chat" : "Chat with Mira, SRD Masum assistant"}
             aria-expanded={open} aria-controls="srd-chat" data-testid="chat-launcher"
             className={`chat-fab ${open ? "" : "chat-fab-alive"} relative flex h-12 items-center gap-2 rounded-full bg-accent pl-3.5 pr-4 text-sm font-semibold text-on-accent shadow-lg shadow-accent/30 ring-1 ring-white/10 transition-transform hover:scale-[1.04] active:scale-95`}>
             <ChatCircleDots size={22} weight="fill" aria-hidden="true" />
-            <span className="hidden sm:inline">Ask SRD</span>
+            <span className="hidden sm:inline">Ask Mira</span>
             <span className="chat-online absolute right-0.5 top-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white" aria-hidden="true" />
           </button>
         </div>
