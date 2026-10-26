@@ -20,7 +20,7 @@ export default function ChatPanel({ open, onClose }) {
   const [msgs, setMsgs] = useState(() => { try { return JSON.parse(sessionStorage.getItem(KEY)) || []; } catch { return []; } });
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const list = useRef(null), input = useRef(null);
+  const list = useRef(null), input = useRef(null), cut = useRef(0);
 
   useEffect(() => { try { sessionStorage.setItem(KEY, JSON.stringify(msgs.slice(-20))); } catch {} }, [msgs]);
   useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" }); }, [msgs, busy]);
@@ -68,10 +68,10 @@ export default function ChatPanel({ open, onClose }) {
     const next = [...msgs, { role: "user", content: q }];
     setMsgs(next); setText(""); setBusy(true);
     try {
-      const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: next.slice(-8), owner: getOwner() }) });
+      const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: next.slice(cut.current).slice(-8), owner: getOwner() }) });
       const d = await r.json().catch(() => ({}));
       if (d.ownerToken) { setOwner(d.ownerToken); setMsgs((m) => m.map((x, i) => (i === m.length - 1 && x.role === "user" ? { ...x, content: "••••••" } : x))); }
-      if (d.logout) setOwner(null);
+      if (d.logout) { setOwner(null); cut.current = next.length; }
       setMsgs((m) => [...m, { role: "assistant", content: d.reply || "Sorry, something went wrong. Please try again." }]);
     } catch {
       setMsgs((m) => [...m, { role: "assistant", content: "Network error — please try again." }]);

@@ -95,7 +95,7 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
       const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: hist.current, voice: true, owner: ownerTok() }) });
       const d = await r.json().catch(() => ({})); reply = d.reply || "";
       if (d.ownerToken) { saveOwner(d.ownerToken); hist.current = hist.current.slice(0, -1); }
-      if (d.logout) saveOwner(null);
+      if (d.logout) { saveOwner(null); hist.current = []; }
     } catch { /* ignore */ }
     if (!reply) reply = lang.current === "bn-BD" ? "দুঃখিত, একটু সমস্যা হচ্ছে। আবার বলো?" : "Sorry, I had a little trouble. Could you say that again?";
     hist.current = [...hist.current, { role: "assistant", content: reply }].slice(-8);
