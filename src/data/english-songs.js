@@ -20,6 +20,12 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/2sFepQNyl1WjpROruP8bJ0",
     youtubeUrl: "https://www.youtube.com/watch?v=DPEodkHzH-s", // TateMcRaeVEVO, "Housewife (Official Video)"
   },
+  {
+    id: "nicole-kidman", title: "Nicole Kidman", artist: "ADÉLA", album: "PRIMA", explicit: true,
+    src: "/audio/english/nicole-kidman.mp3", duration: 221.33, playlist: P, ...c("nicole-kidman"),
+    spotifyUrl: "https://open.spotify.com/track/70cHKK8bHAfJrOGVnfRG9J",
+    youtubeUrl: "https://www.youtube.com/watch?v=3sB4Iv_tM7U", // AdelaMusicVEVO, "ADÉLA - Nicole Kidman"
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
