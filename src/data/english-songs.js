@@ -56,6 +56,24 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/0cQVqPuHQP4KEwc7ZUQmj6",
     youtubeUrl: "https://www.youtube.com/watch?v=GCdwKhTtNNw", // TheNeighbourhoodVEVO, "Sweater Weather (Official Video)"
   },
+  {
+    id: "iris", title: "Iris", artist: "The Goo Goo Dolls", album: "Dizzy Up the Girl",
+    src: "/audio/english/iris.mp3", duration: 289.92, playlist: P, ...c("iris"),
+    spotifyUrl: "https://open.spotify.com/track/2mtVxf50BYsKNtQoz8sfzm",
+    youtubeUrl: "https://www.youtube.com/watch?v=NdYWuo9OFAw", // Goo Goo Dolls (official), "Iris [Official Music Video] [4K Remaster]"
+  },
+  {
+    id: "patient-zero", title: "Patient Zero", artist: "Taylor Swift", album: "The Life of a Showgirl: The Encore",
+    src: "/audio/english/patient-zero.mp3", duration: 225.89, playlist: P, ...c("patient-zero"),
+    spotifyUrl: "https://open.spotify.com/track/11hcBLPtbMp4aQI6zGQLub",
+    youtubeUrl: "https://www.youtube.com/watch?v=mw3kSNIxjqo", // Taylor Swift, "Patient Zero (Official Music Video)"
+  },
+  {
+    id: "loser", title: "Loser", artist: "Tame Impala", album: "Loser", explicit: true,
+    src: "/audio/english/loser.mp3", duration: 223.08, playlist: P, ...c("loser"),
+    spotifyUrl: "https://open.spotify.com/track/3RmFPuTTAjSQ2pbEd2j9oA",
+    youtubeUrl: "https://www.youtube.com/watch?v=s3a4OQR-10M", // tameimpalaVEVO, "Loser (Official Video)"
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
