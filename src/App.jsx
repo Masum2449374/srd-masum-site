@@ -6,6 +6,7 @@ import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, Faceboo
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
+import PlaylistSection from "./components/PlaylistSection.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Snow from "./components/Snow.jsx";
@@ -973,6 +974,7 @@ export default function App() {
       <Nav />
       <main>
         <Hero />
+        <PlaylistSection />
         <Music />
         <AdSlot type="banner320" />
         <AudioSongs />

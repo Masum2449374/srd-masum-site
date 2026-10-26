@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Play, Pause, Info, X, Article, SpotifyLogo, YoutubeLogo, Star, Shuffle, MusicNotes } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { FXCover } from "./NowPlayingFX.jsx";
+import { TrackList } from "./PlaylistSection.jsx";
 import ShareButton from "./ShareButton.jsx";
 import AdSlot from "./AdSlot.jsx";
 import { ENGLISH_ORIGINALS, ENGLISH_TRACKS, ENGLISH_ALL } from "../data/english-songs.js";
@@ -160,11 +161,13 @@ export default function EnglishPage() {
         <div className="mx-auto max-w-6xl">
           <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">Popular now</p>
           <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">Popular English hits</h2>
-          <p className="mt-2 text-sm text-muted">Tap a cover to play. Songs play one after another.</p>
-          <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {ENGLISH_TRACKS.map((t, i) => <SongCard key={t.id} t={t} i={i} list={ENGLISH_TRACKS} onInfo={setInfo} />)}
-          </div>
-          <a href="/" className="mt-10 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-ink ring-1 ring-hairline">← SRD Masum's own songs</a>
+          <p className="mt-2 text-sm text-muted">Tap a song to play. Songs play one after another.</p>
+          <div className="mt-6"><TrackList tracks={ENGLISH_TRACKS} onInfo={setInfo} testid="en-list" /></div>
+          <a href="/#music" data-testid="en-cta" className="en-cta mt-10">
+            <img src="/images/avatar.webp" alt="" className="h-14 w-14 shrink-0 rounded-full object-cover ring-2 ring-white/60" />
+            <span className="min-w-0 flex-1"><span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-white/80">SRD Masum Originals</span>
+            <span className="mt-0.5 block text-lg font-bold text-white">Listen to my own songs →</span></span>
+          </a>
         </div>
       </section>
 
