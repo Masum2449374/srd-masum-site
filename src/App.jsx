@@ -189,7 +189,7 @@ function Countdown() {
 function NewRelease() {
   return (
     <section id="new-release" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Coming soon" title="New Release" />
           <p className="mb-6 text-muted">{RELEASE_NAME} drops soon. Counting down to the moment.</p>
@@ -225,7 +225,7 @@ function FanMessage() {
 
   return (
     <section id="fan-message" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Fans" title="Send a message" />
         </Reveal>
@@ -311,6 +311,33 @@ function Typewriter({ text, delay = 0 }) {
   );
 }
 
+// Desktop-only (>=1024px) right column of the hero: quick-start card with the latest own songs.
+function HeroDeskCard() {
+  const list = [...BANGLA_TRACKS, ...AUDIO_TRACKS].filter((t) => !t.artist || t.artist === "SRD Masum").slice(0, 4);
+  const picks = list.length >= 3 ? list : [...BANGLA_TRACKS, ...AUDIO_TRACKS].slice(0, 4);
+  if (!picks.length) return null;
+  return (
+    <motion.aside initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.45 }}
+      aria-label="Start listening" className="hero-desk-card hidden rounded-3xl bg-raised/70 p-6 ring-1 ring-hairline backdrop-blur-xl lg:block">
+      <div className="flex items-center gap-4">
+        <img src="/images/avatar.webp" alt="SRD Masum" className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/60" />
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">Official Music</p>
+          <p className="truncate font-display text-2xl text-ink">Start listening</p>
+          <p className="text-xs text-muted">English · Hindi · Bangla</p>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-col gap-1">
+        {picks.map((t, i) => <TrackRow key={t.id} track={t} list={picks} index={i} />)}
+      </div>
+      <div className="mt-5 flex gap-3">
+        <a href={SPOTIFY_ARTIST_URL} target="_blank" rel="noopener noreferrer" className="pro-btn inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-hairline px-4 py-2.5 text-sm font-semibold text-ink hover:bg-sunk"><SpotifyLogo size={18} weight="fill" aria-hidden="true" />Spotify<span className="sr-only">(opens in a new tab)</span></a>
+        <a href={CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="pro-btn inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-hairline px-4 py-2.5 text-sm font-semibold text-ink hover:bg-sunk"><YoutubeLogo size={18} weight="fill" aria-hidden="true" />YouTube<span className="sr-only">(opens in a new tab)</span></a>
+      </div>
+    </motion.aside>
+  );
+}
+
 function Hero() {
   const reduce = useReducedMotion();
   const player = usePlayer();
@@ -337,7 +364,8 @@ function Hero() {
       {season === "christmas" ? null : <Snow />}
       <Seasonal season={season} />
       <SeasonalTaps season={season} />
-      <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-0 pt-28 sm:px-8 sm:pb-24">
+      <div className="mx-auto min-h-[78svh] max-w-6xl px-5 pb-0 pt-28 sm:px-8 sm:pb-24 lg:grid lg:min-h-[82svh] lg:max-w-[1240px] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-end lg:gap-14">
+        <div className="flex min-h-[calc(78svh-7rem)] flex-col justify-end lg:min-h-0">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -347,7 +375,7 @@ function Hero() {
           Artist · Songs · Sound
         </motion.p>
         <SeasonBadge season={season} />
-        <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
+        <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] lg:text-[clamp(4.5rem,6.4vw,6.75rem)] lg:whitespace-nowrap tracking-display">
           <Typewriter text="SRD Masum" delay={introDelay} />
         </h1>
         <motion.p
@@ -388,6 +416,8 @@ function Hero() {
             <span className="sr-only">(opens in a new tab)</span>
           </a>
         </motion.div>
+        </div>
+        <HeroDeskCard />
       </div>
     </section>
   );
@@ -396,7 +426,7 @@ function Hero() {
 function Featured() {
   return (
     <section id="featured" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Now playing" title="Featured" />
         </Reveal>
@@ -413,7 +443,7 @@ function Featured() {
 function BanglaSongs() {
   return (
     <section id="bangla-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Bangla Songs" />
         </Reveal>
@@ -422,7 +452,7 @@ function BanglaSongs() {
             <p className="font-mono text-sm text-faint">শীঘ্রই আসছে · coming soon</p>
           </Reveal>
         ) : (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 lg:grid lg:grid-cols-2 lg:gap-x-8">
             {BANGLA_TRACKS.map((t, i) => (
               <TrackRow key={t.id} track={t} list={BANGLA_TRACKS} index={i} />
             ))}
@@ -443,11 +473,11 @@ function AudioSongs() {
   if (AUDIO_TRACKS.length === 0) return null;
   return (
     <section id="audio-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Hindi Songs" />
         </Reveal>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 lg:grid lg:grid-cols-2 lg:gap-x-8">
           {AUDIO_TRACKS.map((t, i) => (
             <TrackRow key={t.id} track={t} list={AUDIO_TRACKS} index={i} />
           ))}
@@ -460,12 +490,12 @@ function AudioSongs() {
 function Songs() {
   return (
     <section id="songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Watch" title="Bollywood Songs" />
         </Reveal>
 
-        <ul className="mt-10 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:gap-x-6">
+        <ul className="mt-10 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-6">
           {SONGS.map((s, i) => (
             <Reveal as="li" key={s.id} delay={(i % 2) * 0.08}>
               <VideoCard
@@ -488,7 +518,7 @@ function Music() {
   ].filter((g) => g.list.length);
   return (
     <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Music" />
         </Reveal>
@@ -682,7 +712,7 @@ function VideoCarousel() {
 function Videos() {
   return (
     <section id="videos" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
             <SectionHeader eyebrow="Catalogue" title="Videos" />
@@ -726,7 +756,7 @@ function Contact() {
 
   return (
     <section id="contact" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:flex-row sm:items-center sm:justify-between sm:p-12">
           <div>
             <p className="eyebrow">Get in touch</p>
@@ -815,7 +845,7 @@ function VisitorCounter() {
 function Footer() {
   return (
     <footer className="border-t border-hairline bg-sunk px-5 pb-10 pt-12 sm:px-8 sm:pt-14">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:max-w-[1240px] text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3">
           <p className="flex items-center gap-2 font-display text-xl tracking-display text-ink">
             <Disc size={20} aria-hidden="true" className="text-accent" />

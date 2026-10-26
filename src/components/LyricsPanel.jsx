@@ -54,7 +54,7 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
         }
         const on = r.seq != null && r.seq === active;
         const past = synced && active >= 0 && r.seq != null && r.seq < active;
-        const cls = `block w-full py-1.5 text-[19px] font-semibold leading-relaxed transition-all duration-300 ${
+        const cls = `block w-full py-1.5 text-[19px] font-semibold leading-relaxed lg:py-2 lg:text-[26px] transition-all duration-300 ${
           on ? "scale-[1.04] text-ink" : synced ? (past ? "text-ink/40" : "text-ink/55") : "text-ink/85"
         }`;
         return synced && r.t != null ? (

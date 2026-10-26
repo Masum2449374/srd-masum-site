@@ -801,3 +801,18 @@ button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding
 .sbtn:active{transform:scale(.97)}
 .sbtn-sp{background:linear-gradient(135deg,#1ed760,#1aa34a);color:#04140a;box-shadow:0 8px 24px rgba(30,215,96,.3)}
 .sbtn-yt{background:linear-gradient(135deg,#ff2a3d,#c4001a);color:#fff;box-shadow:0 8px 24px rgba(255,0,51,.3)}
+
+/* Desktop (>=1024px): playlist as a wide table. Mobile rows untouched. */
+.pl-head,.pl-album{display:none}
+@media (min-width:1024px){
+  .pl-list{padding:10px 12px}
+  .pl-head{display:grid;grid-template-columns:40px 48px minmax(0,1.6fr) minmax(0,1fr) 64px;gap:0 16px;padding:8px 16px 10px 12px;margin-bottom:4px;border-bottom:1px solid rgb(var(--hairline));font:600 11px/1 ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:rgb(var(--muted))}
+  .pl-head span:first-child{padding-left:6px}.pl-head span:nth-child(2){grid-column:span 2}.pl-head span:last-child{text-align:right}
+  .pl-row{padding:2px 10px 2px 0}
+  .pl-main{display:grid;grid-template-columns:40px 48px minmax(0,1.6fr) minmax(0,1fr) 64px;gap:0 16px;padding:8px 6px 8px 12px}
+  .pl-num{width:40px;text-align:left;padding-left:6px}
+  .pl-art{margin-right:-4px}
+  .pl-album{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;font-size:13px;color:rgb(var(--muted))}
+  .pl-time{text-align:right}
+  .pl-row:hover .pl-num{color:rgb(var(--ink))}
+}

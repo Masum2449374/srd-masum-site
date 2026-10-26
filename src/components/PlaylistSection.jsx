@@ -15,6 +15,7 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
   const list = tracks[0]?.playlist ? tracks : tracks.map((t, i) => (i === 0 ? { ...t, playlist: "list" } : t));
   return (
     <ol data-testid={testid} className="pl-list">
+      <li aria-hidden="true" className="pl-head"><span>#</span><span>Title</span><span>Album / Credit</span><span>Time</span></li>
       {list.map((t, i) => {
         const active = player?.track?.id === t.id;
         const playing = active && player.playing;
@@ -26,11 +27,12 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
                 <img src={t.coverSm || t.cover || t.art || "/images/avatar.webp"} alt="" loading="lazy" draggable={false} />
                 <span className="pl-art-ov">{playing ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}</span>
               </span>
-              <span className="min-w-0 flex-1 text-left">
+              <span className="pl-title min-w-0 flex-1 text-left">
                 <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
                 <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
               </span>
-              <span className="font-mono text-[11px] tabular-nums text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
+              <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Original")}</span>
+              <span className="pl-time font-mono text-[11px] tabular-nums text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
             </button>
             {onInfo && <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline"><Info size={16} weight="bold" /></button>}
           </li>
@@ -45,7 +47,7 @@ export default function PlaylistSection() {
   const inList = player?.track && ALL_PLAYLIST.some((x) => x.id === player.track.id);
   return (
     <section id="playlist" className="scroll-mt-20 px-5 py-10 sm:px-8">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-3xl lg:max-w-[1240px]">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-accent"><ListNumbers size={14} weight="bold" />Playlist · {ALL_PLAYLIST.length} songs</p>

@@ -123,7 +123,7 @@ export function FXCover({ src, playing, children }) {
     return () => { stop(); clearTimeout(kick); dbg?.remove(); document.removeEventListener("visibilitychange", vis); window.removeEventListener("resize", size); };
   }, [playing]);
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[280px]" data-testid="np-fx">
+    <div className="relative mx-auto aspect-square w-full max-w-[280px] lg:max-w-[min(360px,40svh)]" data-testid="np-fx">
       <div ref={glow} aria-hidden="true" className="np-glow pointer-events-none absolute -inset-6 rounded-full" />
       <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute -inset-[22%] h-[144%] w-[144%]" />
       <div ref={cover} className="relative h-full w-full will-change-transform">{children}</div>

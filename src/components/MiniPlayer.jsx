@@ -1,6 +1,14 @@
 import { register as exRegister, claim as exClaim } from "../lib/exclusive.js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Info, Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown } from "@phosphor-icons/react";
+import { Info, Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown, CaretUp, SpeakerHigh, SpeakerLow, SpeakerX } from "@phosphor-icons/react";
+
+// True on desktop-width screens (>=1024px). Mobile layout is untouched below that.
+export function useIsDesktop() {
+  const q = "(min-width: 1024px)";
+  const [on, setOn] = useState(() => typeof window !== "undefined" && window.matchMedia?.(q).matches);
+  useEffect(() => { const m = window.matchMedia(q); const f = () => setOn(m.matches); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
+  return on;
+}
 import { AnimatePresence, motion } from "framer-motion";
 import { FXBackground, FXCover } from "./NowPlayingFX.jsx";
 import { AUDIO_TRACKS } from "../data/songs.js";
@@ -59,6 +67,11 @@ export function PlayerProvider({ children }) {
   useEffect(() => { shuffleRef.current = shuffle; writePref("srd-shuffle", shuffle ? "1" : "0"); }, [shuffle]);
   useEffect(() => { repeatRef.current = repeat; writePref("srd-repeat", repeat); }, [repeat]);
   const toggleShuffle = useCallback(() => setShuffle((v) => !v), []);
+  const [volume, setVolumeState] = useState(() => { const v = Number(localStorage.getItem("srd-volume")); return Number.isFinite(v) && v > 0 && v <= 1 ? v : 1; });
+  const [muted, setMuted] = useState(false);
+  useEffect(() => { const a = audioRef.current; if (a) { a.volume = volume; a.muted = muted; } try { localStorage.setItem("srd-volume", String(volume)); } catch {} }, [volume, muted]);
+  const setVolume = useCallback((v) => { setVolumeState(v); if (v > 0) setMuted(false); }, []);
+  const toggleMute = useCallback(() => setMuted((m) => !m), []);
   const cycleRepeat = useCallback(() => setRepeat((r) => (r === "off" ? "all" : r === "all" ? "one" : "off")), []);
 
   useEffect(() => () => clearTimeout(scrubTimer.current), []);
@@ -231,9 +244,9 @@ export function PlayerProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, seekTo, highlight, shuffle, repeat, toggleShuffle, cycleRepeat }),
+    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, seekTo, highlight, shuffle, repeat, toggleShuffle, cycleRepeat, volume, muted, setVolume, toggleMute }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [track, playing, toggle, step, previous, current, duration, scrub, highlight, shuffle, repeat]
+    [track, playing, toggle, step, previous, current, duration, scrub, highlight, shuffle, repeat, volume, muted]
   );
 
   useEffect(() => exRegister("site", () => { const a = audioRef.current; if (a && !a.paused) a.pause(); }), []);
@@ -350,10 +363,11 @@ function MiniBar({ player, scrub }) {
         onKeyUp={player.endScrub}
         onBlur={player.endScrub}
         aria-label={`Seek ${player.track.title}`}
-        className="seek w-full"
+        className="seek w-full lg:hidden"
         style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, #2c2a27 ${pct}%)` }}
       />
-      <div className="mx-auto flex max-w-6xl items-center gap-3 py-2">
+      <DeskBar player={player} shown={shown} max={max} pct={pct} onExpand={() => setOpen(true)} />
+      <div className="mx-auto flex max-w-6xl items-center gap-3 py-2 lg:hidden">
         {(player.track).cover ? (
           <img src={(player.track).thumb || (player.track).cover} alt="" aria-hidden="true" width="40" height="40" loading="lazy" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
         ) : (
@@ -419,6 +433,52 @@ function MiniBar({ player, scrub }) {
   );
 }
 
+// Desktop (>=1024px) bottom bar: song info left, controls + progress centre, volume + expand right.
+function DeskBar({ player, shown, max, pct, onExpand }) {
+  const t = player.track;
+  const vol = player.muted ? 0 : player.volume;
+  const VolIcon = vol === 0 ? SpeakerX : vol < 0.5 ? SpeakerLow : SpeakerHigh;
+  const btn = "flex shrink-0 items-center justify-center rounded-full transition-colors";
+  return (
+    <div className="mx-auto hidden h-[72px] max-w-[1400px] grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_minmax(0,1fr)] items-center gap-6 px-3 lg:grid">
+      <div className="flex min-w-0 items-center gap-3">
+        <img src={t.thumb || t.coverSm || t.cover || "/images/avatar.webp"} alt="" aria-hidden="true" className="h-14 w-14 shrink-0 rounded-lg object-cover shadow-lg" />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-ink">{t.title}</p>
+          <p className="truncate text-xs text-muted">{t.artist || "SRD Masum"}</p>
+        </div>
+      </div>
+      <div className="flex min-w-0 flex-col items-center gap-1">
+        <div className="flex items-center gap-4">
+          <button type="button" onClick={player.toggleShuffle} aria-label="Shuffle" aria-pressed={player.shuffle} className={`${btn} h-8 w-8 ${player.shuffle ? "text-accent" : "text-ink/55 hover:text-ink"}`}><Shuffle size={17} weight="bold" /></button>
+          <button type="button" onClick={player.previous} aria-label="Previous" className={`${btn} h-9 w-9 text-ink/80 hover:text-accent`}><SkipBack size={20} weight="fill" /></button>
+          <button type="button" onClick={() => player.toggle(t)} aria-label={player.playing ? "Pause" : "Play"} className={`${btn} h-10 w-10 bg-accent text-on-accent hover:scale-105 active:scale-95`}>
+            {player.playing ? <Pause size={18} weight="fill" /> : <Play size={18} weight="fill" className="translate-x-[1px]" />}
+          </button>
+          <button type="button" onClick={() => player.step(1, true)} aria-label="Next" className={`${btn} h-9 w-9 text-ink/80 hover:text-accent`}><SkipForward size={20} weight="fill" /></button>
+          <button type="button" onClick={player.cycleRepeat} aria-label={`Repeat: ${player.repeat}`} className={`${btn} h-8 w-8 ${player.repeat !== "off" ? "text-accent" : "text-ink/55 hover:text-ink"}`}>
+            {player.repeat === "one" ? <RepeatOnce size={17} weight="bold" /> : <Repeat size={17} weight="bold" />}
+          </button>
+        </div>
+        <div className="flex w-full items-center gap-3 font-mono text-[11px] tabular-nums text-muted">
+          <span className="w-10 text-right">{formatTime(shown)}</span>
+          <input type="range" min={0} max={max} step={0.1} value={shown}
+            onChange={(e) => player.onScrub(Number(e.target.value))} onPointerUp={player.endScrub} onKeyUp={player.endScrub} onBlur={player.endScrub}
+            aria-label={`Seek ${t.title}`} className="seek flex-1"
+            style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, rgb(var(--hairline)) ${pct}%)` }} />
+          <span className="w-10">{formatTime(max)}</span>
+        </div>
+      </div>
+      <div className="flex items-center justify-end gap-3">
+        <button type="button" onClick={player.toggleMute} aria-label={player.muted ? "Unmute" : "Mute"} aria-pressed={player.muted} className={`${btn} h-8 w-8 text-ink/70 hover:text-ink`}><VolIcon size={19} weight="fill" /></button>
+        <input type="range" min={0} max={1} step={0.01} value={vol} onChange={(e) => player.setVolume(Number(e.target.value))} aria-label="Volume"
+          className="seek w-28" style={{ background: `linear-gradient(to right, #0b6cf0 ${vol * 100}%, rgb(var(--hairline)) ${vol * 100}%)` }} />
+        <button type="button" onClick={onExpand} aria-label="Open Now Playing" className={`${btn} h-9 w-9 text-ink/70 ring-1 ring-hairline hover:text-accent`}><CaretUp size={18} weight="bold" /></button>
+      </div>
+    </div>
+  );
+}
+
 function NowPlaying({ player, scrub, onClose }) {
   const shown = scrub ?? player.current;
   const max = player.duration || 0;
@@ -427,7 +487,8 @@ function NowPlaying({ player, scrub, onClose }) {
   const art = t.art || t.cover || "/images/avatar.webp";
   const ctl = "flex shrink-0 items-center justify-center rounded-full";
   const hasLyrics = Boolean(t.lyrics);
-  const [showLyrics, setShowLyrics] = useState(false);
+  const desktop = useIsDesktop();
+  const [showLyrics, setShowLyrics] = useState(() => desktop);
   const lyricsOn = hasLyrics && showLyrics;
   const [info, setInfo] = useState(null);
   return (
@@ -457,8 +518,19 @@ function NowPlaying({ player, scrub, onClose }) {
         <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Now Playing</p>
         <ShareButton track={t} />
       </div>
-      <div className={`relative mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-6 ${lyricsOn ? "pt-2" : "justify-center"}`}>
-        {lyricsOn ? (
+      <div className={desktop ? `relative mx-auto grid min-h-0 w-full flex-1 items-center gap-16 px-12 pb-8 ${lyricsOn ? "max-w-[1280px] grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]" : "max-w-[640px] grid-cols-1"}` : `relative mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-6 ${lyricsOn ? "pt-2" : "justify-center"}`}>
+        {desktop && lyricsOn ? (
+          <div data-testid="np-lyrics-desk" className="np-desk-lyrics order-2 flex h-full max-h-[calc(100svh-120px)] min-h-0 flex-col rounded-3xl bg-sunk/40 px-8 ring-1 ring-hairline backdrop-blur-md">
+            <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
+          </div>
+        ) : null}
+        <div className={desktop ? "order-1 flex min-w-0 flex-col justify-center" : "contents"}>
+        {desktop ? (
+          <div className="pb-16 pt-8"><FXCover src={art} playing={player.playing}>
+            <img src={art} alt="" draggable={false}
+              className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/40 transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
+          </FXCover></div>
+        ) : lyricsOn ? (
           <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
         ) : (
           <FXCover src={art} playing={player.playing}>
@@ -468,8 +540,8 @@ function NowPlaying({ player, scrub, onClose }) {
         )}
         <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex items-end justify-between gap-3`}>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-2xl font-bold text-ink">{t.title}</p>
-            <p className="mt-1 text-sm text-muted">{t.artist || "SRD Masum"}</p>
+            <p className="truncate text-2xl font-bold text-ink lg:text-4xl">{t.title}</p>
+            <p className="mt-1 text-sm text-muted lg:text-base">{t.artist || "SRD Masum"}</p>
           </div>
           {hasLyrics ? (
             <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"
@@ -510,6 +582,7 @@ function NowPlaying({ player, scrub, onClose }) {
             className={`${ctl} h-11 w-11 ${player.repeat !== "off" ? "text-accent" : "text-ink/50"}`}>
             {player.repeat === "one" ? <RepeatOnce size={22} weight="bold" /> : <Repeat size={22} weight="bold" />}
           </button>
+        </div>
         </div>
       </div>
       <div onPointerDownCapture={(e) => e.stopPropagation()}><CreditsPanel t={info} onClose={() => setInfo(null)} /></div>
