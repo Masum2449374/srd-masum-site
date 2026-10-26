@@ -184,7 +184,7 @@ export default function Nav({ page = "home" }) {
               <img src="/images/avatar.webp" alt="" aria-hidden="true" width="44" height="44" className="h-11 w-11 rounded-full object-cover ring-2 ring-accent" />
               <div className="min-w-0 flex-1">
                 <p className="font-display text-lg leading-tight tracking-display text-ink">SRD <span className="text-accent">Masum</span></p>
-                <p className="text-xs text-muted">Music · Covers · Originals</p>
+                <p className="text-xs text-muted">Music Platform</p>
               </div>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close menu" className="srd-menu-close"><X size={18} weight="bold" aria-hidden="true" /></button>
             </div>
