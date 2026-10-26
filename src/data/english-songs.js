@@ -32,6 +32,12 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/3zOYmiNOuyDL0ClxJcEJ0T",
     youtubeUrl: "https://www.youtube.com/watch?v=DLV8FpyxZPQ", // Ashe (official channel), "Stop The Wedding! (Official Video)"
   },
+  {
+    id: "aint-in-la", title: "Ain't In LA", artist: "ADÉLA", album: "PRIMA",
+    src: "/audio/english/aint-in-la.mp3", duration: 219.29, playlist: P, ...c("nicole-kidman"), // same PRIMA cover
+    spotifyUrl: "https://open.spotify.com/track/6U9VpmP3dEinuezxCJ2Zg9",
+    youtubeUrl: "https://www.youtube.com/watch?v=0ijm2Xui5N8", // AdelaMusicVEVO
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
