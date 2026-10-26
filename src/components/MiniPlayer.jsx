@@ -18,7 +18,7 @@ const writePref = (k, v) => { try { localStorage.setItem(k, String(v)); } catch 
 import ShareButton from "./ShareButton.jsx";
 import LyricsPanel from "./LyricsPanel.jsx";
 import { songFromUrl } from "../lib/share.js";
-import { beatPlay, beatStop } from "../lib/beat.js";
+import { beatPlay, beatStop, getBass } from "../lib/beat.js";
 import {
   setMediaSessionMetadata,
   setMediaSessionHandlers,
@@ -418,6 +418,38 @@ function MiniBar({ player, scrub }) {
   );
 }
 
+// Songs we can't publish lyrics for: a card linking out to Genius. Pulse runs on JS rAF so it
+// still breathes with prefers-reduced-motion (CSS animations are disabled there).
+function GeniusCard({ track: t, art, playing }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    let raf = 0, lvl = 0;
+    const tick = (now) => {
+      const b = getBass();
+      const raw = playing ? (b > 0.001 ? b : ((Math.sin((now / 545) * Math.PI * 2) + 1) / 2) * 0.45) : 0;
+      lvl = Math.max(raw, lvl * 0.9);
+      ref.current?.style.setProperty("--p", lvl.toFixed(3));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [playing]);
+  return (
+    <div ref={ref} data-testid="np-genius" className="gcard" onPointerDownCapture={(e) => e.stopPropagation()}>
+      <div className="gcard-bg" style={{ backgroundImage: `url(${art})` }} />
+      <div className="gcard-shade" />
+      <div className="relative flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+        <div className="gcard-mic" aria-hidden="true">🎤</div>
+        <h2 className="text-4xl font-black tracking-tight text-white">Lyrics</h2>
+        <p className="text-lg font-semibold text-white">{t.title}</p>
+        <p className="-mt-2 text-sm text-white/70">{t.artist}</p>
+        <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" data-testid="np-genius-link" className="gbtn mt-3">Read on Genius <span aria-hidden="true">↗</span></a>
+        <p className="text-[11px] text-white/50">Opens genius.com in a new tab</p>
+      </div>
+    </div>
+  );
+}
+
 function NowPlaying({ player, scrub, onClose }) {
   const shown = scrub ?? player.current;
   const max = player.duration || 0;
@@ -425,7 +457,7 @@ function NowPlaying({ player, scrub, onClose }) {
   const t = player.track;
   const art = t.art || t.cover || "/images/avatar.webp";
   const ctl = "flex shrink-0 items-center justify-center rounded-full";
-  const hasLyrics = Boolean(t.lyrics);
+  const hasLyrics = Boolean(t.lyrics || t.lyricsUrl);
   const [showLyrics, setShowLyrics] = useState(false);
   const lyricsOn = hasLyrics && showLyrics;
   return (
@@ -457,7 +489,8 @@ function NowPlaying({ player, scrub, onClose }) {
       </div>
       <div className={`relative mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-6 ${lyricsOn ? "pt-2" : "justify-center"}`}>
         {lyricsOn ? (
-          <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
+          t.lyrics ? <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
+            : <GeniusCard track={t} art={art} playing={player.playing} />
         ) : (
           <FXCover src={art} playing={player.playing}>
             <img src={art} alt="" draggable={false}

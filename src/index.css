@@ -741,3 +741,14 @@ button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding
 @keyframes en-bar { 0%,100% { height: 4px } 50% { height: 18px } }
 .en-originals { background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(11,108,240,.08)); }
 @media (prefers-reduced-motion: reduce) { .en-title, .en-orb, .en-spin, .en-pulse, .en-bars i { animation: none; } }
+
+/* Genius lyrics card + buttons */
+.gcard{--p:0;position:relative;flex:1;min-height:300px;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 calc(20px + var(--p)*40px) rgba(255,255,100,calc(.08 + var(--p)*.25));transform:scale(calc(1 + var(--p)*.015))}
+.gcard-bg{position:absolute;inset:-30px;background-size:cover;background-position:center;filter:blur(28px) saturate(1.4);transform:scale(calc(1.1 + var(--p)*.06))}
+.gcard-shade{position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(0,0,0,.15),rgba(0,0,0,.7))}
+.gcard-mic{font-size:44px;width:84px;height:84px;display:flex;align-items:center;justify-content:center;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(8px);transform:scale(calc(1 + var(--p)*.12));box-shadow:0 0 calc(var(--p)*40px) rgba(255,255,100,.5)}
+.gbtn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:999px;font-weight:800;color:#111;background:linear-gradient(135deg,#ffff64,#ffd23f);box-shadow:0 0 0 1px rgba(255,255,255,.4) inset,0 8px 28px rgba(255,230,80,calc(.35 + var(--p,0)*.4));transition:transform .15s}
+.gbtn:hover{transform:translateY(-1px)}.gbtn:active{transform:scale(.97)}
+.gbtn-sm{padding:9px 16px;font-size:14px}
+.en-lyr-ic{display:flex;height:32px;width:32px;flex-shrink:0;align-items:center;justify-content:center;border-radius:999px;color:#111;background:linear-gradient(135deg,#ffff64,#ffd23f);box-shadow:0 2px 10px rgba(255,230,80,.35)}
+.en-lyr-ic:active{transform:scale(.92)}
