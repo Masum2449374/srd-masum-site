@@ -38,6 +38,12 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/6U9VpmP3dEinuezxCJ2Zg9",
     youtubeUrl: "https://www.youtube.com/watch?v=0ijm2Xui5N8", // AdelaMusicVEVO
   },
+  {
+    id: "drop-dead", title: "drop dead", artist: "Olivia Rodrigo", album: "drop dead",
+    src: "/audio/english/drop-dead.mp3", duration: 250.15, playlist: P, ...c("drop-dead"),
+    spotifyUrl: "https://open.spotify.com/track/6gkbtMtioHgtyGjrMel6ei",
+    youtubeUrl: "https://www.youtube.com/watch?v=78wrful9cVU", // OliviaRodrigoVEVO
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
