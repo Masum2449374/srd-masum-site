@@ -1,7 +1,40 @@
 // Pages advanced-mode worker. Only job: HTTP Range (206) for self-hosted audio under /audio/,
 // which static Pages assets do not serve, so seeking works. Everything else goes to the assets.
+// ---- Security headers applied to every response (CSP, framing, HSTS, permissions, CORS scope).
+const CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "media-src 'self' blob: data:",
+  "connect-src 'self' https://cloudflareinsights.com https://static.cloudflareinsights.com",
+  "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://open.spotify.com",
+  "worker-src 'self'", "manifest-src 'self'", "object-src 'none'", "base-uri 'self'",
+  "frame-ancestors 'none'", "upgrade-insecure-requests",
+].join("; ");
+function harden(res, url) {
+  const r = new Response(res.body, res); // mutable copy (redirects/asset responses are immutable)
+  const h = r.headers, p = url.pathname;
+  const ads = p.startsWith("/ads/"); // ad pages are framed by our own pages and load third-party ad scripts
+  if (ads) { h.set("content-security-policy", "frame-ancestors 'self'"); h.set("x-frame-options", "SAMEORIGIN"); }
+  else { h.set("content-security-policy", CSP); h.set("x-frame-options", "DENY"); }
+  h.set("strict-transport-security", "max-age=31536000; includeSubDomains");
+  h.set("permissions-policy", "camera=(), geolocation=(), payment=(), usb=(), microphone=(self), autoplay=(self), fullscreen=(self \"https://www.youtube-nocookie.com\" \"https://www.youtube.com\" \"https://open.spotify.com\")");
+  h.set("x-content-type-options", "nosniff");
+  h.set("referrer-policy", "strict-origin-when-cross-origin");
+  if (!(p.startsWith("/audio/") || p === "/.well-known/assetlinks.json")) h.delete("access-control-allow-origin");
+  return r;
+}
+
 export default {
   async fetch(req, env) {
+    return harden(await handle(req, env), new URL(req.url));
+  },
+};
+
+const handle = async (req, env) => {
+  {
     const url = new URL(req.url);
     // Short alias for the lyrics/share page.
     if (/^\/song\/koto-din-bhebechhi\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/koto-din-bhebechhi-cover/${url.search}`, 301);
@@ -41,7 +74,7 @@ export default {
     h.set("content-range", `bytes ${start}-${end}/${size}`);
     h.set("content-length", String(end - start + 1));
     return new Response(buf.slice(start, end + 1), { status: 206, headers: h });
-  },
+  }
 };
 
 // Real visitor counter backed by KV (binding VISITS, key "count").
@@ -66,6 +99,7 @@ const CHAT_MODELS = ["deepseek-v4.1-flash", "qwen-flash"];
 const RL = new Map(); // per-isolate, per-IP: { t: windowStart, n }
 let CTX = null, CTX_AT = 0;
 // ---- Owner mode: passcode (env.OWNER_PASSCODE, set only in the dashboard) -> signed token, ~1 year.
+const TOKEN_DAYS = 30;
 const enc = (t) => new TextEncoder().encode(t);
 const hex = (b) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
 const normPass = (t) => String(t || "").trim().toLowerCase();
@@ -77,10 +111,10 @@ async function ownerSig(env, exp) {
   const k = await crypto.subtle.importKey("raw", enc("srd-owner-v1|" + normPass(env.OWNER_PASSCODE)), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   return hex(await crypto.subtle.sign("HMAC", k, enc("owner|" + exp)));
 }
-async function makeOwnerToken(env) { const exp = Date.now() + 365 * 864e5; return `${exp}.${await ownerSig(env, exp)}`; }
+async function makeOwnerToken(env) { const exp = Date.now() + TOKEN_DAYS * 864e5; return `${exp}.${await ownerSig(env, exp)}`; }
 async function validOwner(env, tok) {
   if (!env.OWNER_PASSCODE || typeof tok !== "string") return false;
-  const m = /^(\d{13})\.([0-9a-f]{64})$/.exec(tok); if (!m || Number(m[1]) < Date.now()) return false;
+  const m = /^(\d{13})\.([0-9a-f]{64})$/.exec(tok); if (!m || Number(m[1]) < Date.now() || Number(m[1]) > Date.now() + (TOKEN_DAYS + 1) * 864e5) return false; // old 1-year tokens are rejected
   return sameSecret(m[2], await ownerSig(env, m[1]));
 }
 async function isPasscode(env, t) { const p = normPass(env.OWNER_PASSCODE); return !!p && p.length >= 4 && sameSecret(normPass(t), p); }
@@ -97,6 +131,15 @@ async function chat(req, env, url) {
   if (!r || now - r.t > 60000) RL.set(ip, { t: now, n: 1 });
   else if (++r.n > 12) return out({ error: "rate", reply: "Too many messages — please wait a minute. 🙏" }, 429);
   if (RL.size > 5000) RL.clear();
+  // Shared (cross-isolate) limit in KV: 12/min and 150/day per IP.
+  if (env.VISITS) {
+    try {
+      const mk = `chatrl:${ip}:${Math.floor(now / 60000)}`, dk = `chatrld:${ip}:${Math.floor(now / 864e5)}`;
+      const [mn, dn] = (await Promise.all([env.VISITS.get(mk), env.VISITS.get(dk)])).map((v) => Number(v) || 0);
+      if (mn >= 12 || dn >= 150) return out({ error: "rate", reply: "Too many messages — please wait a while. 🙏" }, 429);
+      await Promise.all([env.VISITS.put(mk, String(mn + 1), { expirationTtl: 120 }), env.VISITS.put(dk, String(dn + 1), { expirationTtl: 90000 })]);
+    } catch {}
+  }
   let body;
   try { body = await req.json(); } catch { return out({ error: "bad json" }, 400); }
   const msgs = (Array.isArray(body?.messages) ? body.messages : [])
@@ -105,9 +148,14 @@ async function chat(req, env, url) {
   if (!msgs.length || msgs[msgs.length - 1].role !== "user") return out({ error: "no message" }, 400);
   // Owner passcode / token. The passcode is never forwarded to the model.
   const last = msgs[msgs.length - 1].content;
-  if (await isPasscode(env, last)) {
+  // Brute-force lockout: passcode-like messages (single word, 4-40 chars) that fail count per IP; 8 per hour max.
+  const pk = `pcfail:${ip}:${Math.floor(now / 3600000)}`;
+  let fails = 0; try { fails = Number(await env.VISITS?.get(pk)) || 0; } catch {}
+  const looksPass = /^\S{4,40}$/.test(last.trim());
+  if (fails < 8 && await isPasscode(env, last)) {
     return out({ reply: "স্বাগতম, Masum স্যার! 🙂 আপনাকে চিনতে পেরেছি। বলুন, আজ কীভাবে সাহায্য করতে পারি?", ownerToken: await makeOwnerToken(env) });
   }
+  if (looksPass && env.OWNER_PASSCODE) { try { await env.VISITS?.put(pk, String(fails + 1), { expirationTtl: 3700 }); } catch {} }
   for (let i = msgs.length - 2; i >= 0; i--) if (msgs[i].role === "user" && await isPasscode(env, msgs[i].content)) msgs.splice(i, 1);
   let OWNER = await validOwner(env, body?.owner);
   if (OWNER && /^(লগ ?আউট|log ?out)[.!।]?$/i.test(last.trim())) return out({ reply: "ঠিক আছে Masum স্যার, লগআউট করে দিলাম। আবার আসবেন!", logout: true });
@@ -139,10 +187,10 @@ ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com)."}`;
 VOICE CALL MODE: the visitor is talking to you on a live voice call and your reply is read aloud by a text-to-speech voice. Talk like a real, friendly young woman chatting on the phone, not like a document or a robot. Reply in 1-3 short conversational sentences. In Bangla use warm, colloquial everyday Bangla with the তুমি form (e.g. "বলো", "শোনো", "দেখো"), the way a cheerful Bangladeshi girl actually speaks; use a natural filler like "আচ্ছা", "শোনো", "হুম" only occasionally, never in every reply. In English be similarly casual and warm (contractions, simple words). Never use lists, markdown, headings, emoji, symbols or URLs, and avoid formal/robotic phrases like "আমি আপনাকে সহায়তা করতে পেরে আনন্দিত" or "As an AI". If a link is truly needed, say it is in the captions and add the [[search]] marker. Speech-recognised text may have small errors; guess the intent kindly.` + (OWNER ? OWNER_VOICE : "") : (OWNER ? OWNER_SYS : system));
   const base = [{ role: "system", content: sys2 }, ...msgs];
   const first = await callModel(env, base);
-  if (!first.reply) return out({ error: "upstream", why: first.why, reply: "Sorry, I can't answer right now — please try again soon." }, 502);
+  if (!first.reply) { console.log("chat upstream fail:", first.why); return out({ error: "upstream", reply: "Sorry, I can't answer right now — please try again soon." }, 502); }
   const MARK = /\[\[\s*search:\s*([^\]]{1,120})\]\]/gi;
   const queries = [...new Set([...first.reply.matchAll(MARK)].map((m) => m[1].trim()))].slice(0, 2);
-  if (!queries.length) return out({ reply: tidy(first.reply, NOCJK), model: first.model });
+  if (!queries.length) return out({ reply: tidy(first.reply, NOCJK) });
   const found = [];
   for (const q of queries) {
     const vids = await ytCached(env, q);
@@ -153,10 +201,10 @@ VOICE CALL MODE: the visitor is talking to you on a live voice call and your rep
     const look = found.map((f) => `Query "${f.q}":\n` + (f.vids.length ? f.vids.map((v, k) => `${k + 1}. "${v.title}" — ${v.channel}${v.len ? ` (${v.len})` : ""} https://www.youtube.com/watch?v=${v.id}`).join("\n") : "(no results)")).join("\n");
     const second = await callModel(env, [...base, { role: "assistant", content: first.reply },
       { role: "system", content: `YOUTUBE LOOKUP (real results fetched just now):\n${look}\nNow write the final reply to the visitor in their language. Say confidently what you found, e.g. "YouTube-এ পেয়েছি:" / "Found it on YouTube:", then the best 1-2 matches (prefer the original/official version) as: title — channel, then the watch URL exactly as listed. Mention briefly that it isn't on this site yet if it's not in SITE DATA. You may add one line of general knowledge about the song/singer (no lyrics). Do not output any [[search]] marker, do not mention how the lookup works, and use only URLs from SITE DATA or this lookup.` }]);
-    if (second.reply) return out({ reply: tidy(second.reply.replace(MARK, ""), NOCJK) + "\n" + spotify, model: second.model, yt: true });
+    if (second.reply) return out({ reply: tidy(second.reply.replace(MARK, ""), NOCJK) + "\n" + spotify, yt: true });
   }
   const fb = first.reply.replace(MARK, (_, q) => { const e = encodeURIComponent(q.trim()); return `YouTube: https://www.youtube.com/results?search_query=${e}\nSpotify: https://open.spotify.com/search/${e}`; });
-  return out({ reply: tidy(fb, NOCJK), model: first.model, yt: false });
+  return out({ reply: tidy(fb, NOCJK), yt: false });
 }
 
 const CJK = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\uff00-\uffef]+/g;
@@ -240,9 +288,16 @@ async function gemini(env, text) {
   }
   return null;
 }
+const TRL = new Map();
 async function tts(req, env) {
-  const h = { "access-control-allow-origin": "*", "cache-control": "no-store" };
+  const h = { "cache-control": "no-store" };
   if (req.method !== "POST") return new Response("POST only", { status: 405, headers: h });
+  const origin = req.headers.get("origin"), self = new URL(req.url).origin;
+  if (origin && origin !== self) return new Response("forbidden", { status: 403, headers: h });
+  if (!origin && !(req.headers.get("referer") || "").startsWith(self + "/")) return new Response("forbidden", { status: 403, headers: h });
+  { const ip = req.headers.get("cf-connecting-ip") || "x", now = Date.now(), r = TRL.get(ip);
+    if (!r || now - r.t > 60000) TRL.set(ip, { t: now, n: 1 }); else if (++r.n > 30) return new Response("slow down", { status: 429, headers: h });
+    if (TRL.size > 5000) TRL.clear(); }
   let body; try { body = await req.json(); } catch { return new Response("bad json", { status: 400, headers: h }); }
   const text = String(body?.text || "").replace(/\s+/g, " ").trim().slice(0, 400);
   if (!text) return new Response("empty", { status: 400, headers: h });
