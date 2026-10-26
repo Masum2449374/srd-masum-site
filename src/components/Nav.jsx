@@ -7,19 +7,21 @@ import { playTapPop } from "../lib/sounds.js";
 import { SOCIAL_LINKS } from "../data/videos.js";
 
 const LINKS = [
-  { id: "music", label: "Music", sub: "Albums & singles", Icon: Disc, g: 0, tint: "59 130 246" },
-  { id: "english", label: "English", sub: "International tracks", href: "/english/", Icon: Globe, g: 0, tint: "14 165 233" },
-  { id: "audio-songs", label: "Hindi Songs", sub: "Covers & originals", Icon: MusicNotes, g: 0, tint: "236 72 153" },
-  { id: "bangla-songs", label: "Bangla Songs", sub: "বাংলা গান", Icon: MusicNote, g: 0, tint: "16 185 129" },
-  { id: "songs", label: "Bollywood", sub: "Classic hits", Icon: FilmStrip, g: 0, tint: "245 158 11" },
-  { id: "new-release", label: "New Release", sub: "Just dropped", Icon: Sparkle, g: 0, tint: "168 85 247" },
-  { id: "featured", label: "Featured", sub: "Hand-picked highlights", Icon: Star, g: 1, tint: "234 179 8" },
-  { id: "videos", label: "Videos", sub: "Watch the latest", Icon: Television, g: 1, tint: "239 68 68" },
-  { id: "reviews", label: "Reviews", sub: "What listeners say", Icon: ChatCircleText, g: 2, tint: "99 102 241" },
-  { id: "fan-wall", label: "Fan Wall", sub: "Leave a message", Icon: Heart, g: 2, tint: "244 63 94" },
-  { id: "contact", label: "Contact", sub: "Bookings & collabs", Icon: EnvelopeSimple, g: 2, tint: "20 184 166" },
+  { id: "music", label: "Music", sub: "Albums & singles", Icon: Disc, g: 0 },
+  { id: "english", label: "English", sub: "International tracks", href: "/english/", Icon: Globe, g: 0 },
+  { id: "audio-songs", label: "Hindi Songs", sub: "Covers & originals", Icon: MusicNotes, g: 0 },
+  { id: "bangla-songs", label: "Bangla Songs", sub: "বাংলা গান", Icon: MusicNote, g: 0 },
+  { id: "songs", label: "Bollywood", sub: "Classic hits", Icon: FilmStrip, g: 0 },
+  { id: "new-release", label: "New Release", sub: "Just dropped", Icon: Sparkle, g: 0 },
+  { id: "featured", label: "Featured", sub: "Hand-picked highlights", Icon: Star, g: 1 },
+  { id: "videos", label: "Videos", sub: "Watch the latest", Icon: Television, g: 1 },
+  { id: "reviews", label: "Reviews", sub: "What listeners say", Icon: ChatCircleText, g: 2 },
+  { id: "fan-wall", label: "Fan Wall", sub: "Leave a message", Icon: Heart, g: 2 },
+  { id: "contact", label: "Contact", sub: "Bookings & collabs", Icon: EnvelopeSimple, g: 2 },
 ];
 const GROUPS = ["Listen", "Watch & Explore", "Community"];
+// One brand blue for Listen (most items) + one accent each for Watch (amber) and Community (violet).
+const GROUP_TINT = ["59 130 246", "245 158 11", "139 92 246"];
 const SOCIALS = [["instagram", "Instagram", InstagramLogo], ["facebook", "Facebook", FacebookLogo], ["youtube", "YouTube", YoutubeLogo], ["whatsapp", "WhatsApp", WhatsappLogo]];
 
 const THEME_KEY = "srd-theme";
@@ -202,7 +204,7 @@ export default function Nav({ page = "home" }) {
                             onClick={(e) => { if (l.href || !onHome) { playTapPop(); return; } goTo(e, l.id); }}
                             className={`srd-menu-row${isActive ? " is-active" : ""}`}
                           >
-                            <span className="srd-menu-ico" style={{ "--tint": l.tint }} aria-hidden="true"><l.Icon size={20} weight="duotone" /></span>
+                            <span className="srd-menu-ico" style={{ "--tint": GROUP_TINT[l.g] }} aria-hidden="true"><l.Icon size={20} weight="duotone" /></span>
                             <span className="min-w-0 flex-1">
                               <span className="block text-[15px] font-semibold leading-tight">{l.label}</span>
                               <span className="srd-menu-sub">{l.sub}</span>
