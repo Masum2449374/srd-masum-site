@@ -25,6 +25,7 @@ import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
 import BeatField from "./components/BeatField.jsx";
 import AdSlot from "./components/AdSlot.jsx";
+import ChatLauncher from "./components/ChatLauncher.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import EnglishPage from "./components/EnglishPage.jsx";
 import { ENGLISH_ALL } from "./data/english-songs.js";
@@ -990,6 +991,7 @@ export default function App() {
       <main><EnglishPage /></main>
       <Footer />
       <InstallPrompt />
+      <ChatLauncher />
     </div>
     </PlayerProvider>
   );
@@ -1024,6 +1026,7 @@ export default function App() {
       <Footer />
       <MiniPlayer />
       <InstallPrompt />
+      <ChatLauncher />
     </div>
     </PlayerProvider>
   );

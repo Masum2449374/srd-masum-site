@@ -10,6 +10,7 @@ export default {
     if (/^\/song\/ayna-nadir-khate-cover\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/tomar-jonno-mon-kandere/${url.search}`, 301);
     if (url.pathname === "/.well-known/assetlinks.json") return new Response(JSON.stringify([{relation:["delegate_permission/common.handle_all_urls"],target:{namespace:"android_app",package_name:"com.bbroot.srdmasum",sha256_cert_fingerprints:["CB:C3:8E:CE:0C:34:90:39:D1:A6:2D:30:B9:30:43:E2:39:B9:59:DC:66:D1:C8:3C:C0:43:5C:39:44:44:6C:34"]}}]), { headers: { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" } });
     if (url.pathname === "/api/visits") return visits(req, env);
+    if (url.pathname === "/api/chat") return chat(req, env, url);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
       // Real 404 for unknown paths (public/404.html also disables the SPA fallback on Pages).
@@ -57,4 +58,58 @@ async function visits(req, env) {
   const out = new Headers(h);
   if (!seen) out.append("set-cookie", `srdv=${day}; Path=/; Max-Age=93600; SameSite=Lax; Secure`);
   return new Response(JSON.stringify({ count, counted: !seen }), { headers: out });
+}
+
+// ---- /api/chat: site assistant proxied to BenPay (OpenAI-compatible). Key lives only in env.BENPAY_API_KEY.
+const CHAT_MODELS = ["deepseek-v4.1-flash", "qwen-flash"];
+const RL = new Map(); // per-isolate, per-IP: { t: windowStart, n }
+let CTX = null, CTX_AT = 0;
+async function chat(req, env, url) {
+  const h = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
+  const out = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: h });
+  if (req.method !== "POST") return out({ error: "POST only" }, 405);
+  const origin = req.headers.get("origin");
+  if (origin && origin !== url.origin) return out({ error: "forbidden" }, 403);
+  if (!env.BENPAY_API_KEY) return out({ error: "chat unavailable" }, 503);
+  const ip = req.headers.get("cf-connecting-ip") || "0";
+  const now = Date.now(), r = RL.get(ip);
+  if (!r || now - r.t > 60000) RL.set(ip, { t: now, n: 1 });
+  else if (++r.n > 8) return out({ error: "rate", reply: "Too many messages — please wait a minute. 🙏" }, 429);
+  if (RL.size > 5000) RL.clear();
+  let body;
+  try { body = await req.json(); } catch { return out({ error: "bad json" }, 400); }
+  const msgs = (Array.isArray(body?.messages) ? body.messages : [])
+    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
+    .slice(-8).map((m) => ({ role: m.role, content: m.content.slice(0, 500) }));
+  if (!msgs.length || msgs[msgs.length - 1].role !== "user") return out({ error: "no message" }, 400);
+  if (!CTX || now - CTX_AT > 600000) {
+    try { const c = await env.ASSETS.fetch(new Request(`${url.origin}/chat-context.txt`)); if (c.ok) { CTX = await c.text(); CTX_AT = now; } } catch {}
+  }
+  const system = `You are the friendly assistant on the SRD Masum music website. Answer ONLY about SRD Masum, his music, the songs on this site, their credited artists, and how to use the site (player, playlists, videos, fan wall, installing the app, contact). Politely decline anything else in one sentence.
+Rules:
+- Reply in the visitor's language (Bangla in Bangla script, Hindi, or English; match Banglish/Hinglish if they use it).
+- Be short: 1-3 sentences, warm, a light emoji is fine.
+- Never write, quote or paraphrase song lyrics (not even one line); say lyrics aren't available here and suggest listening on the site or official links.
+- Credit performers exactly as listed; songs by other artists are covers/featured on the site — never claim SRD Masum wrote or originally sang them.
+- Use only links and facts from the SITE DATA below; never invent links, dates or facts. If unknown, say so and suggest the contact email.
+- Plain text only (no markdown tables/headings); put links as bare URLs.
+SITE DATA:
+${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.spotify.com/artist/267kT30bpgEoiGFawat8k6 YouTube: https://youtube.com/@srdmasum"}`;
+  let why = "";
+  for (const model of CHAT_MODELS) {
+    try {
+      const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 20000);
+      const res = await fetch("https://api.benpay.ai/openai/v1/chat/completions", {
+        method: "POST", signal: ctl.signal,
+        headers: { authorization: `Bearer ${env.BENPAY_API_KEY}`, "content-type": "application/json", accept: "application/json", "user-agent": "srd-masum-site/1.0" },
+        body: JSON.stringify({ model, max_tokens: 300, temperature: 0.4, messages: [{ role: "system", content: system }, ...msgs] }),
+      });
+      clearTimeout(tm);
+      if (!res.ok) { why += `${model}:${res.status} `; continue; }
+      const d = await res.json();
+      const reply = d?.choices?.[0]?.message?.content?.trim();
+      if (reply) return out({ reply: reply.slice(0, 1500), model });
+    } catch (e) { why += `${model}:${e?.name || "err"} `; }
+  }
+  return out({ error: "upstream", why: why.trim(), reply: "Sorry, I can't answer right now — please try again soon." }, 502);
 }
