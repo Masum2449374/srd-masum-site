@@ -120,7 +120,7 @@ export default function EnglishPage() {
           <div className="en-orb en-orb-a" /><div className="en-orb en-orb-b" />
         </div>
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-8 text-center sm:flex-row sm:text-left">
-          <div className="relative h-56 w-56 shrink-0 sm:h-64 sm:w-64">
+          <div className="relative mb-8 mt-6 h-56 w-56 shrink-0 sm:m-10 sm:h-64 sm:w-64">
             <FXCover src={now.cover} playing={playing}>
               <img src={now.cover} alt="" draggable={false} className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/50 transition-transform duration-500 ${playing ? "scale-100 en-spin" : "scale-95"}`} />
             </FXCover>
