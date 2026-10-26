@@ -177,26 +177,59 @@ async function ytCached(env, q) {
   return vids;
 }
 
-// ---- /api/tts: Mira's female voice (English) via Workers AI Deepgram Aura-2 "luna". Cached in KV 7 days.
-// Bangla is not supported by any Workers AI TTS model -> 415, client falls back to a device female voice.
+// ---- /api/tts: Mira's voice. Gemini TTS "Leda" (bn + en) -> fallback model -> Workers AI aura-2 "luna" (en only).
+// Cached in KV 7 days by text hash; 20 req/min per IP. Client falls back to the device voice on any non-200.
+const TTS_MODELS = ["gemini-3.8-flash-tts", "gemini-2.5-flash-preview-tts"];
+function wavWrap(pcm, rate = 24000) {
+  const h = new DataView(new ArrayBuffer(44)); const w = (o, t) => [...t].forEach((c, i) => h.setUint8(o + i, c.charCodeAt(0)));
+  w(0, "RIFF"); h.setUint32(4, 36 + pcm.byteLength, true); w(8, "WAVE"); w(12, "fmt "); h.setUint32(16, 16, true);
+  h.setUint16(20, 1, true); h.setUint16(22, 1, true); h.setUint32(24, rate, true); h.setUint32(28, rate * 2, true);
+  h.setUint16(32, 2, true); h.setUint16(34, 16, true); w(36, "data"); h.setUint32(40, pcm.byteLength, true);
+  const out = new Uint8Array(44 + pcm.byteLength); out.set(new Uint8Array(h.buffer), 0); out.set(pcm, 44); return out.buffer;
+}
+async function gemini(env, text) {
+  if (!env.GEMINI_API_KEY) return null;
+  const body = JSON.stringify({ contents: [{ parts: [{ text: "Say warmly and sweetly, like a cheerful young woman: " + text }] }],
+    generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Leda" } } } } });
+  for (const m of TTS_MODELS) {
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY }, body });
+      if (!r.ok) continue;
+      const d = await r.json(); const part = d?.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData;
+      if (!part?.data) continue;
+      const bin = Uint8Array.from(atob(part.data), (c) => c.charCodeAt(0));
+      if (bin.byteLength < 1000) continue;
+      const riff = bin[0] === 0x52 && bin[1] === 0x49 && bin[2] === 0x46 && bin[3] === 0x46;
+      const rate = Number((/rate=(\d+)/.exec(part.mimeType || "") || [])[1]) || 24000;
+      return { buf: riff ? bin.buffer : wavWrap(bin, rate), type: "audio/wav", src: m + "/Leda" };
+    } catch {}
+  }
+  return null;
+}
 async function tts(req, env) {
   const h = { "access-control-allow-origin": "*", "cache-control": "no-store" };
   if (req.method !== "POST") return new Response("POST only", { status: 405, headers: h });
   let body; try { body = await req.json(); } catch { return new Response("bad json", { status: 400, headers: h }); }
   const text = String(body?.text || "").replace(/\s+/g, " ").trim().slice(0, 400);
   if (!text) return new Response("empty", { status: 400, headers: h });
-  if (/[\u0980-\u09FF]/.test(text)) return new Response("bn unsupported", { status: 415, headers: h });
-  if (!env.AI) return new Response("tts unavailable", { status: 503, headers: h });
-  const voice = "luna";
-  const dig = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + text));
-  const key = "tts:" + [...new Uint8Array(dig)].slice(0, 12).map(b => b.toString(16).padStart(2, "0")).join("");
-  const ah = { ...h, "content-type": "audio/mpeg", "cache-control": "public, max-age=86400" };
-  try { const c = env.VISITS && await env.VISITS.get(key, "arrayBuffer"); if (c) return new Response(c, { headers: { ...ah, "x-tts": "cache" } }); } catch {}
+  const dig = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("leda|" + text));
+  const key = "tts2:" + [...new Uint8Array(dig)].slice(0, 12).map((b) => b.toString(16).padStart(2, "0")).join("");
   try {
-    const r = await env.AI.run("@cf/deepgram/aura-2-en", { text, speaker: voice, encoding: "mp3" }, { returnRawResponse: true });
-    const buf = await new Response(r.body ?? r).arrayBuffer();
-    if (buf.byteLength < 500) return new Response("tts failed", { status: 502, headers: h });
-    try { await env.VISITS?.put(key, buf, { expirationTtl: 604800 }); } catch {}
-    return new Response(buf, { headers: { ...ah, "x-tts": "aura-2-en/" + voice } });
-  } catch (e) { return new Response("tts error", { status: 502, headers: h }); }
+    const c = env.VISITS && await env.VISITS.getWithMetadata(key, "arrayBuffer");
+    if (c?.value) return new Response(c.value, { headers: { ...h, "content-type": c.metadata?.type || "audio/wav", "cache-control": "public, max-age=86400", "x-tts": "cache" } });
+  } catch {}
+  // per-IP rate limit (cache hits are free)
+  const ip = req.headers.get("cf-connecting-ip") || "x"; const rk = `ttsrl:${ip}:${Math.floor(Date.now() / 60000)}`;
+  try { const n = Number(await env.VISITS?.get(rk)) || 0; if (n >= 20) return new Response("slow down", { status: 429, headers: h }); await env.VISITS?.put(rk, String(n + 1), { expirationTtl: 120 }); } catch {}
+  let out = await gemini(env, text);
+  if (!out && env.AI && !/[\u0980-\u09FF]/.test(text)) {
+    try {
+      const r = await env.AI.run("@cf/deepgram/aura-2-en", { text, speaker: "luna", encoding: "mp3" }, { returnRawResponse: true });
+      const buf = await new Response(r.body ?? r).arrayBuffer();
+      if (buf.byteLength > 500) out = { buf, type: "audio/mpeg", src: "aura-2-en/luna" };
+    } catch {}
+  }
+  if (!out) return new Response("tts unavailable", { status: 503, headers: h });
+  try { await env.VISITS?.put(key, out.buf, { expirationTtl: 604800, metadata: { type: out.type } }); } catch {}
+  return new Response(out.buf, { headers: { ...h, "content-type": out.type, "cache-control": "public, max-age=86400", "x-tts": out.src } });
 }

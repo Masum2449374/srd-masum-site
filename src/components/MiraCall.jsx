@@ -43,7 +43,7 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
     window.speechSynthesis.cancel(); audio.current?.pause();
     if (!say) { then?.(); return; }
     let done = false; const fin = () => { if (done) return; done = true; if (alive.current) then?.(); };
-    if (!isBn(say)) { // server female voice (Aura-2 "luna") for English
+    { // server female voice (Gemini "Leda", bn + en)
       try {
         const r = await fetch("/api/tts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: say }) });
         if (r.ok && alive.current) {
