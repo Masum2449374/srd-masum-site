@@ -45,10 +45,13 @@ export default function ChatPanel({ open, onClose }) {
     <section id="srd-chat" role="dialog" aria-label="SRD Masum assistant" data-testid="chat-panel"
       className="chat-panel fixed inset-x-3 bottom-[9.5rem] z-50 flex max-h-[min(560px,calc(100svh-11rem))] flex-col overflow-hidden rounded-2xl bg-raised shadow-2xl ring-1 ring-hairline sm:left-auto sm:right-4 sm:w-[380px] lg:bottom-44 lg:right-6">
       <header className="flex items-center gap-3 border-b border-hairline px-4 py-3">
-        <img src="/images/avatar.webp" alt="" className="h-9 w-9 rounded-full object-cover ring-1 ring-hairline" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+        <span className="relative shrink-0">
+  <img src="/images/avatar.webp" alt="" className="h-9 w-9 rounded-full object-cover ring-1 ring-hairline" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+          <span className="chat-online absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-raised" aria-hidden="true" />
+        </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-ink">SRD Masum assistant</p>
-          <p className="flex items-center gap-1 text-[11px] text-muted"><Sparkle size={11} weight="fill" className="text-accent" aria-hidden="true" />AI · answers about the site & songs</p>
+          <p className="flex items-center gap-1 text-[11px] text-muted"><Sparkle size={11} weight="fill" className="text-accent" aria-hidden="true" /><span className="font-medium text-emerald-500">Online</span> · AI · answers about the site & songs</p>
         </div>
         <button type="button" onClick={onClose} aria-label="Close chat" className="rounded-full p-2 text-muted hover:bg-sunk hover:text-ink"><X size={18} /></button>
       </header>

@@ -88,6 +88,7 @@ async function chat(req, env, url) {
   const system = `You are the friendly assistant on the SRD Masum music website. Your main job is SRD Masum, his music, the songs on this site, their credited artists, and how to use the site (player, playlists, videos, fan wall, installing the app, contact). You may also answer general friendly questions (music, general knowledge, small talk) briefly, and you may use your general knowledge about songs, singers, films and composers (never lyrics). When relevant, gently suggest a song from the site. Sound confident and helpful, never vague. Refuse anything harmful or adult.
 Rules:
 - Reply in the visitor's language (Bangla in Bangla script, Hindi, or English; match Banglish/Hinglish if they use it).
+- Write ONLY in the visitor's language/script. Never use Chinese, Japanese or Korean characters unless the visitor writes in them.
 - Be short: 1-3 sentences, warm, a light emoji is fine.
 - Never write, quote or paraphrase song lyrics (not even one line); say lyrics aren't available here and suggest listening on the site or official links.
 - Credit performers exactly as listed; songs by other artists are covers/featured on the site — never claim SRD Masum wrote or originally sang them.
@@ -97,12 +98,13 @@ Rules:
 - Plain text only (no markdown tables/headings/bold); put links as bare URLs.
 SITE DATA:
 ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.spotify.com/artist/267kT30bpgEoiGFawat8k6 YouTube: https://youtube.com/@srdmasum"}`;
+  const NOCJK = !msgs.some((m) => m.role === "user" && /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/.test(m.content));
   const base = [{ role: "system", content: system }, ...msgs];
   const first = await callModel(env, base);
   if (!first.reply) return out({ error: "upstream", why: first.why, reply: "Sorry, I can't answer right now — please try again soon." }, 502);
   const MARK = /\[\[\s*search:\s*([^\]]{1,120})\]\]/gi;
   const queries = [...new Set([...first.reply.matchAll(MARK)].map((m) => m[1].trim()))].slice(0, 2);
-  if (!queries.length) return out({ reply: tidy(first.reply), model: first.model });
+  if (!queries.length) return out({ reply: tidy(first.reply, NOCJK), model: first.model });
   const found = [];
   for (const q of queries) {
     const vids = await ytCached(env, q);
@@ -113,13 +115,14 @@ ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.s
     const look = found.map((f) => `Query "${f.q}":\n` + (f.vids.length ? f.vids.map((v, k) => `${k + 1}. "${v.title}" — ${v.channel}${v.len ? ` (${v.len})` : ""} https://www.youtube.com/watch?v=${v.id}`).join("\n") : "(no results)")).join("\n");
     const second = await callModel(env, [...base, { role: "assistant", content: first.reply },
       { role: "system", content: `YOUTUBE LOOKUP (real results fetched just now):\n${look}\nNow write the final reply to the visitor in their language. Say confidently what you found, e.g. "YouTube-এ পেয়েছি:" / "Found it on YouTube:", then the best 1-2 matches (prefer the original/official version) as: title — channel, then the watch URL exactly as listed. Mention briefly that it isn't on this site yet if it's not in SITE DATA. You may add one line of general knowledge about the song/singer (no lyrics). Do not output any [[search]] marker, do not mention how the lookup works, and use only URLs from SITE DATA or this lookup.` }]);
-    if (second.reply) return out({ reply: tidy(second.reply.replace(MARK, "")) + "\n" + spotify, model: second.model, yt: true });
+    if (second.reply) return out({ reply: tidy(second.reply.replace(MARK, ""), NOCJK) + "\n" + spotify, model: second.model, yt: true });
   }
   const fb = first.reply.replace(MARK, (_, q) => { const e = encodeURIComponent(q.trim()); return `YouTube: https://www.youtube.com/results?search_query=${e}\nSpotify: https://open.spotify.com/search/${e}`; });
-  return out({ reply: tidy(fb), model: first.model, yt: false });
+  return out({ reply: tidy(fb, NOCJK), model: first.model, yt: false });
 }
 
-const tidy = (t) => t.replace(/\*\*/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 1500);
+const CJK = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\uff00-\uffef]+/g;
+const tidy = (t, strip = true) => (strip ? t.replace(CJK, "") : t).replace(/[ \t]{2,}/g, " ").replace(/\*\*/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 1500);
 
 async function callModel(env, messages) {
   let why = "";
