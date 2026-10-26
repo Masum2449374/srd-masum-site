@@ -5,6 +5,7 @@ export default {
     const url = new URL(req.url);
     // Short alias for the lyrics/share page.
     if (/^\/song\/koto-din-bhebechhi\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/koto-din-bhebechhi-cover/${url.search}`, 301);
+    if (/^\/song\/pehla-pehla-pyar-cover\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/dekha-tenu-pehli-pehli/${url.search}`, 301);
     if (url.pathname === "/api/visits") return visits(req, env);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
