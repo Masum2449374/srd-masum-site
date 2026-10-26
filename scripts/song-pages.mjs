@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { AUDIO_TRACKS } from "../src/data/songs.js";
 import { BANGLA_TRACKS } from "../src/data/bangla-songs.js";
+import { ENGLISH_ALL } from "../src/data/english-songs.js";
 import sharp from "sharp";
 
 // 1200x630 share card: avatar + song title + SRD Masum branding. Rendered to PNG at build time
@@ -35,7 +36,7 @@ const shell = fs.readFileSync(path.join(dist, "index.html"), "utf8");
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 const setMeta = (html, re, tag) => (re.test(html) ? html.replace(re, tag) : html.replace("</head>", `    ${tag}\n  </head>`));
 
-const all = [...AUDIO_TRACKS, ...BANGLA_TRACKS];
+const all = [...AUDIO_TRACKS, ...BANGLA_TRACKS, ...ENGLISH_ALL];
 fs.mkdirSync(path.join(dist, "og"), { recursive: true });
 await card(path.join(dist, "og", "site.png"), "Official Website", "MUSIC ARTIST");
 for (const t of all) {
@@ -75,8 +76,26 @@ for (const t of all) {
   fs.writeFileSync(path.join(dir, "index.html"), h);
 }
 
+// /english/ page: app shell with its own title and share card.
+{
+  const url = `${SITE}/english/`, title = "Top English Hits — SRD Masum", desc = "Today's viral English hits in one playlist. Tap and play.";
+  let h = shell.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
+  h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(desc)}" />`);
+  h = setMeta(h, /<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${esc(title)}" />`);
+  h = setMeta(h, /<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${esc(desc)}" />`);
+  h = setMeta(h, /<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${url}" />`);
+  h = setMeta(h, /<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${url}" />`);
+  await card(path.join(dist, "og", "english.png"), "Top English Hits", "PLAYLIST · LISTEN", ENGLISH_ALL[0]?.cover, "SRD Masum");
+  const img = `${SITE}/og/english.png`;
+  h = setMeta(h, /<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" />`);
+  h = setMeta(h, /<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${img}" />`);
+  h = setMeta(h, /<meta name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${esc(title)}" />`);
+  fs.mkdirSync(path.join(dist, "english"), { recursive: true });
+  fs.writeFileSync(path.join(dist, "english", "index.html"), h);
+}
+
 // Sitemap with the song pages.
-const urls = [`${SITE}/`, ...all.map((t) => `${SITE}/song/${t.id}/`)];
+const urls = [`${SITE}/`, `${SITE}/english/`, ...all.map((t) => `${SITE}/song/${t.id}/`)];
 fs.writeFileSync(
   path.join(dist, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`

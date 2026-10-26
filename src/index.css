@@ -719,3 +719,25 @@ button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding
 .wghost .ghost-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 0 10px rgba(200,220,255,.85)) drop-shadow(0 0 26px rgba(160,120,255,.5)); }
 @keyframes wg-fly { 0% { opacity: 0; transform: scale(.3); } 8% { opacity: .95; transform: scale(1.05); } 14% { transform: translate(0, 0) scale(1); } 28% { transform: translate(calc(var(--dx) * -.15), 40px) rotate(calc(var(--rot) * -.5)); } 40% { transform: translate(calc(var(--dx) * .1), 20px); } 65% { transform: translate(var(--dx), calc(var(--dy) * .3)) rotate(var(--rot)); opacity: .95; } 100% { opacity: .4; transform: translate(calc(var(--dx) * .5), var(--dy)) rotate(calc(var(--rot) * -1)) scale(.8); } }
 /* wings are driven by JS (src/lib/ghost.js) via the SVG transform attribute; the user-initiated flight runs even with reduced motion */
+
+/* English page */
+.en-title { background: linear-gradient(100deg, #fff 0%, #9cc4ff 40%, #ff7ab6 70%, #fff 100%); background-size: 250% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: en-shine 6s linear infinite; }
+.light .en-title { background-image: linear-gradient(100deg, #0b1220 0%, #0b6cf0 40%, #d6336c 70%, #0b1220 100%); }
+@keyframes en-shine { to { background-position: -250% 0; } }
+.en-orb { position: absolute; width: 18rem; height: 18rem; border-radius: 9999px; filter: blur(60px); opacity: .35; animation: en-float 12s ease-in-out infinite alternate; }
+.en-orb-a { background: #0b6cf0; top: -4rem; left: -4rem; }
+.en-orb-b { background: #ff3d8b; bottom: -5rem; right: -3rem; animation-delay: -6s; }
+@keyframes en-float { to { transform: translate(3rem, 2rem) scale(1.15); } }
+.en-spin { animation: en-spin 18s linear infinite; }
+@keyframes en-spin { to { transform: rotate(360deg); } }
+.en-card { transition: transform .3s, box-shadow .3s; }
+.en-card:hover, .en-card-on { transform: translateY(-3px); box-shadow: 0 18px 40px -18px rgba(11,108,240,.55); }
+.en-pulse { animation: en-pulse 1.4s ease-in-out infinite; }
+@keyframes en-pulse { 50% { box-shadow: 0 0 0 10px rgba(11,108,240,0); transform: scale(1.06); } }
+.en-bars { display: inline-flex; gap: 3px; align-items: flex-end; height: 18px; }
+.en-bars i { width: 4px; background: #fff; border-radius: 2px; animation: en-bar .9s ease-in-out infinite; }
+.en-bars i:nth-child(2) { animation-delay: -.3s } .en-bars i:nth-child(3) { animation-delay: -.6s } .en-bars i:nth-child(4) { animation-delay: -.15s }
+.en-bars-off i { animation: none; height: 4px; }
+@keyframes en-bar { 0%,100% { height: 4px } 50% { height: 18px } }
+.en-originals { background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(11,108,240,.08)); }
+@media (prefers-reduced-motion: reduce) { .en-title, .en-orb, .en-spin, .en-pulse, .en-bars i { animation: none; } }

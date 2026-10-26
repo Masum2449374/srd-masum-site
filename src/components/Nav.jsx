@@ -7,6 +7,7 @@ import { playTapPop } from "../lib/sounds.js";
 
 const LINKS = [
   { id: "music", label: "Music" },
+  { id: "english", label: "English", href: "/english/" },
   { id: "audio-songs", label: "Hindi Songs" },
   { id: "bangla-songs", label: "Bangla Songs" },
   { id: "featured", label: "Featured" },
@@ -20,8 +21,9 @@ const LINKS = [
 
 const THEME_KEY = "srd-theme";
 
-export default function Nav() {
-  const [active, setActive] = useState("audio-songs");
+export default function Nav({ page = "home" }) {
+  const onHome = page === "home";
+  const [active, setActive] = useState(page === "english" ? "english" : "audio-songs");
   const [open, setOpen] = useState(false);
   const [theme, setTheme] = useState(() =>
     document.documentElement.classList.contains("light") ? "light" : "dark",
@@ -173,9 +175,9 @@ export default function Nav() {
               return (
                 <li key={l.id}>
                   <a
-                    href={`#${l.id}`}
+                    href={l.href || (onHome ? `#${l.id}` : `/#${l.id}`)}
                     aria-current={isActive ? "true" : undefined}
-                    onClick={(e) => goTo(e, l.id)}
+                    onClick={(e) => { if (l.href || !onHome) { playTapPop(); return; } goTo(e, l.id); }}
                     className={`block rounded-xl px-4 py-3 text-sm font-medium ring-1 ${
                       isActive
                         ? "bg-accent text-on-accent ring-accent"

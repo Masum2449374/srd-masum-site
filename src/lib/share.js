@@ -1,5 +1,6 @@
 import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
+import { ENGLISH_ALL } from "../data/english-songs.js";
 
 export const SITE_URL = "https://srdmasum.bbroot.com";
 
@@ -16,7 +17,7 @@ export function songFromUrl() {
     hash.match(/^#song-(.+)$/)?.[1];
   if (!id) return null;
   const key = decodeURIComponent(id);
-  for (const list of [AUDIO_TRACKS, BANGLA_TRACKS]) {
+  for (const list of [AUDIO_TRACKS, BANGLA_TRACKS, ENGLISH_ALL]) {
     const track = list.find((t) => t.id === key);
     if (track) return { track, list };
   }

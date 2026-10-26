@@ -10,6 +10,7 @@ const ALL_TRACKS = [...AUDIO_TRACKS, ...BANGLA_TRACKS];
 // Queue = the tapped list first, then every other song, so playback continues across sections.
 const fullQueue = (list) => {
   const l = list && list.length ? list : ALL_TRACKS;
+  if (l[0]?.playlist) return [...l]; // self-contained playlists (e.g. English page) never spill into other sections
   return [...l, ...ALL_TRACKS.filter((t) => !l.some((x) => x.id === t.id))];
 };
 const readPref = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };

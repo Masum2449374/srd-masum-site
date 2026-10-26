@@ -25,6 +25,8 @@ import { BANGLA_TRACKS } from "./data/bangla-songs.js";
 import BeatField from "./components/BeatField.jsx";
 import AdSlot from "./components/AdSlot.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
+import EnglishPage from "./components/EnglishPage.jsx";
+import { ENGLISH_ALL } from "./data/english-songs.js";
 
 const YEAR = new Date().getFullYear();
 
@@ -937,7 +939,29 @@ function CurtainReveal() {
   );
 }
 
+// /english/ (and /song/<id>/ of an English song) renders the English page instead of the home sections.
+const PAGE = (() => {
+  if (typeof window === "undefined") return "home";
+  const p = window.location.pathname;
+  if (/^\/english(\/|$)/.test(p)) return "english";
+  const id = p.match(/^\/song\/([^/]+)\/?$/)?.[1];
+  return id && ENGLISH_ALL.some((t) => t.id === decodeURIComponent(id)) ? "english" : "home";
+})();
+
 export default function App() {
+  if (PAGE === "english") return (
+    <PlayerProvider>
+    <div className="min-h-screen pb-24">
+      <BeatField />
+      <CursorGlow />
+      <SecretBurst />
+      <Nav page="english" />
+      <main><EnglishPage /></main>
+      <Footer />
+      <InstallPrompt />
+    </div>
+    </PlayerProvider>
+  );
   return (
     <PlayerProvider>
     <div className="min-h-screen pb-24">
