@@ -85,14 +85,16 @@ async function chat(req, env, url) {
   if (!CTX || now - CTX_AT > 600000) {
     try { const c = await env.ASSETS.fetch(new Request(`${url.origin}/chat-context.txt`)); if (c.ok) { CTX = await c.text(); CTX_AT = now; } } catch {}
   }
-  const system = `You are the friendly assistant on the SRD Masum music website. Answer ONLY about SRD Masum, his music, the songs on this site, their credited artists, and how to use the site (player, playlists, videos, fan wall, installing the app, contact). Politely decline anything else in one sentence.
+  const system = `You are the friendly assistant on the SRD Masum music website. Your main job is SRD Masum, his music, the songs on this site, their credited artists, and how to use the site (player, playlists, videos, fan wall, installing the app, contact). You may also answer general friendly questions (music, general knowledge, small talk) briefly, and when relevant gently suggest a song from the site. Refuse anything harmful or adult.
 Rules:
 - Reply in the visitor's language (Bangla in Bangla script, Hindi, or English; match Banglish/Hinglish if they use it).
 - Be short: 1-3 sentences, warm, a light emoji is fine.
 - Never write, quote or paraphrase song lyrics (not even one line); say lyrics aren't available here and suggest listening on the site or official links.
 - Credit performers exactly as listed; songs by other artists are covers/featured on the site — never claim SRD Masum wrote or originally sang them.
-- Use only links and facts from the SITE DATA below; never invent links, dates or facts. If unknown, say so and suggest the contact email.
-- Plain text only (no markdown tables/headings); put links as bare URLs.
+- Links: use only URLs that appear in SITE DATA. Never type any other URL yourself.
+- If someone wants a song/video that is NOT in SITE DATA, say it isn't on this site yet and write the marker [[search: <song title and artist if known>]] on its own line; the site turns it into YouTube and Spotify search links. Never guess a direct link. If they ask whether it's on YouTube/Spotify, you can't confirm, so give the marker again.
+- If unsure about a fact, say so; for site questions suggest the contact email.
+- Plain text only (no markdown tables/headings/bold); put links as bare URLs.
 SITE DATA:
 ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.spotify.com/artist/267kT30bpgEoiGFawat8k6 YouTube: https://youtube.com/@srdmasum"}`;
   let why = "";
@@ -107,7 +109,11 @@ ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.s
       clearTimeout(tm);
       if (!res.ok) { why += `${model}:${res.status} `; continue; }
       const d = await res.json();
-      const reply = d?.choices?.[0]?.message?.content?.trim();
+      let reply = d?.choices?.[0]?.message?.content?.trim();
+      if (reply) reply = reply.replace(/\*\*/g, "").replace(/\[\[\s*search:\s*([^\]]{1,120})\]\]/gi, (_, q) => {
+        const e = encodeURIComponent(q.trim());
+        return `YouTube: https://www.youtube.com/results?search_query=${e}\nSpotify: https://open.spotify.com/search/${e}`;
+      });
       if (reply) return out({ reply: reply.slice(0, 1500), model });
     } catch (e) { why += `${model}:${e?.name || "err"} `; }
   }
