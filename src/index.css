@@ -843,3 +843,15 @@ button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding
 .chat-online::after{content:"";position:absolute;inset:0;border-radius:9999px;background:inherit;animation:chat-online-pulse 2s ease-out infinite}
 @keyframes chat-online-pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.chat-online::after{animation:none}}
+/* Chat launcher: heartbeat, glow ring, rising hearts, teaser bubble. */
+.chat-fab-alive{animation:chat-beat 2.8s ease-in-out infinite}
+.chat-fab-alive::before{content:"";position:absolute;inset:-4px;border-radius:9999px;box-shadow:0 0 0 0 rgba(11,108,240,.45),0 0 18px 2px rgba(244,114,182,.25);animation:chat-glow 2.8s ease-out infinite;pointer-events:none}
+@keyframes chat-beat{0%,40%,100%{transform:scale(1)}10%{transform:scale(1.07)}20%{transform:scale(.98)}28%{transform:scale(1.05)}}
+@keyframes chat-glow{0%{box-shadow:0 0 0 0 rgba(11,108,240,.45),0 0 14px 2px rgba(244,114,182,.22)}70%{box-shadow:0 0 0 12px rgba(11,108,240,0),0 0 22px 4px rgba(244,114,182,.08)}100%{box-shadow:0 0 0 0 rgba(11,108,240,0),0 0 14px 2px rgba(244,114,182,.22)}}
+.chat-hearts i{position:absolute;bottom:60%;left:50%;font-style:normal;font-size:13px;opacity:0;animation:chat-heart 9s ease-out infinite}
+.chat-hearts i:nth-child(2){left:30%;font-size:11px;animation-delay:3s}
+.chat-hearts i:nth-child(3){left:68%;font-size:10px;animation-delay:6s}
+@keyframes chat-heart{0%{transform:translate(-50%,0) scale(.6);opacity:0}4%{opacity:.95}22%{transform:translate(-30%,-46px) scale(1);opacity:0}100%{opacity:0}}
+.chat-teaser{animation:chat-pop .45s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes chat-pop{from{opacity:0;transform:translateY(6px) scale(.9)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.chat-fab-alive,.chat-fab-alive::before,.chat-teaser{animation:none}.chat-hearts{display:none}}
