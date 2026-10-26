@@ -420,7 +420,7 @@ function NowPlaying({ player, scrub, onClose }) {
   const max = player.duration || 0;
   const pct = max ? Math.min(100, (shown / max) * 100) : 0;
   const t = player.track;
-  const art = t.art || t.cover || "/images/avatar.jpg";
+  const art = t.art || t.cover || "/images/avatar.webp";
   const ctl = "flex shrink-0 items-center justify-center rounded-full";
   const hasLyrics = Boolean(t.lyrics);
   const [showLyrics, setShowLyrics] = useState(false);

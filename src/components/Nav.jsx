@@ -118,7 +118,7 @@ export default function Nav() {
           style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", WebkitUserSelect: "none", userSelect: "none" }}
           className="flex items-center gap-2 font-display text-lg tracking-display"
         >
-          <img src="/images/avatar.jpg" alt="" aria-hidden="true" width="34" height="34" className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-accent" />
+          <img src="/images/avatar.webp" alt="" aria-hidden="true" width="34" height="34" className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-accent" />
           <span>SRD <span className="text-accent">Masum</span></span>
         </a>
 
