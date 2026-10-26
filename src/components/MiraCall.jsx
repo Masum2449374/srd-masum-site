@@ -5,6 +5,9 @@ import { PhoneDisconnect, Microphone, MicrophoneSlash } from "@phosphor-icons/re
 const SR = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
 export const callSupported = () => !!SR && typeof window !== "undefined" && "speechSynthesis" in window;
 
+const OK = "srd-mira-owner";
+const ownerTok = () => { try { return localStorage.getItem(OK) || undefined; } catch { return undefined; } };
+const saveOwner = (t) => { try { t ? localStorage.setItem(OK, t) : localStorage.removeItem(OK); } catch {} };
 const isBn = (t) => /[\u0980-\u09ff]/.test(t);
 const speakable = (t) => t.replace(/https?:\/\/\S+/g, "").replace(/\[\[[^\]]*\]\]/g, "")
   .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}\u{200D}]/gu, "").replace(/\s{2,}/g, " ").trim();
@@ -89,8 +92,10 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
     setPhase("thinking");
     let reply = "";
     try {
-      const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: hist.current, voice: true }) });
-      reply = (await r.json().catch(() => ({}))).reply || "";
+      const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: hist.current, voice: true, owner: ownerTok() }) });
+      const d = await r.json().catch(() => ({})); reply = d.reply || "";
+      if (d.ownerToken) { saveOwner(d.ownerToken); hist.current = hist.current.slice(0, -1); }
+      if (d.logout) saveOwner(null);
     } catch { /* ignore */ }
     if (!reply) reply = lang.current === "bn-BD" ? "দুঃখিত, একটু সমস্যা হচ্ছে। আবার বলো?" : "Sorry, I had a little trouble. Could you say that again?";
     hist.current = [...hist.current, { role: "assistant", content: reply }].slice(-8);

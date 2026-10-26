@@ -4,6 +4,9 @@ import { callSupported } from "./MiraCall.jsx";
 const MiraCall = lazy(() => import("./MiraCall.jsx"));
 import { X, PaperPlaneRight, Sparkle, Microphone, Phone } from "@phosphor-icons/react";
 
+const OWNER_KEY = "srd-mira-owner";
+export const getOwner = () => { try { return localStorage.getItem(OWNER_KEY) || undefined; } catch { return undefined; } };
+export const setOwner = (t) => { try { t ? localStorage.setItem(OWNER_KEY, t) : localStorage.removeItem(OWNER_KEY); } catch {} };
 const GREETING = "হাই! আমি মিরা 💙 — Hi, I'm Mira, SRD Masum's assistant. Ask me about the songs, artists, Spotify/YouTube links or the site — in English, বাংলা or हिन्दी.";
 const CHIPS = ["Spotify link?", "Who sings Aashiqana?", "নতুন গান কোনটা?", "How do I contact SRD Masum?"];
 const KEY = "srd-chat";
@@ -65,8 +68,10 @@ export default function ChatPanel({ open, onClose }) {
     const next = [...msgs, { role: "user", content: q }];
     setMsgs(next); setText(""); setBusy(true);
     try {
-      const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: next.slice(-8) }) });
+      const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: next.slice(-8), owner: getOwner() }) });
       const d = await r.json().catch(() => ({}));
+      if (d.ownerToken) { setOwner(d.ownerToken); setMsgs((m) => m.map((x, i) => (i === m.length - 1 && x.role === "user" ? { ...x, content: "••••••" } : x))); }
+      if (d.logout) setOwner(null);
       setMsgs((m) => [...m, { role: "assistant", content: d.reply || "Sorry, something went wrong. Please try again." }]);
     } catch {
       setMsgs((m) => [...m, { role: "assistant", content: "Network error — please try again." }]);
