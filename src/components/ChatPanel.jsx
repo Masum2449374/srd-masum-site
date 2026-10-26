@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { callSupported } from "./MiraCall.jsx";
+const MiraCall = lazy(() => import("./MiraCall.jsx"));
 import { X, PaperPlaneRight, Sparkle, Microphone } from "@phosphor-icons/react";
 
 const GREETING = "হাই! আমি মিরা 💙 — Hi, I'm Mira, SRD Masum's assistant. Ask me about the songs, artists, Spotify/YouTube links or the site — in English, বাংলা or हिन्दी.";
@@ -21,7 +24,7 @@ export default function ChatPanel({ open, onClose }) {
   useEffect(() => {
     if (!open) return;
     setTimeout(() => input.current?.focus(), 50);
-    const k = (e) => e.key === "Escape" && onClose();
+    const k = (e) => e.key === "Escape" && !document.querySelector("[data-testid=mira-call]") && onClose();
     window.addEventListener("keydown", k);
     return () => window.removeEventListener("keydown", k);
   }, [open, onClose]);
@@ -31,6 +34,8 @@ export default function ChatPanel({ open, onClose }) {
   const [lang, setLang] = useState(() => { try { return localStorage.getItem("srd-mic-lang") || "bn-BD"; } catch { return "bn-BD"; } });
   const [listening, setListening] = useState(false);
   const [toast, setToast] = useState("");
+  const [call, setCall] = useState(false);
+  const canCall = callSupported();
   const rec = useRef(null), finalTxt = useRef("");
   const flash = (t) => { setToast(t); setTimeout(() => setToast(""), 3500); };
   const toggleLang = () => setLang((l) => { const n = l === "bn-BD" ? "en-US" : "bn-BD"; try { localStorage.setItem("srd-mic-lang", n); } catch {} return n; });
@@ -81,6 +86,11 @@ export default function ChatPanel({ open, onClose }) {
           <p className="text-sm font-semibold text-ink">Mira <span className="font-normal text-muted">· SRD Masum assistant</span></p>
           <p className="flex items-center gap-1 text-[11px] text-muted"><Sparkle size={11} weight="fill" className="text-accent" aria-hidden="true" /><span className="font-medium text-emerald-500">Online</span> · AI · answers about the site & songs</p>
         </div>
+        <button type="button" data-testid="mira-call-btn" onClick={() => (canCall ? (rec.current?.abort?.(), setCall(true)) : flash("এই ব্রাউজারে ভয়েস কল চলে না 🙏 Chrome-এ চেষ্টা করো"))}
+          title="মিরার সাথে কথা বলো" aria-label="Voice call with Mira"
+          className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow hover:bg-emerald-600">
+          <span>📞 <span className="hidden min-[400px]:inline">মিরার সাথে </span>কথা বলো</span>
+        </button>
         <button type="button" onClick={onClose} aria-label="Close chat" className="rounded-full p-2 text-muted hover:bg-sunk hover:text-ink"><X size={18} /></button>
       </header>
       <div ref={list} className="flex-1 space-y-2.5 overflow-y-auto px-4 py-3 text-[14px] leading-relaxed" aria-live="polite">
@@ -120,6 +130,7 @@ export default function ChatPanel({ open, onClose }) {
         <button type="submit" disabled={busy || !text.trim()} aria-label="Send"
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-40"><PaperPlaneRight size={18} weight="fill" /></button>
       </form>
+      {call && createPortal(<Suspense fallback={null}><MiraCall lang={lang} onClose={() => setCall(false)} /></Suspense>, document.body)}
     </section>
   );
 }

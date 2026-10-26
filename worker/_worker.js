@@ -74,7 +74,7 @@ async function chat(req, env, url) {
   const ip = req.headers.get("cf-connecting-ip") || "0";
   const now = Date.now(), r = RL.get(ip);
   if (!r || now - r.t > 60000) RL.set(ip, { t: now, n: 1 });
-  else if (++r.n > 8) return out({ error: "rate", reply: "Too many messages — please wait a minute. 🙏" }, 429);
+  else if (++r.n > 12) return out({ error: "rate", reply: "Too many messages — please wait a minute. 🙏" }, 429);
   if (RL.size > 5000) RL.clear();
   let body;
   try { body = await req.json(); } catch { return out({ error: "bad json" }, 400); }
@@ -99,7 +99,10 @@ Rules:
 SITE DATA:
 ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.spotify.com/artist/267kT30bpgEoiGFawat8k6 YouTube: https://youtube.com/@srdmasum"}`;
   const NOCJK = !msgs.some((m) => m.role === "user" && /[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]/.test(m.content));
-  const base = [{ role: "system", content: system }, ...msgs];
+  const VOICE = body?.voice === true;
+  const sys2 = VOICE ? system + `
+VOICE CALL MODE: the visitor is talking to you on a live voice call and your reply will be read aloud. Reply in 1-2 short, natural spoken sentences, like a sweet friendly customer-care girl. No markdown, no lists, no emoji, no URLs (say "the link is in the captions" only if you add a [[search]] marker or a site link is truly needed). Speech-recognised text may have small errors; guess the intent kindly.` : system;
+  const base = [{ role: "system", content: sys2 }, ...msgs];
   const first = await callModel(env, base);
   if (!first.reply) return out({ error: "upstream", why: first.why, reply: "Sorry, I can't answer right now — please try again soon." }, 502);
   const MARK = /\[\[\s*search:\s*([^\]]{1,120})\]\]/gi;
