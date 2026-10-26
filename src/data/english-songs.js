@@ -26,6 +26,12 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/70cHKK8bHAfJrOGVnfRG9J",
     youtubeUrl: "https://www.youtube.com/watch?v=3sB4Iv_tM7U", // AdelaMusicVEVO, "ADÉLA - Nicole Kidman"
   },
+  {
+    id: "stop-the-wedding", title: "Stop The Wedding!", artist: "Ashe", album: "Stop The Wedding!",
+    src: "/audio/english/stop-the-wedding.mp3", duration: 208.3, playlist: P, ...c("stop-the-wedding"),
+    spotifyUrl: "https://open.spotify.com/track/3zOYmiNOuyDL0ClxJcEJ0T",
+    youtubeUrl: "https://www.youtube.com/watch?v=DLV8FpyxZPQ", // Ashe (official channel), "Stop The Wedding! (Official Video)"
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
