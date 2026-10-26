@@ -50,6 +50,12 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/60eVCXFCuw1WYswBuNZc4H",
     youtubeUrl: "https://www.youtube.com/watch?v=MQwu08Sc2vA", // The Killers - Topic (official audio; no music video exists)
   },
+  {
+    id: "sweater-weather", title: "Sweater Weather", artist: "The Neighbourhood", album: "I Love You.",
+    src: "/audio/english/sweater-weather.mp3", duration: 252.38, playlist: P, ...c("sweater-weather"),
+    spotifyUrl: "https://open.spotify.com/track/0cQVqPuHQP4KEwc7ZUQmj6",
+    youtubeUrl: "https://www.youtube.com/watch?v=GCdwKhTtNNw", // TheNeighbourhoodVEVO, "Sweater Weather (Official Video)"
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
