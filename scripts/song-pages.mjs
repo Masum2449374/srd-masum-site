@@ -32,16 +32,15 @@ async function card(file, big, small, coverPath, artist = "SRD Masum") {
 
 const SITE = "https://srdmasum.bbroot.com";
 const dist = path.resolve("dist");
-const shell = fs.readFileSync(path.join(dist, "index.html"), "utf8");
+const shell = fs.readFileSync(path.join(dist, "index.html"), "utf8").replace(/\s*<meta property="og:image:(secure_url|type|width|height|alt)"[^>]*>/g, "").replace(/\s*<meta name="twitter:image:alt"[^>]*>/g, "");
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
 const setMeta = (html, re, tag) => (re.test(html) ? html.replace(re, tag) : html.replace("</head>", `    ${tag}\n  </head>`));
 
 const all = [...AUDIO_TRACKS, ...BANGLA_TRACKS, ...ENGLISH_ALL];
 fs.mkdirSync(path.join(dist, "og"), { recursive: true });
-await card(path.join(dist, "og", "site.png"), "Official Website", "MUSIC ARTIST");
 for (const t of all) {
   const url = `${SITE}/song/${t.id}/`;
-  const title = `${t.title} — ${t.artist || "SRD Masum"}`;
+  const title = !t.artist || t.artist === "SRD Masum" ? `${t.title} | SRD Masum` : `${t.title} — ${t.artist} | SRD Masum`;
   const desc = `Listen to "${t.title}" by ${t.artist || "SRD Masum"} · গানটি শুনুন`;
   let h = shell;
   h = h.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
@@ -78,7 +77,7 @@ for (const t of all) {
 
 // /english/ page: app shell with its own title and share card.
 {
-  const url = `${SITE}/english/`, title = "Top English Hits — SRD Masum", desc = "Today's popular English hits in one playlist. Tap and play.";
+  const url = `${SITE}/english/`, title = "Top English Hits | SRD Masum", desc = "Today's popular English hits in one playlist. Tap and play.";
   let h = shell.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
   h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(desc)}" />`);
   h = setMeta(h, /<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${esc(title)}" />`);
@@ -87,7 +86,8 @@ for (const t of all) {
   h = setMeta(h, /<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${url}" />`);
   await card(path.join(dist, "og", "english.png"), "Top English Hits", "PLAYLIST · LISTEN", ENGLISH_ALL[0]?.cover, "SRD Masum");
   const img = `${SITE}/og/english.png`;
-  h = setMeta(h, /<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" />`);
+  h = setMeta(h, /<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" />\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />\n    <meta property="og:image:alt" content="${esc(title)}" />`);
+  h = setMeta(h, /<meta name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${esc(desc)}" />`);
   h = setMeta(h, /<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${img}" />`);
   h = setMeta(h, /<meta name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${esc(title)}" />`);
   fs.mkdirSync(path.join(dist, "english"), { recursive: true });

@@ -60,7 +60,7 @@ function SongCard({ t, list, onInfo, i }) {
 export default function EnglishPage() {
   const player = usePlayer();
   const [info, setInfo] = useState(null);
-  useEffect(() => { document.title = "Top English Hits — SRD Masum"; }, []);
+  useEffect(() => { document.title = "Top English Hits | SRD Masum"; }, []);
   const enActive = player?.track && ENGLISH_ALL.some((x) => x.id === player.track.id);
   const now = enActive ? player.track : ENGLISH_ALL[0];
   const playing = enActive && player.playing;
