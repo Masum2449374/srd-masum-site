@@ -44,6 +44,12 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/6gkbtMtioHgtyGjrMel6ei",
     youtubeUrl: "https://www.youtube.com/watch?v=78wrful9cVU", // OliviaRodrigoVEVO
   },
+  {
+    id: "jenny-was-a-friend-of-mine", title: "Jenny Was A Friend Of Mine", artist: "The Killers", album: "Hot Fuss",
+    src: "/audio/english/jenny-was-a-friend-of-mine.mp3", duration: 243.94, playlist: P, ...c("jenny-was-a-friend-of-mine"),
+    spotifyUrl: "https://open.spotify.com/track/60eVCXFCuw1WYswBuNZc4H",
+    youtubeUrl: "https://www.youtube.com/watch?v=MQwu08Sc2vA", // The Killers - Topic (official audio; no music video exists)
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
