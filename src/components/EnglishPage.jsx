@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Play, Pause, Info, X, SpotifyLogo, YoutubeLogo, Star, Shuffle, MusicNotes } from "@phosphor-icons/react";
+import { Play, Pause, Info, X, Article, SpotifyLogo, YoutubeLogo, Star, Shuffle, MusicNotes } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { FXCover } from "./NowPlayingFX.jsx";
 import ShareButton from "./ShareButton.jsx";
@@ -46,6 +46,7 @@ function SongCard({ t, list, onInfo, i }) {
           <p className="mt-0.5 truncate text-xs text-muted">{t.artist}</p>
           <p className="mt-1 font-mono text-[10px] text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</p>
         </div>
+        {t.lyricsUrl && <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" aria-label={`Lyrics for ${t.title} (opens Genius)`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:text-accent"><Article size={16} weight="bold" /></a>}
         <ShareButton track={t} />
         <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline hover:text-accent">
           <Info size={16} weight="bold" />
@@ -55,7 +56,7 @@ function SongCard({ t, list, onInfo, i }) {
   );
 }
 
-function Credits({ t, onClose }) {
+function Credits({ t, onClose, onPlay }) {
   useEffect(() => {
     if (!t) return;
     const k = (e) => e.key === "Escape" && onClose();
@@ -86,10 +87,12 @@ function Credits({ t, onClose }) {
               {t.producer && <div className="flex justify-between gap-4"><dt className="text-faint">Producer</dt><dd className="text-right text-ink">{t.producer}</dd></div>}
               {t.label && <div className="flex justify-between gap-4"><dt className="text-faint">Label</dt><dd className="text-right text-ink">{t.label}</dd></div>}
             </dl>
-            {!t.original && t.links && (
+            {(t.lyricsUrl || t.lyrics || (!t.original && t.links)) && (
               <div className="mt-5 flex flex-wrap gap-2">
-                {t.links.spotify && <a href={t.links.spotify} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black"><SpotifyLogo size={18} weight="fill" />Original on Spotify</a>}
-                {t.links.youtube && <a href={t.links.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full bg-[#ff0033] px-4 py-2 text-sm font-semibold text-white"><YoutubeLogo size={18} weight="fill" />YouTube</a>}
+                {t.lyricsUrl && <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" data-testid="en-lyrics" className="flex items-center gap-2 rounded-full bg-[#ffff64] px-4 py-2 text-sm font-semibold text-black"><Article size={18} weight="bold" />Lyrics on Genius</a>}
+                {t.lyrics && <button type="button" onClick={() => { onPlay(t); onClose(); }} className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent"><Article size={18} weight="bold" />Play with synced lyrics</button>}
+                {!t.original && t.links?.spotify && <a href={t.links.spotify} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black"><SpotifyLogo size={18} weight="fill" />Original on Spotify</a>}
+                {!t.original && t.links?.youtube && <a href={t.links.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full bg-[#ff0033] px-4 py-2 text-sm font-semibold text-white"><YoutubeLogo size={18} weight="fill" />YouTube</a>}
               </div>
             )}
           </motion.div>
@@ -155,8 +158,8 @@ export default function EnglishPage() {
 
       <section id="en-hits" className="px-5 py-10 sm:px-8">
         <div className="mx-auto max-w-6xl">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">Trending now</p>
-          <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">Viral English hits</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">Popular now</p>
+          <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">Popular English hits</h2>
           <p className="mt-2 text-sm text-muted">Tap a cover to play. Songs play one after another.</p>
           <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {ENGLISH_TRACKS.map((t, i) => <SongCard key={t.id} t={t} i={i} list={ENGLISH_TRACKS} onInfo={setInfo} />)}
@@ -167,7 +170,7 @@ export default function EnglishPage() {
 
       <AdSlot type="native" />
       <AdSlot type="banner300" />
-      <Credits t={info} onClose={() => setInfo(null)} />
+      <Credits t={info} onClose={() => setInfo(null)} onPlay={(t) => player.toggle(t, t.original ? ENGLISH_ORIGINALS : ENGLISH_TRACKS)} />
     </>
   );
 }

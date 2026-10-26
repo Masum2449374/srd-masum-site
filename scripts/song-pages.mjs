@@ -78,7 +78,7 @@ for (const t of all) {
 
 // /english/ page: app shell with its own title and share card.
 {
-  const url = `${SITE}/english/`, title = "Top English Hits — SRD Masum", desc = "Today's viral English hits in one playlist. Tap and play.";
+  const url = `${SITE}/english/`, title = "Top English Hits — SRD Masum", desc = "Today's popular English hits in one playlist. Tap and play.";
   let h = shell.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
   h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(desc)}" />`);
   h = setMeta(h, /<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${esc(title)}" />`);
