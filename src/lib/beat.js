@@ -51,6 +51,18 @@ export function isPlaying() {
 
 // Side tap: captureStream() copies the element's output into a MediaStream. Only that copy is analysed,
 // and the analyser ends in a zero-gain node, so the speakers never see this graph.
+let stream = null, srcNode = null, srcTrack = null;
+function relink() {
+  if (!ctx || !stream) return;
+  const t = stream.getAudioTracks().filter((x) => x.readyState === "live").pop();
+  if (!t || t === srcTrack) return;
+  try { srcNode?.disconnect(); } catch {}
+  try {
+    srcNode = ctx.createMediaStreamSource(new MediaStream([t]));
+    srcNode.connect(analyser);
+    srcTrack = t;
+  } catch {}
+}
 function attachTap(el) {
   if (tappedEl === el || typeof window === "undefined") return;
   const AC = window.AudioContext || window.webkitAudioContext;
@@ -68,8 +80,12 @@ function attachTap(el) {
       analyser.connect(mute);
       mute.connect(ctx.destination);
     }
-    ctx.createMediaStreamSource(capture.call(el)).connect(analyser);
+    stream = capture.call(el);
     tappedEl = el;
+    // Chrome swaps the captured audio track whenever src changes (and has none before data loads),
+    // so the source node must be rebuilt from the current live track, not bound once.
+    stream.addEventListener?.("addtrack", relink);
+    relink();
   } catch {
     analyser = null; // no tap on this browser: BeatField's pulse takes over
   }
@@ -78,6 +94,8 @@ function attachTap(el) {
 export function beatPlay(el) {
   if (typeof window === "undefined") return; // effects run on every device, reduced motion included
   attachTap(el);
+  relink();
+  setTimeout(relink, 300);
   if (ctx && ctx.state === "suspended") ctx.resume?.().catch?.(() => {});
   current = el;
   notify();
@@ -109,4 +127,23 @@ export function useBeatPlaying() {
   const [playing, setPlaying] = useState(current !== null);
   useEffect(() => onBeatChange((p) => setPlaying(p)), []);
   return playing;
+}
+
+// Fills `out` (Uint8Array) with the current frequency bins. Returns false when no tap exists,
+// so callers fall back to an idle animation.
+export function getSpectrum(out) {
+  relink();
+  if (!analyser || current === null) return false;
+  analyser.getByteFrequencyData(data);
+  const n = out.length, step = Math.max(1, Math.floor((data.length * 0.6) / n));
+  for (let i = 0; i < n; i++) out[i] = data[i * step + 1] || 0;
+  return true;
+}
+
+// Android Chrome keeps a context created outside a gesture suspended: resume on any user tap.
+if (typeof window !== "undefined") {
+  const wake = () => { if (ctx && ctx.state === "suspended") ctx.resume?.().catch?.(() => {}); };
+  window.addEventListener("pointerdown", wake, { capture: true, passive: true });
+  window.addEventListener("touchend", wake, { capture: true, passive: true });
+  window.addEventListener("keydown", wake, { capture: true });
 }

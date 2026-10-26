@@ -6,20 +6,29 @@ import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, Faceboo
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
+import PlaylistSection from "./components/PlaylistSection.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Snow from "./components/Snow.jsx";
+import Seasonal, { SeasonBadge, SeasonalTaps, useSeason } from "./components/Seasonal.jsx";
 import HeroAurora from "./components/HeroAurora.jsx";
 import Reviews from "./components/Reviews.jsx";
 import FanWall from "./components/FanWall.jsx";
 import SecretBurst from "./components/SecretBurst.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
-import { PlayerProvider, TrackRow, MiniPlayer } from "./components/MiniPlayer.jsx";
+import { PlayerProvider, TrackRow, MiniPlayer, usePlayer } from "./components/MiniPlayer.jsx";
+import SpotifyEmbed from "./components/SpotifyEmbed.jsx";
+import { SPOTIFY_TRACKS } from "./data/spotify.js";
 import { VIDEO_IDS, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
 import BeatField from "./components/BeatField.jsx";
+import AdSlot from "./components/AdSlot.jsx";
+import ChatLauncher from "./components/ChatLauncher.jsx";
+import InstallPrompt from "./components/InstallPrompt.jsx";
+import EnglishPage from "./components/EnglishPage.jsx";
+import { ENGLISH_ALL } from "./data/english-songs.js";
 
 const YEAR = new Date().getFullYear();
 
@@ -87,7 +96,7 @@ function IntroLoader() {
               }}
             />
             <motion.img
-              src="/images/avatar.jpg"
+              src="/images/avatar.webp"
               alt="SRD Masum"
               width="176"
               height="176"
@@ -181,7 +190,7 @@ function Countdown() {
 function NewRelease() {
   return (
     <section id="new-release" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Coming soon" title="New Release" />
           <p className="mb-6 text-muted">{RELEASE_NAME} drops soon. Counting down to the moment.</p>
@@ -217,7 +226,7 @@ function FanMessage() {
 
   return (
     <section id="fan-message" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Fans" title="Send a message" />
         </Reveal>
@@ -303,8 +312,37 @@ function Typewriter({ text, delay = 0 }) {
   );
 }
 
+// Desktop-only (>=1024px) right column of the hero: quick-start card with the latest own songs.
+function HeroDeskCard() {
+  const list = [...BANGLA_TRACKS, ...AUDIO_TRACKS].filter((t) => !t.artist || t.artist === "SRD Masum").slice(0, 4);
+  const picks = list.length >= 3 ? list : [...BANGLA_TRACKS, ...AUDIO_TRACKS].slice(0, 4);
+  if (!picks.length) return null;
+  return (
+    <motion.aside initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ ...spring, delay: 0.45 }}
+      aria-label="Start listening" className="hero-desk-card hidden rounded-3xl bg-raised/70 p-6 ring-1 ring-hairline backdrop-blur-xl lg:block">
+      <div className="flex items-center gap-4">
+        <img src="/images/avatar.webp" alt="SRD Masum" className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/60" />
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-accent">Official Music</p>
+          <p className="truncate font-display text-2xl text-ink">Start listening</p>
+          <p className="text-xs text-muted">English · Hindi · Bangla</p>
+        </div>
+      </div>
+      <div className="mt-5 flex flex-col gap-1">
+        {picks.map((t, i) => <TrackRow key={t.id} track={t} list={picks} index={i} />)}
+      </div>
+      <div className="mt-5 flex gap-3">
+        <a href={SPOTIFY_ARTIST_URL} target="_blank" rel="noopener noreferrer" className="pro-btn inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-hairline px-4 py-2.5 text-sm font-semibold text-ink hover:bg-sunk"><SpotifyLogo size={18} weight="fill" aria-hidden="true" />Spotify<span className="sr-only">(opens in a new tab)</span></a>
+        <a href={CHANNEL_URL} target="_blank" rel="noopener noreferrer" className="pro-btn inline-flex flex-1 items-center justify-center gap-2 rounded-full border border-hairline px-4 py-2.5 text-sm font-semibold text-ink hover:bg-sunk"><YoutubeLogo size={18} weight="fill" aria-hidden="true" />YouTube<span className="sr-only">(opens in a new tab)</span></a>
+      </div>
+    </motion.aside>
+  );
+}
+
 function Hero() {
   const reduce = useReducedMotion();
+  const player = usePlayer();
+  const season = useSeason();
   const { scrollY } = useScroll();
   // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
   const parallaxY = useTransform(scrollY, [0, 900], [0, 120]);
@@ -324,8 +362,11 @@ function Hero() {
       <HeroGlow />
       <HeroAurora />
       <Sparkles />
-      <Snow />
-      <div className="mx-auto flex min-h-[78svh] max-w-6xl flex-col justify-end px-5 pb-0 pt-28 sm:px-8 sm:pb-24">
+      {season === "christmas" ? null : <Snow />}
+      <Seasonal season={season} />
+      <SeasonalTaps season={season} />
+      <div className="mx-auto min-h-[78svh] max-w-6xl px-5 pb-0 pt-28 sm:px-8 sm:pb-24 lg:grid lg:min-h-[82svh] lg:max-w-[1240px] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-end lg:gap-14">
+        <div className="flex min-h-[calc(78svh-7rem)] flex-col justify-end lg:min-h-0">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -334,7 +375,8 @@ function Hero() {
         >
           Artist · Songs · Sound
         </motion.p>
-        <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] tracking-display">
+        <SeasonBadge season={season} />
+        <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] lg:text-[clamp(4.5rem,6.4vw,6.75rem)] lg:whitespace-nowrap tracking-display">
           <Typewriter text="SRD Masum" delay={introDelay} />
         </h1>
         <motion.p
@@ -352,9 +394,16 @@ function Hero() {
           className="mt-8 flex flex-wrap gap-3"
         >
           <a
-            href="#featured"
+            href="#music"
+            onClick={(e) => {
+              e.preventDefault();
+              const first = AUDIO_TRACKS[0] || BANGLA_TRACKS[0];
+              if (player && first && !player.track) player.toggle(first, AUDIO_TRACKS.length ? AUDIO_TRACKS : BANGLA_TRACKS);
+              document.getElementById("music")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+            }}
             className="glow-hover pro-btn beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
           >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>
             Listen now
           </a>
           <a
@@ -368,6 +417,8 @@ function Hero() {
             <span className="sr-only">(opens in a new tab)</span>
           </a>
         </motion.div>
+        </div>
+        <HeroDeskCard />
       </div>
     </section>
   );
@@ -376,21 +427,13 @@ function Hero() {
 function Featured() {
   return (
     <section id="featured" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Now playing" title="Featured" />
         </Reveal>
         <Reveal delay={0.08}>
           <div className="overflow-hidden rounded-xl ring-1 ring-hairline">
-            <iframe
-              title="SRD Masum featured track on Spotify"
-              src="https://open.spotify.com/embed/track/0wqbduMup8NkUnRVEERKqb"
-              width="100%"
-              height="352"
-              loading="lazy"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              className="block w-full border-0"
-            />
+            <SpotifyEmbed kind="track" id="0wqbduMup8NkUnRVEERKqb" height={352} title="SRD Masum featured track on Spotify" />
           </div>
         </Reveal>
       </div>
@@ -401,7 +444,7 @@ function Featured() {
 function BanglaSongs() {
   return (
     <section id="bangla-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Bangla Songs" />
         </Reveal>
@@ -410,7 +453,7 @@ function BanglaSongs() {
             <p className="font-mono text-sm text-faint">শীঘ্রই আসছে · coming soon</p>
           </Reveal>
         ) : (
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1 lg:grid lg:grid-cols-2 lg:gap-x-8">
             {BANGLA_TRACKS.map((t, i) => (
               <TrackRow key={t.id} track={t} list={BANGLA_TRACKS} index={i} />
             ))}
@@ -431,11 +474,11 @@ function AudioSongs() {
   if (AUDIO_TRACKS.length === 0) return null;
   return (
     <section id="audio-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Hindi Songs" />
         </Reveal>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1 lg:grid lg:grid-cols-2 lg:gap-x-8">
           {AUDIO_TRACKS.map((t, i) => (
             <TrackRow key={t.id} track={t} list={AUDIO_TRACKS} index={i} />
           ))}
@@ -448,12 +491,12 @@ function AudioSongs() {
 function Songs() {
   return (
     <section id="songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Watch" title="Bollywood Songs" />
         </Reveal>
 
-        <ul className="mt-10 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:gap-x-6">
+        <ul className="mt-10 grid grid-cols-1 gap-x-5 gap-y-8 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-6">
           {SONGS.map((s, i) => (
             <Reveal as="li" key={s.id} delay={(i % 2) * 0.08}>
               <VideoCard
@@ -469,12 +512,54 @@ function Songs() {
 }
 
 function Music() {
+  const player = usePlayer();
+  const groups = [
+    { label: "Hindi", list: AUDIO_TRACKS },
+    { label: "Bangla · বাংলা", list: BANGLA_TRACKS },
+  ].filter((g) => g.list.length);
   return (
     <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Music" />
         </Reveal>
+
+        <Reveal delay={0.06}>
+          <div className="mt-2 overflow-hidden rounded-2xl bg-raised/60 p-3 ring-1 ring-hairline sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 px-1">
+              <p className="text-sm font-semibold text-ink">এখানেই শুনুন · Play on this site</p>
+              {player?.track && (
+                <span className="truncate font-mono text-[11px] text-accent">{player.playing ? "▶ " : "❚❚ "}{player.track.title}</span>
+              )}
+            </div>
+            {groups.map((g) => (
+              <div key={g.label} className="mb-2 last:mb-0">
+                <p className="eyebrow mb-1 px-2 !text-[10px]">{g.label}</p>
+                <div className="flex flex-col gap-1">
+                  {g.list.map((t, i) => (
+                    <TrackRow key={t.id} track={t} list={g.list} index={i} alias fallbackArt="/images/avatar.webp" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <div className="mt-10 flex items-center gap-2 px-1">
+            <SpotifyLogo size={20} weight="fill" className="text-[#1DB954]" aria-hidden="true" />
+            <p className="text-sm font-semibold text-ink">On Spotify</p>
+          </div>
+          <div className="mt-3">
+            <SpotifyEmbed kind="artist" id={SPOTIFY_ARTIST_URL.split("/").pop()} height={352} title="SRD Masum on Spotify" />
+          </div>
+        </Reveal>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {SPOTIFY_TRACKS.map((t) => (
+            <SpotifyEmbed key={t.id} kind="track" id={t.id} height={152} title={`${t.title} on Spotify`} />
+          ))}
+        </div>
+
         <Reveal delay={0.12} className="mt-8 flex justify-center sm:justify-start">
           <motion.a
             href={SPOTIFY_ARTIST_URL}
@@ -639,7 +724,7 @@ function VideoCarousel() {
 function Videos() {
   return (
     <section id="videos" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
             <SectionHeader eyebrow="Catalogue" title="Videos" />
@@ -683,7 +768,7 @@ function Contact() {
 
   return (
     <section id="contact" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:flex-row sm:items-center sm:justify-between sm:p-12">
           <div>
             <p className="eyebrow">Get in touch</p>
@@ -725,37 +810,46 @@ function Contact() {
   );
 }
 
-const VISITOR_KEY = "srd-visitors";
-const VISITOR_SESSION_KEY = "srd-visitor-counted";
-const VISITOR_BASE = 20000;
+const VISITOR_DAY_KEY = "srd-visit-day";
+const VISITOR_SEED = 20001;
 
-// Stored value is only the number of counted visits; the displayed count is VISITOR_BASE + stored.
-function readVisitors() {
-  try {
-    return Number(localStorage.getItem(VISITOR_KEY)) || 0;
-  } catch {
-    return 0;
-  }
-}
-
+// Real counter: /api/visits on the Pages worker (KV). Counted once per browser per day.
 function VisitorCounter() {
-  const [stored, setStored] = useState(readVisitors);
+  const [count, setCount] = useState(null);
+  const [shown, setShown] = useState(VISITOR_SEED);
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(VISITOR_SESSION_KEY)) return;
-      sessionStorage.setItem(VISITOR_SESSION_KEY, "1");
-      const next = readVisitors() + 1;
-      localStorage.setItem(VISITOR_KEY, String(next));
-      setStored(next);
-    } catch {
-      /* storage unavailable: show the stored count without counting */
-    }
+    let day = new Date(Date.now() + 6 * 3600e3).toISOString().slice(0, 10);
+    let counted = false;
+    try { counted = localStorage.getItem(VISITOR_DAY_KEY) === day; } catch { /* ignore */ }
+    fetch("/api/visits", { method: counted ? "GET" : "POST", cache: "no-store", credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        if (typeof d.count !== "number") return;
+        try { localStorage.setItem(VISITOR_DAY_KEY, day); } catch { /* ignore */ }
+        setCount(d.count);
+      })
+      .catch(() => {});
   }, []);
 
+  // Count up from the seed to the live number once it arrives.
+  useEffect(() => {
+    if (count == null) return;
+    const from = Math.min(Math.max(count - 40, VISITOR_SEED), count);
+    const t0 = performance.now();
+    let raf;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 1200);
+      setShown(Math.round(from + (count - from) * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [count]);
+
   return (
-    <p className="mt-6 text-center font-mono text-xs text-faint sm:mt-8">
-      visitors: <span className="tabular-nums">{(VISITOR_BASE + stored).toLocaleString("en-US")}</span>
+    <p className="mt-6 text-center font-mono text-xs text-faint sm:mt-8" data-visitors={count ?? ""}>
+      visitors: <span className="tabular-nums">{shown.toLocaleString("en-US")}</span>
     </p>
   );
 }
@@ -763,7 +857,7 @@ function VisitorCounter() {
 function Footer() {
   return (
     <footer className="border-t border-hairline bg-sunk px-5 pb-10 pt-12 sm:px-8 sm:pt-14">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:max-w-[1240px] text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3">
           <p className="flex items-center gap-2 font-display text-xl tracking-display text-ink">
             <Disc size={20} aria-hidden="true" className="text-accent" />
@@ -888,7 +982,30 @@ function CurtainReveal() {
   );
 }
 
+// /english/ (and /song/<id>/ of an English song) renders the English page instead of the home sections.
+const PAGE = (() => {
+  if (typeof window === "undefined") return "home";
+  const p = window.location.pathname;
+  if (/^\/english(\/|$)/.test(p)) return "english";
+  const id = p.match(/^\/song\/([^/]+)\/?$/)?.[1];
+  return id && ENGLISH_ALL.some((t) => t.id === decodeURIComponent(id)) ? "english" : "home";
+})();
+
 export default function App() {
+  if (PAGE === "english") return (
+    <PlayerProvider>
+    <div className="min-h-screen pb-24">
+      <BeatField />
+      <CursorGlow />
+      <SecretBurst />
+      <Nav page="english" />
+      <main><EnglishPage /></main>
+      <Footer />
+      <InstallPrompt />
+      <ChatLauncher />
+    </div>
+    </PlayerProvider>
+  );
   return (
     <PlayerProvider>
     <div className="min-h-screen pb-24">
@@ -900,20 +1017,27 @@ export default function App() {
       <Nav />
       <main>
         <Hero />
+        <PlaylistSection />
+        <AdSlot type="banner300" desktopOnly />
+        <Music />
+        <AdSlot type="banner320" />
         <AudioSongs />
+        <AdSlot type="native" />
         <BanglaSongs />
         <Featured />
         <Videos />
-        <Music />
         <NewRelease />
         <Songs />
         <Reviews />
         <FanWall />
         <FanMessage />
+        <AdSlot type="banner300" />
         <Contact />
       </main>
       <Footer />
       <MiniPlayer />
+      <InstallPrompt />
+      <ChatLauncher />
     </div>
     </PlayerProvider>
   );
