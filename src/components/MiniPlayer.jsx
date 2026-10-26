@@ -1,6 +1,6 @@
 import { register as exRegister, claim as exClaim } from "../lib/exclusive.js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown } from "@phosphor-icons/react";
+import { Info, Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FXBackground, FXCover } from "./NowPlayingFX.jsx";
 import { AUDIO_TRACKS } from "../data/songs.js";
@@ -17,6 +17,7 @@ const readPref = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch 
 const writePref = (k, v) => { try { localStorage.setItem(k, String(v)); } catch { /* ignore */ } };
 import ShareButton from "./ShareButton.jsx";
 import LyricsPanel from "./LyricsPanel.jsx";
+import CreditsPanel from "./CreditsPanel.jsx";
 import { songFromUrl } from "../lib/share.js";
 import { beatPlay, beatStop } from "../lib/beat.js";
 import {
@@ -428,6 +429,7 @@ function NowPlaying({ player, scrub, onClose }) {
   const hasLyrics = Boolean(t.lyrics);
   const [showLyrics, setShowLyrics] = useState(false);
   const lyricsOn = hasLyrics && showLyrics;
+  const [info, setInfo] = useState(null);
   return (
     <motion.div
       role="dialog"
@@ -465,7 +467,7 @@ function NowPlaying({ player, scrub, onClose }) {
           </FXCover>
         )}
         <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex items-end justify-between gap-3`}>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-2xl font-bold text-ink">{t.title}</p>
             <p className="mt-1 text-sm text-muted">{t.artist || "SRD Masum"}</p>
           </div>
@@ -476,6 +478,11 @@ function NowPlaying({ player, scrub, onClose }) {
               Lyrics
             </button>
           ) : null}
+          <button type="button" onClick={() => setInfo(t)} aria-label={`Credits for ${t.title}`} data-testid="np-info"
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink/80 ring-1 ring-hairline hover:text-accent">
+            <Info size={18} weight="bold" />
+          </button>
         </div>
         <div className="mt-6" onPointerDownCapture={(e) => e.stopPropagation()}>
           <input
@@ -505,6 +512,7 @@ function NowPlaying({ player, scrub, onClose }) {
           </button>
         </div>
       </div>
+      <div onPointerDownCapture={(e) => e.stopPropagation()}><CreditsPanel t={info} onClose={() => setInfo(null)} /></div>
     </motion.div>
   );
 }
