@@ -940,13 +940,13 @@ export default function App() {
       <Nav />
       <main>
         <Hero />
+        <Music />
         <AdSlot type="banner320" />
         <AudioSongs />
         <AdSlot type="native" />
         <BanglaSongs />
         <Featured />
         <Videos />
-        <Music />
         <NewRelease />
         <Songs />
         <Reviews />

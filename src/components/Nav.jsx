@@ -6,11 +6,11 @@ import { triggerSecret } from "./SecretBurst.jsx";
 import { playTapPop } from "../lib/sounds.js";
 
 const LINKS = [
+  { id: "music", label: "Music" },
   { id: "audio-songs", label: "Hindi Songs" },
   { id: "bangla-songs", label: "Bangla Songs" },
   { id: "featured", label: "Featured" },
   { id: "videos", label: "Videos" },
-  { id: "music", label: "Music" },
   { id: "new-release", label: "New Release" },
   { id: "songs", label: "Bollywood" },
   { id: "reviews", label: "Reviews" },
