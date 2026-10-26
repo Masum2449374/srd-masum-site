@@ -74,6 +74,42 @@ export const ENGLISH_TRACKS = [
     spotifyUrl: "https://open.spotify.com/track/3RmFPuTTAjSQ2pbEd2j9oA",
     youtubeUrl: "https://www.youtube.com/watch?v=s3a4OQR-10M", // tameimpalaVEVO, "Loser (Official Video)"
   },
+  {
+    id: "choosin-texas", title: "Choosin' Texas", artist: "Ella Langley", album: "Choosin' Texas",
+    src: "/audio/english/choosin-texas.mp3", duration: 231.0, playlist: P, ...c("choosin-texas"),
+    spotifyUrl: "https://open.spotify.com/track/65DbTqJKhbwqYbZ1Okr0rc",
+    youtubeUrl: "https://www.youtube.com/watch?v=nUsrYVxrDwI", // EllaLangleyVEVO, "Choosin' Texas (Official Video)"
+  },
+  {
+    id: "earrings", title: "Earrings", artist: "Malcolm Todd", album: "Sweet Boy",
+    src: "/audio/english/earrings.mp3", duration: 151.9, playlist: P, ...c("earrings"),
+    spotifyUrl: "https://open.spotify.com/track/0eAuGrXyGFYwur9ARUe7LJ",
+    youtubeUrl: "https://www.youtube.com/watch?v=a4tdS3IB294", // Malcolm Todd, "Earrings (Official Visualizer)"
+  },
+  {
+    id: "man-i-need", title: "Man I Need", artist: "Olivia Dean", album: "The Art of Loving",
+    src: "/audio/english/man-i-need.mp3", duration: 183.72, playlist: P, ...c("man-i-need"),
+    spotifyUrl: "https://open.spotify.com/track/1qbmS6ep2hbBRaEZFpn7BX",
+    youtubeUrl: "https://www.youtube.com/watch?v=oIv_Y2RPQ_A", // Olivia Dean, official music video
+  },
+  {
+    id: "billie-jean", title: "Billie Jean", artist: "Michael Jackson", album: "Thriller",
+    src: "/audio/english/billie-jean.mp3", duration: 295.85, playlist: P, ...c("billie-jean"),
+    spotifyUrl: "https://open.spotify.com/track/7J1uxwnxfQLu4APicE5Rnj",
+    youtubeUrl: "https://www.youtube.com/watch?v=Zi_XLOBDo_Y", // michaeljacksonVEVO, "Billie Jean (Official Video)"
+  },
+  {
+    id: "the-cure", title: "the cure", artist: "Olivia Rodrigo", album: "the cure", explicit: true,
+    src: "/audio/english/the-cure.mp3", duration: 297.14, playlist: P, ...c("the-cure"),
+    spotifyUrl: "https://open.spotify.com/track/4EoJ151oQ5jY48z4RhSE96",
+    youtubeUrl: "https://www.youtube.com/watch?v=B402rKl4bUg", // OliviaRodrigoVEVO, "the cure (Official Music Video)"
+  },
+  {
+    id: "stupid-song", title: "stupid song", artist: "Olivia Rodrigo", album: "you seem pretty sad for a girl so in love",
+    src: "/audio/english/stupid-song.mp3", duration: 208.97, playlist: P, ...c("stupid-song"),
+    spotifyUrl: "https://open.spotify.com/track/49j6SvuvWfbEKZKzsHCdLJ",
+    youtubeUrl: "https://www.youtube.com/watch?v=Rt9tW3cMLhI", // OliviaRodrigoVEVO, "stupid song (Official Music Video)"
+  },
 ];
 
 export const ENGLISH_ALL = [...ENGLISH_ORIGINALS, ...ENGLISH_TRACKS];
