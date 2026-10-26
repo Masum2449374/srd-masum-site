@@ -765,37 +765,46 @@ function Contact() {
   );
 }
 
-const VISITOR_KEY = "srd-visitors";
-const VISITOR_SESSION_KEY = "srd-visitor-counted";
-const VISITOR_BASE = 20000;
+const VISITOR_DAY_KEY = "srd-visit-day";
+const VISITOR_SEED = 20001;
 
-// Stored value is only the number of counted visits; the displayed count is VISITOR_BASE + stored.
-function readVisitors() {
-  try {
-    return Number(localStorage.getItem(VISITOR_KEY)) || 0;
-  } catch {
-    return 0;
-  }
-}
-
+// Real counter: /api/visits on the Pages worker (KV). Counted once per browser per day.
 function VisitorCounter() {
-  const [stored, setStored] = useState(readVisitors);
+  const [count, setCount] = useState(null);
+  const [shown, setShown] = useState(VISITOR_SEED);
 
   useEffect(() => {
-    try {
-      if (sessionStorage.getItem(VISITOR_SESSION_KEY)) return;
-      sessionStorage.setItem(VISITOR_SESSION_KEY, "1");
-      const next = readVisitors() + 1;
-      localStorage.setItem(VISITOR_KEY, String(next));
-      setStored(next);
-    } catch {
-      /* storage unavailable: show the stored count without counting */
-    }
+    let day = new Date(Date.now() + 6 * 3600e3).toISOString().slice(0, 10);
+    let counted = false;
+    try { counted = localStorage.getItem(VISITOR_DAY_KEY) === day; } catch { /* ignore */ }
+    fetch("/api/visits", { method: counted ? "GET" : "POST", cache: "no-store", credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        if (typeof d.count !== "number") return;
+        try { localStorage.setItem(VISITOR_DAY_KEY, day); } catch { /* ignore */ }
+        setCount(d.count);
+      })
+      .catch(() => {});
   }, []);
 
+  // Count up from the seed to the live number once it arrives.
+  useEffect(() => {
+    if (count == null) return;
+    const from = Math.min(Math.max(count - 40, VISITOR_SEED), count);
+    const t0 = performance.now();
+    let raf;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 1200);
+      setShown(Math.round(from + (count - from) * (1 - Math.pow(1 - k, 3))));
+      if (k < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [count]);
+
   return (
-    <p className="mt-6 text-center font-mono text-xs text-faint sm:mt-8">
-      visitors: <span className="tabular-nums">{(VISITOR_BASE + stored).toLocaleString("en-US")}</span>
+    <p className="mt-6 text-center font-mono text-xs text-faint sm:mt-8" data-visitors={count ?? ""}>
+      visitors: <span className="tabular-nums">{shown.toLocaleString("en-US")}</span>
     </p>
   );
 }

@@ -5,6 +5,7 @@ export default {
     const url = new URL(req.url);
     // Short alias for the lyrics/share page.
     if (/^\/song\/koto-din-bhebechhi\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/koto-din-bhebechhi-cover/${url.search}`, 301);
+    if (url.pathname === "/api/visits") return visits(req, env);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
       // Real 404 for unknown paths (public/404.html also disables the SPA fallback on Pages).
@@ -36,3 +37,20 @@ export default {
     return new Response(buf.slice(start, end + 1), { status: 206, headers: h });
   },
 };
+
+// Real visitor counter backed by KV (binding VISITS, key "count").
+// POST counts at most once per browser per day (cookie srdv=<date>; the client also keeps a localStorage mark).
+async function visits(req, env) {
+  const h = { "content-type": "application/json", "cache-control": "no-store" };
+  if (!env.VISITS) return new Response(JSON.stringify({ error: "no kv" }), { status: 503, headers: h });
+  const read = async () => Number(String((await env.VISITS.get("count")) || "0").replace(/\D/g, "")) || 0;
+  if (req.method === "GET") return new Response(JSON.stringify({ count: await read() }), { headers: h });
+  if (req.method !== "POST") return new Response(null, { status: 405, headers: { ...h, allow: "GET, POST" } });
+  const day = new Date(Date.now() + 6 * 3600e3).toISOString().slice(0, 10); // Asia/Dhaka day
+  const seen = (req.headers.get("cookie") || "").includes(`srdv=${day}`);
+  let count = await read();
+  if (!seen) { count += 1; await env.VISITS.put("count", String(count)); }
+  const out = new Headers(h);
+  if (!seen) out.append("set-cookie", `srdv=${day}; Path=/; Max-Age=93600; SameSite=Lax; Secure`);
+  return new Response(JSON.stringify({ count, counted: !seen }), { headers: out });
+}
