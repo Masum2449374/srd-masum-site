@@ -11,6 +11,15 @@ const speakable = (t) => t.replace(/https?:\/\/\S+/g, "").replace(/\[\[[^\]]*\]\
 const linkify = (t) => t.split(/(https?:\/\/[^\s)]+)/g).map((p, i) => /^https?:\/\//.test(p)
   ? <a key={i} href={p.replace(/[.,!?]+$/, "")} target="_blank" rel="noopener noreferrer" className="break-all text-sky-300 underline">{p}</a> : p);
 
+// Split into sentences (Bangla dari, ., !, ?), merging very short ones so each TTS call has some substance.
+function splitSentences(t) {
+  const raw = t.match(/[^।.!?]+[।.!?]*\s*/g) || [t]; const out = [];
+  for (const r of raw.map((x) => x.trim()).filter(Boolean)) {
+    if (out.length && (out[out.length - 1].length < 25 || r.length < 12)) out[out.length - 1] += " " + r; else out.push(r);
+  }
+  return out.slice(0, 6);
+}
+
 function pickVoice(lang) {
   const vs = window.speechSynthesis.getVoices();
   const want = lang.slice(0, 2);
@@ -43,16 +52,23 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
     window.speechSynthesis.cancel(); audio.current?.pause();
     if (!say) { then?.(); return; }
     let done = false; const fin = () => { if (done) return; done = true; if (alive.current) then?.(); };
-    { // server female voice (Gemini "Leda", bn + en)
-      try {
-        const r = await fetch("/api/tts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: say }) });
-        if (r.ok && alive.current) {
-          const url = URL.createObjectURL(await r.blob()); const a = new Audio(url); audio.current = a;
-          a.onended = () => { URL.revokeObjectURL(url); fin(); }; a.onerror = () => deviceSay(say, fin);
-          await a.play(); return;
-        }
-      } catch { /* fall back */ }
+    // Server voice (Gemini "Leda", bn + en), sentence by sentence: the first sentence starts playing
+    // while the rest are still being synthesised. Any failure -> device voice for the remaining text.
+    const parts = splitSentences(say);
+    const jobs = parts.map((t) => fetch("/api/tts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: t }) })
+      .then((r) => (r.ok ? r.blob() : null)).catch(() => null));
+    for (let i = 0; i < parts.length; i++) {
+      const blob = await jobs[i];
+      if (!alive.current) return;
+      if (!blob) { deviceSay(parts.slice(i).join(" "), fin); return; }
+      const ok = await new Promise((res) => {
+        const url = URL.createObjectURL(blob); const a = new Audio(url); audio.current = a;
+        a.onended = () => { URL.revokeObjectURL(url); res(true); }; a.onerror = () => res(false);
+        a.play().catch(() => res(false));
+      });
+      if (!ok) { deviceSay(parts.slice(i).join(" "), fin); return; }
     }
+    fin(); return;
     if (alive.current) deviceSay(say, fin);
   };
 
