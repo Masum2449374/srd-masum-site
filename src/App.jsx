@@ -16,7 +16,9 @@ import FanWall from "./components/FanWall.jsx";
 import SecretBurst from "./components/SecretBurst.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
-import { PlayerProvider, TrackRow, MiniPlayer } from "./components/MiniPlayer.jsx";
+import { PlayerProvider, TrackRow, MiniPlayer, usePlayer } from "./components/MiniPlayer.jsx";
+import SpotifyEmbed from "./components/SpotifyEmbed.jsx";
+import { SPOTIFY_TRACKS } from "./data/spotify.js";
 import { VIDEO_IDS, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
@@ -308,6 +310,7 @@ function Typewriter({ text, delay = 0 }) {
 
 function Hero() {
   const reduce = useReducedMotion();
+  const player = usePlayer();
   const season = useSeason();
   const { scrollY } = useScroll();
   // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
@@ -359,9 +362,16 @@ function Hero() {
           className="mt-8 flex flex-wrap gap-3"
         >
           <a
-            href="#featured"
+            href="#music"
+            onClick={(e) => {
+              e.preventDefault();
+              const first = AUDIO_TRACKS[0] || BANGLA_TRACKS[0];
+              if (player && first && !player.track) player.toggle(first, AUDIO_TRACKS.length ? AUDIO_TRACKS : BANGLA_TRACKS);
+              document.getElementById("music")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+            }}
             className="glow-hover pro-btn beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
           >
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>
             Listen now
           </a>
           <a
@@ -389,15 +399,7 @@ function Featured() {
         </Reveal>
         <Reveal delay={0.08}>
           <div className="overflow-hidden rounded-xl ring-1 ring-hairline">
-            <iframe
-              title="SRD Masum featured track on Spotify"
-              src="https://open.spotify.com/embed/track/0wqbduMup8NkUnRVEERKqb"
-              width="100%"
-              height="352"
-              loading="lazy"
-              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-              className="block w-full border-0"
-            />
+            <SpotifyEmbed kind="track" id="0wqbduMup8NkUnRVEERKqb" height={352} title="SRD Masum featured track on Spotify" />
           </div>
         </Reveal>
       </div>
@@ -476,12 +478,54 @@ function Songs() {
 }
 
 function Music() {
+  const player = usePlayer();
+  const groups = [
+    { label: "Hindi", list: AUDIO_TRACKS },
+    { label: "Bangla · বাংলা", list: BANGLA_TRACKS },
+  ].filter((g) => g.list.length);
   return (
     <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Music" />
         </Reveal>
+
+        <Reveal delay={0.06}>
+          <div className="mt-2 overflow-hidden rounded-2xl bg-raised/60 p-3 ring-1 ring-hairline sm:p-5">
+            <div className="mb-3 flex items-center justify-between gap-3 px-1">
+              <p className="text-sm font-semibold text-ink">এখানেই শুনুন · Play on this site</p>
+              {player?.track && (
+                <span className="truncate font-mono text-[11px] text-accent">{player.playing ? "▶ " : "❚❚ "}{player.track.title}</span>
+              )}
+            </div>
+            {groups.map((g) => (
+              <div key={g.label} className="mb-2 last:mb-0">
+                <p className="eyebrow mb-1 px-2 !text-[10px]">{g.label}</p>
+                <div className="flex flex-col gap-1">
+                  {g.list.map((t, i) => (
+                    <TrackRow key={t.id} track={t} list={g.list} index={i} alias fallbackArt="/images/avatar.webp" />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+
+        <Reveal delay={0.1}>
+          <div className="mt-10 flex items-center gap-2 px-1">
+            <SpotifyLogo size={20} weight="fill" className="text-[#1DB954]" aria-hidden="true" />
+            <p className="text-sm font-semibold text-ink">On Spotify</p>
+          </div>
+          <div className="mt-3">
+            <SpotifyEmbed kind="artist" id={SPOTIFY_ARTIST_URL.split("/").pop()} height={352} title="SRD Masum on Spotify" />
+          </div>
+        </Reveal>
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {SPOTIFY_TRACKS.map((t) => (
+            <SpotifyEmbed key={t.id} kind="track" id={t.id} height={152} title={`${t.title} on Spotify`} />
+          ))}
+        </div>
+
         <Reveal delay={0.12} className="mt-8 flex justify-center sm:justify-start">
           <motion.a
             href={SPOTIFY_ARTIST_URL}

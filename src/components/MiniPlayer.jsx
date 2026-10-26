@@ -28,7 +28,7 @@ import {
 // preload="auto" fetches the file once a track is chosen; durations come from the data lists, so
 // nothing is downloaded just to read a length.
 const PlayerContext = createContext(null);
-const usePlayer = () => useContext(PlayerContext);
+export const usePlayer = () => useContext(PlayerContext);
 
 export function formatTime(sec) {
   if (!Number.isFinite(sec) || sec < 0) return "0:00";
@@ -259,7 +259,7 @@ export function MiniPlayer() {
   return null;
 }
 
-export function TrackRow({ track, list }) {
+export function TrackRow({ track, list, alias = false, fallbackArt }) {
   const player = usePlayer();
   const isActive = player?.track?.id === track.id;
   const isPlaying = isActive && player.playing;
@@ -267,14 +267,14 @@ export function TrackRow({ track, list }) {
 
   return (
     <div
-      data-track-row={track.id}
-      id={`song-${track.id}`}
+      data-track-row={alias ? undefined : track.id}
+      id={alias ? undefined : `song-${track.id}`}
       className={`flex h-[60px] scroll-mt-24 items-center gap-3 rounded-xl px-2 transition-colors ${
         isActive ? "bg-raised ring-1 ring-accent/40" : "hover:bg-raised/60"
       } ${isPlaying ? "beat-glow beat-card" : ""} ${player?.highlight === track.id ? "ring-2 ring-accent" : ""}`}
     >
-      {(track).cover ? (
-          <img src={(track).thumb || (track).cover} alt="" aria-hidden="true" width="40" height="40" loading="lazy" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
+      {(track).cover || fallbackArt ? (
+          <img src={(track).thumb || (track).cover || fallbackArt} alt="" aria-hidden="true" width="40" height="40" loading="lazy" className="h-10 w-10 shrink-0 rounded-lg object-cover" />
         ) : (
         <div
           aria-hidden="true"
