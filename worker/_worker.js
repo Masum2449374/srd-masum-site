@@ -8,6 +8,7 @@ export default {
     if (/^\/song\/pehla-pehla-pyar-cover\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/dekha-tenu-pehli-pehli/${url.search}`, 301);
     if (/^\/song\/laal-cover\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/laal-dupatta/${url.search}`, 301);
     if (/^\/song\/ayna-nadir-khate-cover\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/tomar-jonno-mon-kandere/${url.search}`, 301);
+    if (url.pathname === "/.well-known/assetlinks.json") return new Response(JSON.stringify([{relation:["delegate_permission/common.handle_all_urls"],target:{namespace:"android_app",package_name:"com.bbroot.srdmasum",sha256_cert_fingerprints:["CB:C3:8E:CE:0C:34:90:39:D1:A6:2D:30:B9:30:43:E2:39:B9:59:DC:66:D1:C8:3C:C0:43:5C:39:44:44:6C:34"]}}]), { headers: { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" } });
     if (url.pathname === "/api/visits") return visits(req, env);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
