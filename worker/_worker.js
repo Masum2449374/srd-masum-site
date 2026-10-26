@@ -85,18 +85,43 @@ async function chat(req, env, url) {
   if (!CTX || now - CTX_AT > 600000) {
     try { const c = await env.ASSETS.fetch(new Request(`${url.origin}/chat-context.txt`)); if (c.ok) { CTX = await c.text(); CTX_AT = now; } } catch {}
   }
-  const system = `You are the friendly assistant on the SRD Masum music website. Your main job is SRD Masum, his music, the songs on this site, their credited artists, and how to use the site (player, playlists, videos, fan wall, installing the app, contact). You may also answer general friendly questions (music, general knowledge, small talk) briefly, and when relevant gently suggest a song from the site. Refuse anything harmful or adult.
+  const system = `You are the friendly assistant on the SRD Masum music website. Your main job is SRD Masum, his music, the songs on this site, their credited artists, and how to use the site (player, playlists, videos, fan wall, installing the app, contact). You may also answer general friendly questions (music, general knowledge, small talk) briefly, and you may use your general knowledge about songs, singers, films and composers (never lyrics). When relevant, gently suggest a song from the site. Sound confident and helpful, never vague. Refuse anything harmful or adult.
 Rules:
 - Reply in the visitor's language (Bangla in Bangla script, Hindi, or English; match Banglish/Hinglish if they use it).
 - Be short: 1-3 sentences, warm, a light emoji is fine.
 - Never write, quote or paraphrase song lyrics (not even one line); say lyrics aren't available here and suggest listening on the site or official links.
 - Credit performers exactly as listed; songs by other artists are covers/featured on the site — never claim SRD Masum wrote or originally sang them.
 - Links: use only URLs that appear in SITE DATA. Never type any other URL yourself.
-- If someone wants a song/video that is NOT in SITE DATA, say it isn't on this site yet and write the marker [[search: <song title and artist if known>]] on its own line; the site turns it into YouTube and Spotify search links. Never guess a direct link. If they ask whether it's on YouTube/Spotify, you can't confirm, so give the marker again.
+- If someone wants a song/video that is NOT in SITE DATA (or asks you to find it on YouTube), reply with ONE short sentence and the marker [[search: <best YouTube search query: song title, plus artist/film if you know it>]] on its own line. The site will really search YouTube for you and give you the results. Never guess a direct link.
 - If unsure about a fact, say so; for site questions suggest the contact email.
 - Plain text only (no markdown tables/headings/bold); put links as bare URLs.
 SITE DATA:
 ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.spotify.com/artist/267kT30bpgEoiGFawat8k6 YouTube: https://youtube.com/@srdmasum"}`;
+  const base = [{ role: "system", content: system }, ...msgs];
+  const first = await callModel(env, base);
+  if (!first.reply) return out({ error: "upstream", why: first.why, reply: "Sorry, I can't answer right now — please try again soon." }, 502);
+  const MARK = /\[\[\s*search:\s*([^\]]{1,120})\]\]/gi;
+  const queries = [...new Set([...first.reply.matchAll(MARK)].map((m) => m[1].trim()))].slice(0, 2);
+  if (!queries.length) return out({ reply: tidy(first.reply), model: first.model });
+  const found = [];
+  for (const q of queries) {
+    const vids = await ytCached(env, q);
+    found.push({ q, vids });
+  }
+  const spotify = queries.map((q) => `Spotify: https://open.spotify.com/search/${encodeURIComponent(q)}`).join("\n");
+  if (found.some((f) => f.vids.length)) {
+    const look = found.map((f) => `Query "${f.q}":\n` + (f.vids.length ? f.vids.map((v, k) => `${k + 1}. "${v.title}" — ${v.channel}${v.len ? ` (${v.len})` : ""} https://www.youtube.com/watch?v=${v.id}`).join("\n") : "(no results)")).join("\n");
+    const second = await callModel(env, [...base, { role: "assistant", content: first.reply },
+      { role: "system", content: `YOUTUBE LOOKUP (real results fetched just now):\n${look}\nNow write the final reply to the visitor in their language. Say confidently what you found, e.g. "YouTube-এ পেয়েছি:" / "Found it on YouTube:", then the best 1-2 matches (prefer the original/official version) as: title — channel, then the watch URL exactly as listed. Mention briefly that it isn't on this site yet if it's not in SITE DATA. You may add one line of general knowledge about the song/singer (no lyrics). Do not output any [[search]] marker, do not mention how the lookup works, and use only URLs from SITE DATA or this lookup.` }]);
+    if (second.reply) return out({ reply: tidy(second.reply.replace(MARK, "")) + "\n" + spotify, model: second.model, yt: true });
+  }
+  const fb = first.reply.replace(MARK, (_, q) => { const e = encodeURIComponent(q.trim()); return `YouTube: https://www.youtube.com/results?search_query=${e}\nSpotify: https://open.spotify.com/search/${e}`; });
+  return out({ reply: tidy(fb), model: first.model, yt: false });
+}
+
+const tidy = (t) => t.replace(/\*\*/g, "").replace(/\n{3,}/g, "\n\n").trim().slice(0, 1500);
+
+async function callModel(env, messages) {
   let why = "";
   for (const model of CHAT_MODELS) {
     try {
@@ -104,18 +129,43 @@ ${CTX || "Site: SRD Masum (https://srdmasum.bbroot.com). Spotify: https://open.s
       const res = await fetch("https://api.benpay.ai/openai/v1/chat/completions", {
         method: "POST", signal: ctl.signal,
         headers: { authorization: `Bearer ${env.BENPAY_API_KEY}`, "content-type": "application/json", accept: "application/json", "user-agent": "srd-masum-site/1.0" },
-        body: JSON.stringify({ model, max_tokens: 300, temperature: 0.4, messages: [{ role: "system", content: system }, ...msgs] }),
+        body: JSON.stringify({ model, max_tokens: 350, temperature: 0.4, messages }),
       });
       clearTimeout(tm);
       if (!res.ok) { why += `${model}:${res.status} `; continue; }
       const d = await res.json();
-      let reply = d?.choices?.[0]?.message?.content?.trim();
-      if (reply) reply = reply.replace(/\*\*/g, "").replace(/\[\[\s*search:\s*([^\]]{1,120})\]\]/gi, (_, q) => {
-        const e = encodeURIComponent(q.trim());
-        return `YouTube: https://www.youtube.com/results?search_query=${e}\nSpotify: https://open.spotify.com/search/${e}`;
-      });
-      if (reply) return out({ reply: reply.slice(0, 1500), model });
+      const reply = d?.choices?.[0]?.message?.content?.trim();
+      if (reply) return { reply, model };
+      why += `${model}:empty `;
     } catch (e) { why += `${model}:${e?.name || "err"} `; }
   }
-  return out({ error: "upstream", why: why.trim(), reply: "Sorry, I can't answer right now — please try again soon." }, 502);
+  return { reply: "", why: why.trim() };
+}
+
+// Real YouTube lookup: parse ytInitialData from the public results page; cache 6h in KV.
+async function ytCached(env, q) {
+  const key = "yt:" + q.toLowerCase().slice(0, 100);
+  try { const c = env.VISITS && await env.VISITS.get(key, "json"); if (c) return c; } catch {}
+  let vids = [];
+  try {
+    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch(`https://www.youtube.com/results?search_query=${encodeURIComponent(q)}&hl=en&gl=BD`, { signal: ctl.signal,
+      headers: { "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36", "accept-language": "en-US,en;q=0.9", cookie: "CONSENT=YES+1" } });
+    clearTimeout(tm);
+    if (r.ok) {
+      const html = await r.text();
+      const m = html.match(/var ytInitialData = (\{.*?\});<\/script>/s);
+      if (m) {
+        const walk = (o) => {
+          if (!o || typeof o !== "object" || vids.length >= 3) return;
+          const v = o.videoRenderer;
+          if (v?.videoId && /^[\w-]{11}$/.test(v.videoId)) { vids.push({ id: v.videoId, title: (v.title?.runs || []).map((x) => x.text).join("").slice(0, 140), channel: (v.ownerText?.runs?.[0]?.text || "").slice(0, 60), len: v.lengthText?.simpleText || "" }); return; }
+          for (const k in o) walk(o[k]);
+        };
+        walk(JSON.parse(m[1]));
+      }
+    }
+  } catch {}
+  if (vids.length) { try { await env.VISITS?.put(key, JSON.stringify(vids), { expirationTtl: 21600 }); } catch {} }
+  return vids;
 }
