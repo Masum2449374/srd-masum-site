@@ -1,3 +1,4 @@
+import { register as exRegister, claim as exClaim } from "../lib/exclusive.js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
@@ -233,6 +234,7 @@ export function PlayerProvider({ children }) {
     [track, playing, toggle, step, previous, current, duration, scrub, highlight, shuffle, repeat]
   );
 
+  useEffect(() => exRegister("site", () => { const a = audioRef.current; if (a && !a.paused) a.pause(); }), []);
   return (
     <PlayerContext.Provider value={value}>
       {children}
@@ -241,7 +243,7 @@ export function PlayerProvider({ children }) {
         preload="auto"
         crossOrigin="anonymous"
         className="hidden"
-        onPlay={onPlay}
+        onPlay={(e) => { exClaim("site"); onPlay(e); }}
         onPause={onPause}
         onEnded={onEnded}
         onTimeUpdate={onTimeUpdate}
