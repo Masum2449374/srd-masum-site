@@ -3,7 +3,7 @@
 // To add a song: put the mp3 in public/audio/english/<id>.mp3 and covers in public/covers/english/
 // (<id>.jpg 800px, <id>.webp, <id>-512.jpg, <id>-96.jpg), then add one entry below.
 // credits: only facts confirmed from the file tags or a verified source. links: only verified URLs.
-// lyricsUrl: cover songs link out to the official lyrics page (verified URL) — never copy lyrics text here.
+// spotifyUrl / youtubeUrl: official, verified URLs only. Never copy lyrics text of cover songs here.
 // Originals can carry in-site synced lyrics like the Bangla songs: lyrics (text), lyricTimes, lyricEnds.
 // ENGLISH_ORIGINALS: SRD Masum's own English songs (shown highlighted on top; hidden while empty).
 const P = "english";
@@ -17,8 +17,8 @@ export const ENGLISH_TRACKS = [
   {
     id: "housewife", title: "Housewife", artist: "Tate McRae", album: "Housewife",
     src: "/audio/english/housewife.mp3", duration: 209.14, playlist: P, ...c("housewife"),
-    lyricsUrl: "https://genius.com/Tate-mcrae-housewife-lyrics",
-    links: { spotify: "https://open.spotify.com/track/2sFepQNyl1WjpROruP8bJ0" },
+    spotifyUrl: "https://open.spotify.com/track/2sFepQNyl1WjpROruP8bJ0",
+    youtubeUrl: "https://www.youtube.com/watch?v=DPEodkHzH-s", // TateMcRaeVEVO, "Housewife (Official Video)"
   },
 ];
 

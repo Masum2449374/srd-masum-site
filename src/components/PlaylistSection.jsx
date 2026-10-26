@@ -1,4 +1,4 @@
-import { Play, Pause, Info, Article, ListNumbers } from "@phosphor-icons/react";
+import { Play, Pause, Info, ListNumbers } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
@@ -32,7 +32,6 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
               </span>
               <span className="font-mono text-[11px] tabular-nums text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
             </button>
-            {t.lyricsUrl && <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" aria-label={`Lyrics for ${t.title} (opens Genius)`} className="en-lyr-ic"><Article size={15} weight="fill" /></a>}
             {onInfo && <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline"><Info size={16} weight="bold" /></button>}
           </li>
         );

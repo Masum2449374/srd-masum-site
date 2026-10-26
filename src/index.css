@@ -742,7 +742,7 @@ button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding
 .en-originals { background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(11,108,240,.08)); }
 @media (prefers-reduced-motion: reduce) { .en-title, .en-orb, .en-spin, .en-pulse, .en-bars i { animation: none; } }
 
-/* Genius lyrics card + buttons */
+/* glow button styles */
 .gcard{--p:0;position:relative;flex:1;min-height:300px;border-radius:28px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.45),0 0 calc(20px + var(--p)*40px) rgba(255,255,100,calc(.08 + var(--p)*.25));transform:scale(calc(1 + var(--p)*.015))}
 .gcard-bg{position:absolute;inset:-30px;background-size:cover;background-position:center;filter:blur(28px) saturate(1.4);transform:scale(calc(1.1 + var(--p)*.06))}
 .gcard-shade{position:absolute;inset:0;background:radial-gradient(circle at 50% 35%,rgba(0,0,0,.15),rgba(0,0,0,.7))}
@@ -765,3 +765,7 @@ button.season-badge.season-tap { border: 1px solid rgba(255,140,40,.45); padding
 .en-cta{display:flex;align-items:center;gap:14px;max-width:420px;padding:16px 20px;border-radius:22px;background:linear-gradient(135deg,#0b6cf0,#7c3aed 55%,#ec4899);box-shadow:0 12px 36px rgba(124,58,237,.4);transition:transform .2s}
 .en-cta:hover{transform:translateY(-2px)}.en-cta:active{transform:scale(.98)}
 .pl-num .en-bars i{background:#0b6cf0}.pl-num .en-bars{height:14px}
+.sbtn{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 10px;border-radius:16px;font-size:14px;font-weight:700;white-space:nowrap;transition:transform .15s,box-shadow .2s}
+.sbtn:active{transform:scale(.97)}
+.sbtn-sp{background:linear-gradient(135deg,#1ed760,#1aa34a);color:#04140a;box-shadow:0 8px 24px rgba(30,215,96,.3)}
+.sbtn-yt{background:linear-gradient(135deg,#ff2a3d,#c4001a);color:#fff;box-shadow:0 8px 24px rgba(255,0,51,.3)}

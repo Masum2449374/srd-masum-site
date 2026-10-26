@@ -46,7 +46,6 @@ function SongCard({ t, list, onInfo, i }) {
         <p className="mt-0.5 truncate text-xs text-muted">{t.artist}</p>
         <div className="mt-2 flex items-center gap-1">
           <p className="flex-1 font-mono text-[10px] text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</p>
-          {t.lyricsUrl && <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" aria-label={`Lyrics for ${t.title} (opens Genius)`} className="en-lyr-ic"><Article size={15} weight="fill" /></a>}
           <ShareButton track={t} />
           <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline hover:text-accent">
             <Info size={16} weight="bold" />
@@ -88,12 +87,11 @@ function Credits({ t, onClose, onPlay }) {
               {t.producer && <div className="flex justify-between gap-4"><dt className="text-faint">Producer</dt><dd className="text-right text-ink">{t.producer}</dd></div>}
               {t.label && <div className="flex justify-between gap-4"><dt className="text-faint">Label</dt><dd className="text-right text-ink">{t.label}</dd></div>}
             </dl>
-            {(t.lyricsUrl || t.lyrics || (!t.original && t.links)) && (
-              <div className="mt-5 flex flex-wrap gap-2">
-                {t.lyricsUrl && <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" data-testid="en-lyrics" className="gbtn gbtn-sm"><Article size={16} weight="fill" />Read lyrics on Genius <span aria-hidden="true">↗</span></a>}
+            {(t.lyrics || (!t.original && (t.spotifyUrl || t.youtubeUrl))) && (
+              <div className="mt-5 grid grid-cols-2 gap-2">
                 {t.lyrics && <button type="button" onClick={() => { onPlay(t); onClose(); }} className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent"><Article size={18} weight="bold" />Play with synced lyrics</button>}
-                {!t.original && t.links?.spotify && <a href={t.links.spotify} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black"><SpotifyLogo size={18} weight="fill" />Original on Spotify</a>}
-                {!t.original && t.links?.youtube && <a href={t.links.youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full bg-[#ff0033] px-4 py-2 text-sm font-semibold text-white"><YoutubeLogo size={18} weight="fill" />YouTube</a>}
+                {!t.original && t.spotifyUrl && <a href={t.spotifyUrl} target="_blank" rel="noopener noreferrer" data-testid="en-spotify" className="sbtn sbtn-sp"><SpotifyLogo size={20} weight="fill" />Listen on Spotify</a>}
+                {!t.original && t.youtubeUrl && <a href={t.youtubeUrl} target="_blank" rel="noopener noreferrer" data-testid="en-youtube" className="sbtn sbtn-yt"><YoutubeLogo size={20} weight="fill" />Watch on YouTube</a>}
               </div>
             )}
           </motion.div>
