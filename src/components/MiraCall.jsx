@@ -15,8 +15,9 @@ function pickVoice(lang) {
   const vs = window.speechSynthesis.getVoices();
   const want = lang.slice(0, 2);
   const mine = vs.filter((v) => v.lang?.toLowerCase().startsWith(want));
-  const fem = /female|woman|zira|samantha|victoria|karen|moira|tessa|fiona|veena|heera|google.*(bangla|bengali|english)|wavenet-a|-a$/i;
-  return mine.find((v) => fem.test(v.name)) || mine[0] || null;
+  const fem = /female|woman|nabanita|tanishaa|ana|aria|jenny|zira|samantha|victoria|karen|moira|tessa|fiona|veena|heera|wavenet-a|standard-a|-a$|x-ban-local|bnf|enf/i;
+  const male = /male\b|pradeep|bashkar|guy|david|mark|daniel|alex|fred|wavenet-b|standard-b|-b$|bnm|enm/i;
+  return mine.find((v) => fem.test(v.name) && !/\bmale\b/i.test(v.name)) || mine.find((v) => !male.test(v.name)) || mine[0] || null;
 }
 
 export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
@@ -27,18 +28,32 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
   const [err, setErr] = useState("");
   const alive = useRef(true), rec = useRef(null), hist = useRef([]), lang = useRef(startLang), mutedRef = useRef(false);
 
-  const speak = (text, then) => {
-    const say = speakable(text);
-    setCap({ who: "mira", text }); setPhase("speaking");
+  const audio = useRef(null);
+  const deviceSay = (say, fin) => {
     const synth = window.speechSynthesis; synth.cancel();
-    if (!say) { then?.(); return; }
     const u = new SpeechSynthesisUtterance(say);
     const l = isBn(say) ? "bn-BD" : "en-US"; u.lang = l; const v = pickVoice(l); if (v) u.voice = v;
-    u.rate = 1; u.pitch = 1.15; u.volume = 1;
-    let done = false; const fin = () => { if (done) return; done = true; if (alive.current) then?.(); };
-    u.onend = fin; u.onerror = fin;
-    synth.speak(u);
+    u.rate = 1.02; u.pitch = 1.25; u.volume = 1; // lighter, female-leaning fallback
+    u.onend = fin; u.onerror = fin; synth.speak(u);
     setTimeout(fin, 4000 + say.length * 120); // safety if onend never fires
+  };
+  const speak = async (text, then) => {
+    const say = speakable(text);
+    setCap({ who: "mira", text }); setPhase("speaking");
+    window.speechSynthesis.cancel(); audio.current?.pause();
+    if (!say) { then?.(); return; }
+    let done = false; const fin = () => { if (done) return; done = true; if (alive.current) then?.(); };
+    if (!isBn(say)) { // server female voice (Aura-2 "luna") for English
+      try {
+        const r = await fetch("/api/tts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text: say }) });
+        if (r.ok && alive.current) {
+          const url = URL.createObjectURL(await r.blob()); const a = new Audio(url); audio.current = a;
+          a.onended = () => { URL.revokeObjectURL(url); fin(); }; a.onerror = () => deviceSay(say, fin);
+          await a.play(); return;
+        }
+      } catch { /* fall back */ }
+    }
+    if (alive.current) deviceSay(say, fin);
   };
 
   const listen = () => {
@@ -75,10 +90,10 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
     if (window.speechSynthesis.getVoices().length) start();
     else { let s = false; const go = () => { if (!s) { s = true; start(); } }; window.speechSynthesis.onvoiceschanged = go; setTimeout(go, 600); }
     const t = setInterval(() => setSecs((x) => x + 1), 1000);
-    return () => { alive.current = false; clearInterval(t); window.speechSynthesis.cancel(); rec.current?.abort?.(); };
+    return () => { alive.current = false; clearInterval(t); window.speechSynthesis.cancel(); audio.current?.pause(); rec.current?.abort?.(); };
   }, []);
 
-  const end = () => { alive.current = false; window.speechSynthesis.cancel(); rec.current?.abort?.(); onClose(); };
+  const end = () => { alive.current = false; window.speechSynthesis.cancel(); audio.current?.pause(); rec.current?.abort?.(); onClose(); };
   const toggleMute = () => {
     const m = !mutedRef.current; mutedRef.current = m; setMuted(m);
     if (m) { rec.current?.abort?.(); if (phase === "listening") setPhase("idle"); }

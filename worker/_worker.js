@@ -11,6 +11,7 @@ export default {
     if (url.pathname === "/.well-known/assetlinks.json") return new Response(JSON.stringify([{relation:["delegate_permission/common.handle_all_urls"],target:{namespace:"android_app",package_name:"com.bbroot.srdmasum",sha256_cert_fingerprints:["CB:C3:8E:CE:0C:34:90:39:D1:A6:2D:30:B9:30:43:E2:39:B9:59:DC:66:D1:C8:3C:C0:43:5C:39:44:44:6C:34"]}}]), { headers: { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" } });
     if (url.pathname === "/api/visits") return visits(req, env);
     if (url.pathname === "/api/chat") return chat(req, env, url);
+    if (url.pathname === "/api/tts") return tts(req, env);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
       // Real 404 for unknown paths (public/404.html also disables the SPA fallback on Pages).
@@ -174,4 +175,28 @@ async function ytCached(env, q) {
   } catch {}
   if (vids.length) { try { await env.VISITS?.put(key, JSON.stringify(vids), { expirationTtl: 21600 }); } catch {} }
   return vids;
+}
+
+// ---- /api/tts: Mira's female voice (English) via Workers AI Deepgram Aura-2 "luna". Cached in KV 7 days.
+// Bangla is not supported by any Workers AI TTS model -> 415, client falls back to a device female voice.
+async function tts(req, env) {
+  const h = { "access-control-allow-origin": "*", "cache-control": "no-store" };
+  if (req.method !== "POST") return new Response("POST only", { status: 405, headers: h });
+  let body; try { body = await req.json(); } catch { return new Response("bad json", { status: 400, headers: h }); }
+  const text = String(body?.text || "").replace(/\s+/g, " ").trim().slice(0, 400);
+  if (!text) return new Response("empty", { status: 400, headers: h });
+  if (/[\u0980-\u09FF]/.test(text)) return new Response("bn unsupported", { status: 415, headers: h });
+  if (!env.AI) return new Response("tts unavailable", { status: 503, headers: h });
+  const voice = "luna";
+  const dig = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(voice + "|" + text));
+  const key = "tts:" + [...new Uint8Array(dig)].slice(0, 12).map(b => b.toString(16).padStart(2, "0")).join("");
+  const ah = { ...h, "content-type": "audio/mpeg", "cache-control": "public, max-age=86400" };
+  try { const c = env.VISITS && await env.VISITS.get(key, "arrayBuffer"); if (c) return new Response(c, { headers: { ...ah, "x-tts": "cache" } }); } catch {}
+  try {
+    const r = await env.AI.run("@cf/deepgram/aura-2-en", { text, speaker: voice, encoding: "mp3" }, { returnRawResponse: true });
+    const buf = await new Response(r.body ?? r).arrayBuffer();
+    if (buf.byteLength < 500) return new Response("tts failed", { status: 502, headers: h });
+    try { await env.VISITS?.put(key, buf, { expirationTtl: 604800 }); } catch {}
+    return new Response(buf, { headers: { ...ah, "x-tts": "aura-2-en/" + voice } });
+  } catch (e) { return new Response("tts error", { status: 502, headers: h }); }
 }

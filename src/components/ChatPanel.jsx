@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { callSupported } from "./MiraCall.jsx";
 const MiraCall = lazy(() => import("./MiraCall.jsx"));
-import { X, PaperPlaneRight, Sparkle, Microphone } from "@phosphor-icons/react";
+import { X, PaperPlaneRight, Sparkle, Microphone, Phone } from "@phosphor-icons/react";
 
 const GREETING = "হাই! আমি মিরা 💙 — Hi, I'm Mira, SRD Masum's assistant. Ask me about the songs, artists, Spotify/YouTube links or the site — in English, বাংলা or हिन्दी.";
 const CHIPS = ["Spotify link?", "Who sings Aashiqana?", "নতুন গান কোনটা?", "How do I contact SRD Masum?"];
@@ -77,28 +77,28 @@ export default function ChatPanel({ open, onClose }) {
   return (
     <section id="srd-chat" role="dialog" aria-label="Mira, SRD Masum assistant" data-testid="chat-panel"
       className="chat-panel fixed inset-x-3 bottom-[9.5rem] z-50 flex max-h-[min(560px,calc(100svh-11rem))] flex-col overflow-hidden rounded-2xl bg-raised shadow-2xl ring-1 ring-hairline sm:left-auto sm:right-4 sm:w-[380px] lg:bottom-44 lg:right-6">
-      <header className="flex items-center gap-3 border-b border-hairline px-4 py-3">
+      <header className="flex items-center gap-3 border-b border-hairline bg-gradient-to-r from-accent/15 via-raised to-fuchsia-500/10 px-3.5 py-2.5">
         <span className="relative shrink-0">
-  <img src="/images/mira-v2.webp" alt="Mira" className="h-9 w-9 rounded-full object-cover ring-1 ring-hairline" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+          <img src="/images/mira-v2.webp" alt="Mira" className="h-10 w-10 rounded-full object-cover ring-2 ring-accent/40" onError={(e) => { e.currentTarget.style.display = "none"; }} />
           <span className="chat-online absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-raised" aria-hidden="true" />
         </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-ink">Mira <span className="font-normal text-muted">· SRD Masum assistant</span></p>
-          <p className="flex items-center gap-1 text-[11px] text-muted"><Sparkle size={11} weight="fill" className="text-accent" aria-hidden="true" /><span className="font-medium text-emerald-500">Online</span> · AI · answers about the site & songs</p>
+        <div className="min-w-0 flex-1 leading-tight">
+          <p className="truncate text-[15px] font-bold text-ink">Mira <span className="text-[11px] font-medium text-muted">SRD Assistant</span></p>
+          <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-emerald-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />Online</p>
         </div>
         <button type="button" data-testid="mira-call-btn" onClick={() => (canCall ? (rec.current?.abort?.(), setCall(true)) : flash("এই ব্রাউজারে ভয়েস কল চলে না 🙏 Chrome-এ চেষ্টা করো"))}
-          title="মিরার সাথে কথা বলো" aria-label="Voice call with Mira"
-          className="flex items-center gap-1 rounded-full bg-emerald-500 px-2.5 py-1.5 text-[11px] font-semibold text-white shadow hover:bg-emerald-600">
-          <span>📞 <span className="hidden min-[400px]:inline">মিরার সাথে </span>কথা বলো</span>
+          title="মিরার সাথে কথা বলো · Call Mira" aria-label="Voice call with Mira"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-md shadow-emerald-500/30 transition hover:scale-105 active:scale-95">
+          <Phone size={17} weight="fill" />
         </button>
-        <button type="button" onClick={onClose} aria-label="Close chat" className="rounded-full p-2 text-muted hover:bg-sunk hover:text-ink"><X size={18} /></button>
+        <button type="button" onClick={onClose} aria-label="Close chat" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-sunk hover:text-ink"><X size={18} /></button>
       </header>
       <div ref={list} className="flex-1 space-y-2.5 overflow-y-auto px-4 py-3 text-[14px] leading-relaxed" aria-live="polite">
-        <p className="max-w-[88%] rounded-2xl rounded-tl-md bg-sunk px-3 py-2 text-ink">{GREETING}</p>
+        <div className="flex items-end gap-2"><img src="/images/mira-v2.webp" alt="" aria-hidden="true" className="h-6 w-6 shrink-0 rounded-full object-cover" /><p className="max-w-[85%] rounded-2xl rounded-bl-md bg-gradient-to-br from-accent/15 to-fuchsia-500/10 px-3.5 py-2.5 text-ink ring-1 ring-accent/15">{GREETING}</p></div>
         {!msgs.length && (
-          <div className="flex flex-wrap gap-2 pt-1">
+          <div className="flex flex-wrap gap-2 pl-8 pt-1">
             {CHIPS.map((c) => (
-              <button key={c} type="button" onClick={() => send(c)} className="rounded-full px-3 py-1.5 text-xs text-ink ring-1 ring-hairline transition hover:bg-sunk hover:ring-accent/60">{c}</button>
+              <button key={c} type="button" onClick={() => send(c)} className="rounded-full bg-sunk/70 px-3 py-1.5 text-xs font-medium text-ink ring-1 ring-accent/25 transition hover:-translate-y-0.5 hover:bg-accent/10 hover:ring-accent/60">{c}</button>
             ))}
           </div>
         )}

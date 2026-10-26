@@ -51,10 +51,10 @@ export default function ChatLauncher() {
 
   return (
     <>
-      <div className="fixed bottom-24 right-4 z-40 flex items-center gap-2 lg:bottom-28 lg:right-6">
+      <div className="fixed bottom-24 right-4 z-40 flex flex-col items-end gap-2 lg:bottom-28 lg:right-6">
         {teaser >= 0 && (
           <div role="status" data-testid="chat-teaser"
-            className="chat-teaser relative flex max-w-[118px] items-center gap-0.5 rounded-xl rounded-br-sm bg-raised py-1 pl-2 pr-0.5 text-[11px] sm:max-w-[190px] sm:text-xs leading-snug text-ink shadow-xl shadow-accent/20 ring-1 ring-accent/25">
+            className="chat-teaser relative flex max-w-[230px] items-center gap-1 rounded-2xl rounded-br-sm bg-raised py-2.5 pl-3.5 pr-1 text-[14px] font-medium sm:max-w-[260px] leading-snug text-ink shadow-xl shadow-accent/20 ring-1 ring-accent/25">
             <button type="button" onClick={toggle} className="text-left">{LINES[teaser]}</button>
             <button type="button" onClick={dismiss} aria-label="Hide message" className="shrink-0 rounded-full p-1 text-muted hover:bg-sunk hover:text-ink">
               <X size={10} weight="bold" aria-hidden="true" />

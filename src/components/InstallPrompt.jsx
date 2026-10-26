@@ -19,13 +19,13 @@ export default function InstallPrompt() {
   if (!evt) return null;
   const dismiss = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch {} setEvt(null); };
   return (
-    <div className="fixed bottom-24 left-4 z-40 flex items-center gap-1 rounded-full bg-sunk py-1 pl-3 pr-1 text-xs text-ink shadow-lg ring-1 ring-hairline">
-      <button type="button" className="flex items-center gap-1.5 font-medium hover:text-accent"
+    <div className="fixed bottom-24 left-3 z-40 flex items-center rounded-full bg-sunk/90 py-0.5 pl-2 pr-0.5 text-[10px] backdrop-blur text-ink shadow-lg ring-1 ring-hairline">
+      <button type="button" aria-label="Install app" className="flex items-center gap-1 font-semibold hover:text-accent"
         onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); }}>
-        <DownloadSimple size={14} weight="bold" /> অ্যাপ ইনস্টল · Install app
+        <DownloadSimple size={11} weight="bold" /> Install
       </button>
-      <button type="button" aria-label="Dismiss" onClick={dismiss} className="flex h-6 w-6 items-center justify-center rounded-full text-muted hover:text-ink">
-        <X size={12} />
+      <button type="button" aria-label="Dismiss" onClick={dismiss} className="flex h-5 w-5 items-center justify-center rounded-full text-muted hover:text-ink">
+        <X size={10} />
       </button>
     </div>
   );
