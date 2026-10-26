@@ -41,6 +41,7 @@ export default function CreditsPanel({ t, onClose, onPlay }) {
               {t.album && <div className="flex justify-between gap-4"><dt className="text-faint">Release</dt><dd className="text-right text-ink">{t.album}</dd></div>}
               {t.writers && <div className="flex justify-between gap-4"><dt className="text-faint">Writers</dt><dd className="text-right text-ink">{t.writers}</dd></div>}
               {t.producer && <div className="flex justify-between gap-4"><dt className="text-faint">Producer</dt><dd className="text-right text-ink">{t.producer}</dd></div>}
+              {t.released && <div className="flex justify-between gap-4"><dt className="text-faint">Released</dt><dd className="text-right text-ink">{new Date(t.released + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}</dd></div>}
               {t.label && <div className="flex justify-between gap-4"><dt className="text-faint">Label</dt><dd className="text-right text-ink">{t.label}</dd></div>}
             </dl>
             {((t.lyrics && onPlay) || t.spotifyUrl || t.youtubeUrl) && (
