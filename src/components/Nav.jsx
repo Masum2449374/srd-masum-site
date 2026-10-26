@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Sun, Moon, List, X, CaretRight, Disc, Globe, MusicNotes, MusicNote, FilmStrip, Sparkle, Star, Television, PlayCircle, ChatCircleText, Heart, EnvelopeSimple, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, Play } from "@phosphor-icons/react";
+import { Sun, Moon, List, X, CaretRight, CaretDown, Disc, Globe, MusicNotes, MusicNote, FilmStrip, Sparkle, Star, Television, PlayCircle, ChatCircleText, Heart, EnvelopeSimple, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, Play } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
 import { triggerSecret } from "./SecretBurst.jsx";
 import { playTapPop } from "../lib/sounds.js";
@@ -139,7 +139,13 @@ export default function Nav({ page = "home" }) {
           <span>SRD <span className="text-accent">Masum</span></span>
         </a>
 
+        <DeskNav active={active} onHome={onHome} goTo={goTo} />
+
         <div className="flex shrink-0 items-center gap-2">
+          <a href={onHome ? "#audio-songs" : "/#audio-songs"} onClick={(e) => { if (!onHome) return; goTo(e, "audio-songs"); }}
+            className="pro-btn hidden items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-transform hover:scale-[1.03] active:scale-[0.97] lg:inline-flex">
+            <Play size={14} weight="fill" aria-hidden="true" />Listen now
+          </a>
           <button
             type="button"
             onClick={toggleTheme}
@@ -169,7 +175,7 @@ export default function Nav({ page = "home" }) {
             aria-expanded={open}
             aria-controls="site-menu"
             aria-label={open ? "Close menu" : "Open menu"}
-            className="pro-btn inline-flex h-9 w-9 items-center justify-center rounded-full bg-accent text-on-accent transition-transform duration-200 active:scale-[0.92]"
+            className="pro-btn inline-flex lg:hidden h-9 w-9 items-center justify-center rounded-full bg-accent text-on-accent transition-transform duration-200 active:scale-[0.92]"
           >
             {open ? <X size={18} weight="bold" aria-hidden="true" /> : <List size={18} weight="bold" aria-hidden="true" />}
           </button>
@@ -232,5 +238,59 @@ export default function Nav({ page = "home" }) {
         </div>
       )}
     </header>
+  );
+}
+
+// Desktop (>=1024px) header nav: the menu's three groups as dropdowns. Hover or click opens; Esc / outside click closes.
+function DeskNav({ active, onHome, goTo }) {
+  const [openG, setOpenG] = useState(-1);
+  const ref = useRef(null);
+  const timer = useRef(0);
+  useEffect(() => {
+    if (openG < 0) return;
+    const onKey = (e) => { if (e.key === "Escape") { setOpenG(-1); ref.current?.querySelector(`[data-g="${openG}"]`)?.focus(); } };
+    const onDown = (e) => { if (!ref.current?.contains(e.target)) setOpenG(-1); };
+    document.addEventListener("keydown", onKey); document.addEventListener("pointerdown", onDown);
+    return () => { document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onDown); };
+  }, [openG]);
+  const enter = (gi) => { clearTimeout(timer.current); setOpenG(gi); };
+  const leave = () => { clearTimeout(timer.current); timer.current = setTimeout(() => setOpenG(-1), 160); };
+  return (
+    <nav ref={ref} aria-label="Main" className="dk-nav hidden flex-1 items-center justify-center gap-1 lg:flex">
+      {GROUPS.map((g, gi) => {
+        const items = LINKS.filter((l) => l.g === gi);
+        const has = items.some((l) => l.id === active);
+        const isOpen = openG === gi;
+        return (
+          <div key={g} className="relative" onMouseEnter={() => enter(gi)} onMouseLeave={leave} style={{ "--tint": GROUP_TINT[gi] }}>
+            <button type="button" data-g={gi} aria-expanded={isOpen} aria-haspopup="true" aria-controls={`dk-menu-${gi}`}
+              onClick={() => setOpenG(isOpen ? -1 : gi)}
+              className={`dk-trigger${has ? " is-active" : ""}${isOpen ? " is-open" : ""}`}>
+              <span className="dk-dot" aria-hidden="true" />{g}
+              <CaretDown size={12} weight="bold" aria-hidden="true" className="dk-caret" />
+            </button>
+            {isOpen && (
+              <div id={`dk-menu-${gi}`} className="dk-panel" data-testid={`dk-panel-${gi}`}>
+                <ul className={items.length > 4 ? "grid grid-cols-2 gap-1" : "flex flex-col gap-1"}>
+                  {items.map((l) => (
+                    <li key={l.id}>
+                      <a href={l.href || (onHome ? `#${l.id}` : `/#${l.id}`)} aria-current={active === l.id ? "true" : undefined}
+                        onClick={(e) => { setOpenG(-1); if (l.href || !onHome) { playTapPop(); return; } goTo(e, l.id); }}
+                        className={`dk-item${active === l.id ? " is-active" : ""}`}>
+                        <span className="srd-menu-ico" style={{ "--tint": GROUP_TINT[gi] }} aria-hidden="true"><l.Icon size={18} weight="duotone" /></span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-semibold leading-tight text-ink">{l.label}</span>
+                          <span className="block truncate text-xs text-muted">{l.sub}</span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
   );
 }
