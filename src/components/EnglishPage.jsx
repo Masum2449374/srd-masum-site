@@ -40,17 +40,17 @@ function SongCard({ t, list, onInfo, i }) {
         </span>
         {active && <span className="absolute bottom-4 left-3"><Bars on={playing} /></span>}
       </button>
-      <div className="flex items-start gap-1 p-3">
-        <div className="min-w-0 flex-1">
-          <h3 className={`truncate text-[15px] font-semibold leading-tight ${active ? "text-accent" : "text-ink"}`}>{t.title}</h3>
-          <p className="mt-0.5 truncate text-xs text-muted">{t.artist}</p>
-          <p className="mt-1 font-mono text-[10px] text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</p>
+      <div className="p-3">
+        <h3 className={`truncate text-[15px] font-semibold leading-tight ${active ? "text-accent" : "text-ink"}`}>{t.title}</h3>
+        <p className="mt-0.5 truncate text-xs text-muted">{t.artist}</p>
+        <div className="mt-2 flex items-center gap-1">
+          <p className="flex-1 font-mono text-[10px] text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</p>
+          {t.lyricsUrl && <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" aria-label={`Lyrics for ${t.title} (opens Genius)`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:text-accent"><Article size={16} weight="bold" /></a>}
+          <ShareButton track={t} />
+          <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline hover:text-accent">
+            <Info size={16} weight="bold" />
+          </button>
         </div>
-        {t.lyricsUrl && <a href={t.lyricsUrl} target="_blank" rel="noopener noreferrer" aria-label={`Lyrics for ${t.title} (opens Genius)`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:text-accent"><Article size={16} weight="bold" /></a>}
-        <ShareButton track={t} />
-        <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline hover:text-accent">
-          <Info size={16} weight="bold" />
-        </button>
       </div>
     </motion.article>
   );
