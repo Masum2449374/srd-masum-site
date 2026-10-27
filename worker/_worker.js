@@ -436,7 +436,8 @@ async function tts(req, env) {
     } catch {}
   }
   if (!out) return new Response("tts unavailable", { status: 503, headers: h });
-  try { await env.VISITS?.put(key, out.buf, { expirationTtl: 604800, metadata: { type: out.type } }); } catch {}
+  // Only the primary (Gemini Leda) voice is cached long; a fallback voice must not stick to a phrase for a week.
+  try { await env.VISITS?.put(key, out.buf, { expirationTtl: out.type === "audio/wav" ? 604800 : 600, metadata: { type: out.type } }); } catch {}
   return new Response(out.buf, { headers: { ...h, "content-type": out.type, "cache-control": "public, max-age=86400", "x-tts": out.src } });
 }
 
