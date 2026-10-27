@@ -8,7 +8,9 @@ const boo = (e) => { e.stopPropagation(); playGhost(e.clientX, e.clientY); };
 // so it never overlaps the player, ads, or lyrics. CSS-only, pointer-events none, paused when the tab is hidden;
 // reduced-motion gets a static arrangement.
 export function useSeason() {
-  const [s] = useState(() => currentSeason());
+  const [s, setS] = useState(() => currentSeason());
+  // Re-check every minute so an open tab reverts at Nov 1 00:00 Asia/Dhaka without reload.
+  useEffect(() => { const id = setInterval(() => setS(currentSeason()), 60000); return () => clearInterval(id); }, []);
   useEffect(() => {
     const el = document.documentElement;
     if (s) el.dataset.season = s; else delete el.dataset.season;

@@ -1,9 +1,11 @@
 // Date-based seasonal decoration, computed client-side in Asia/Dhaka.
-// Halloween: Oct 25–31. Christmas: Dec 1 – Jan 6. Override: ?season=halloween|christmas|off
+// Halloween: Oct 25–31 (ends Nov 1 00:00 Asia/Dhaka). Christmas: Dec 1 – Jan 6.
+// Override: ?theme=normal|halloween|christmas (or legacy ?season=off|halloween|christmas)
 export function currentSeason(now = new Date()) {
   try {
-    const q = new URLSearchParams(location.search).get("season");
-    if (q === "off") return null;
+    const sp = new URLSearchParams(location.search);
+    const q = sp.get("theme") || sp.get("season");
+    if (q === "off" || q === "normal") return null;
     if (q === "halloween" || q === "christmas") return q;
   } catch { /* ignore */ }
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Dhaka", month: "numeric", day: "numeric" }).formatToParts(now);

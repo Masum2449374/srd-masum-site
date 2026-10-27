@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <script>/* Seasonal theme: static HTML is normal; add data-season early only when in range (Asia/Dhaka). */
+try{var q=new URLSearchParams(location.search),t=q.get("theme")||q.get("season"),p=new Intl.DateTimeFormat("en-US",{timeZone:"Asia/Dhaka",month:"numeric",day:"numeric"}).formatToParts(new Date()),m=+p.find(function(x){return x.type==="month"}).value,d=+p.find(function(x){return x.type==="day"}).value,s=(t==="normal"||t==="off")?null:(t==="halloween"||t==="christmas")?t:(m===10&&d>=25)?"halloween":(m===12||(m===1&&d<=6))?"christmas":null;if(s)document.documentElement.dataset.season=s;}catch(e){}</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SRD Masum | Official Music</title>
