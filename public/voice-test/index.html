@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Mira voice test</title>
+<style>body{font-family:system-ui,sans-serif;background:#0f1630;color:#eef;margin:0;padding:16px;max-width:640px;margin:auto}
+h1{font-size:20px}h2{font-size:16px;margin-top:24px}.v{display:flex;align-items:center;gap:8px;padding:10px;border-radius:10px;background:#1a2348;margin:6px 0}
+.v.best{outline:2px solid #3ddc97}.v div{flex:1;font-size:14px}.v small{color:#9ab}button{border:0;border-radius:999px;padding:8px 14px;font-weight:600;background:#fff;color:#0f1630}
+.note{background:#5a2a2a;padding:10px;border-radius:10px;font-size:14px}.tag{font-size:11px;background:#3ddc97;color:#033;border-radius:6px;padding:1px 6px;margin-left:4px}</style></head><body>
+<h1>Mira voice test</h1><p style="font-size:14px;color:#bcd">Tap Play to hear each voice. Green = best female candidate. Rate 1.05, pitch 1.0.</p>
+<h2>Current Gemini voice (Leda)</h2>
+<div class="v"><div>Leda — Bangla</div><button onclick="leda('bn')">Play</button></div>
+<div class="v"><div>Leda — English</div><button onclick="leda('en')">Play</button></div>
+<h2>Bangla device voices</h2><div id="bn"></div><h2>English device voices</h2><div id="en"></div>
+<p style="font-size:12px;color:#89a;margin-top:24px">Voice gender isn't reported by browsers; "female" is guessed from the voice name. Please listen to confirm.</p>
+<script>
+const T={bn:"হ্যালো, আমি মিরা। SRD Masum-এর গানের জগতে আপনাকে স্বাগতম। আজ কোন গানটা শুনতে চাও?",en:"Hi, I'm Mira. Welcome to the world of SRD Masum. Which song would you like to hear today?"};
+const F=/female|woman|samantha|victoria|karen|moira|tessa|fiona|zira|aria|jenny|michelle|sonia|libby|natasha|neerja|swara|tanishaa|nabanita|heera|veena|google us english|google বাংলা|x-bnf|bnf|ban-|-x-sfg|-x-tpf|-x-iol|-x-iog/i, M=/\bmale\b|david|mark|guy|ryan|george|james|prabhat|bashkar|-x-iom|-x-iob|-x-tpd/i;
+const a=new Audio();function stop(){speechSynthesis.cancel();a.pause()}
+function leda(l){stop();a.src="leda-"+l+".mp3";a.play()}
+let V=[];function say(i){stop();const v=V[i],u=new SpeechSynthesisUtterance(T[v.lang.slice(0,2).toLowerCase()]);u.voice=v;u.lang=v.lang;u.rate=1.05;u.pitch=1;speechSynthesis.speak(u)}
+function score(v){let s=0;if(F.test(v.name))s+=5;if(M.test(v.name))s-=10;if(/google/i.test(v.name))s+=2;if(/bn-BD/i.test(v.lang))s+=1;if(!v.localService)s+=1;return s}
+function render(){V=speechSynthesis.getVoices();for(const l of["bn","en"]){const el=document.getElementById(l);const list=V.map((v,i)=>({v,i})).filter(x=>x.v.lang.toLowerCase().startsWith(l));
+list.sort((x,y)=>score(y.v)-score(x.v));const best=list[0]&&score(list[0].v)>0?list[0].i:-1;
+el.innerHTML=list.length?list.map(({v,i})=>`<div class="v ${i===best?"best":""}"><div>${v.name}${i===best?'<span class="tag">best female</span>':""}<br><small>${v.lang} · ${v.localService?"on-device":"network"}${M.test(v.name)?" · likely male":F.test(v.name)?" · likely female":""}</small></div><button onclick="say(${i})">Play</button></div>`).join(""):
+(l==="bn"?'<div class="note">No Bangla voice is installed on this device. On Android: Settings → System → Languages → Text-to-speech → Google Speech Services → Install voice data → বাংলা (Bangladesh/India). Then reload this page.</div>':'<div class="note">No English voices found.</div>')}}
+render();speechSynthesis.onvoiceschanged=render;setTimeout(render,800);
+</script></body></html>
