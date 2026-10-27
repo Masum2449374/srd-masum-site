@@ -45,6 +45,8 @@ const handle = async (req, env) => {
     if (url.pathname === "/api/visits") return visits(req, env);
     if (url.pathname === "/api/chat") return chat(req, env, url);
     if (url.pathname === "/api/tts") return tts(req, env);
+    if (url.pathname === "/api/song-request") return songRequest(req, env, url);
+    if (url.pathname === "/api/song-requests") return songRequests(req, env, url);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
       // Real 404 for unknown paths (public/404.html also disables the SPA fallback on Pages).
@@ -159,6 +161,10 @@ async function chat(req, env, url) {
   for (let i = msgs.length - 2; i >= 0; i--) if (msgs[i].role === "user" && await isPasscode(env, msgs[i].content)) msgs.splice(i, 1);
   let OWNER = await validOwner(env, body?.owner);
   if (OWNER && /^(লগ ?আউট|log ?out)[.!।]?$/i.test(last.trim())) return out({ reply: "ঠিক আছে Masum স্যার, লগআউট করে দিলাম। আবার আসবেন!", logout: true });
+  if (OWNER && /^(requests?|song ?requests?|অনুরোধ(গুলো)?|গানের অনুরোধ(গুলো)?|रिक्वेस्ट)[?.!।]?$/i.test(last.trim())) {
+    const list = await listRequests(env, 20);
+    return out({ reply: list.length ? "গানের অনুরোধ (নতুনগুলো আগে), Masum স্যার:\n" + list.map((r, i) => `${i + 1}. ${r.song} — ${r.artist}${r.name ? ` (${r.name})` : ""}${r.note ? ` · ${r.note}` : ""} · ${new Date(r.t + 6 * 3600e3).toISOString().slice(0, 16).replace("T", " ")} BD`).join("\n") : "এখনো কোনো গানের অনুরোধ আসেনি, Masum স্যার 🙂" });
+  }
   if (!CTX || now - CTX_AT > 600000) {
     try { const c = await env.ASSETS.fetch(new Request(`${url.origin}/chat-context.txt`)); if (c.ok) { CTX = await c.text(); CTX_AT = now; } } catch {}
   }
@@ -171,6 +177,7 @@ Rules:
 - Credit performers exactly as listed; songs by other artists are covers/featured on the site — never claim SRD Masum wrote or originally sang them.
 - Links: use only URLs that appear in SITE DATA. Never type any other URL yourself.
 - If someone wants a song/video that is NOT in SITE DATA (or asks you to find it on YouTube), reply with ONE short sentence and the marker [[search: <best YouTube search query: song title, plus artist/film if you know it>]] on its own line. The site will really search YouTube for you and give you the results. Never guess a direct link.
+- SONG REQUESTS: if the visitor wants a song added to this site (or asks SRD Masum to cover/upload one), collect the song title and the artist (ask for whichever is missing; their name is optional, ask once, never insist). Once you have at least song + artist, confirm warmly in their language that the request has been sent to SRD Masum, and put on its own last line exactly: [[request: <song> | <artist> | <name or blank>]]. Use the marker only once per request and only when they really asked; never for songs already in SITE DATA (just point them to it).
 - If unsure about a fact, say so; for site questions suggest the contact email.
 - Plain text only (no markdown tables/headings/bold); put links as bare URLs.
 SITE DATA:
@@ -188,6 +195,14 @@ VOICE CALL MODE: the visitor is talking to you on a live voice call and your rep
   const base = [{ role: "system", content: sys2 }, ...msgs];
   const first = await callModel(env, base);
   if (!first.reply) { console.log("chat upstream fail:", first.why); return out({ error: "upstream", reply: "Sorry, I can't answer right now — please try again soon." }, 502); }
+  const RQ = /\[\[\s*request:\s*([^\]]{1,300})\]\]/i;
+  const rq = RQ.exec(first.reply);
+  if (rq) {
+    const [song, artist, name] = rq[1].split("|").map((x) => x.trim());
+    const ok = await saveRequest(env, ip, { song, artist, name, note: "via Mira" });
+    first.reply = first.reply.replace(RQ, "").trim();
+    if (!ok.ok) first.reply = ok.error === "rate" ? "Too many requests right now, please try again later. 🙏" : first.reply;
+  }
   const MARK = /\[\[\s*search:\s*([^\]]{1,120})\]\]/gi;
   const queries = [...new Set([...first.reply.matchAll(MARK)].map((m) => m[1].trim()))].slice(0, 2);
   if (!queries.length) return out({ reply: tidy(first.reply, NOCJK) });
@@ -205,6 +220,47 @@ VOICE CALL MODE: the visitor is talking to you on a live voice call and your rep
   }
   const fb = first.reply.replace(MARK, (_, q) => { const e = encodeURIComponent(q.trim()); return `YouTube: https://www.youtube.com/results?search_query=${e}\nSpotify: https://open.spotify.com/search/${e}`; });
   return out({ reply: tidy(fb, NOCJK), yt: false });
+}
+
+// ---- Song requests: stored in KV under "req:<ts>:<rand>" for 180 days. Owner reads them via chat ("requests") or GET /api/song-requests.
+const clean = (v, n) => String(v ?? "").normalize("NFC").replace(/[\u0000-\u001f\u007f<>{}\[\]`\\]/g, " ").replace(/https?:\/\/\S+/gi, "").replace(/\s+/g, " ").trim().slice(0, n);
+async function saveRequest(env, ip, b) {
+  if (!env.VISITS) return { ok: false, error: "unavailable" };
+  const rec = { song: clean(b?.song, 100), artist: clean(b?.artist, 80), name: clean(b?.name, 40), note: clean(b?.note, 200) };
+  if (rec.song.length < 1 || rec.artist.length < 1 || /^(blank|none|-|n\/a|unknown)$/i.test(rec.song)) return { ok: false, error: "song and artist required" };
+  if (/^(blank|none|-|n\/a)$/i.test(rec.name)) rec.name = "";
+  const hk = `reqrl:${ip}:${Math.floor(Date.now() / 3600000)}`, dk = `reqrld:${Math.floor(Date.now() / 864e5)}`;
+  try {
+    const [n, d] = (await Promise.all([env.VISITS.get(hk), env.VISITS.get(dk)])).map((v) => Number(v) || 0);
+    if (n >= 5 || d >= 300) return { ok: false, error: "rate" };
+    await Promise.all([env.VISITS.put(hk, String(n + 1), { expirationTtl: 3700 }), env.VISITS.put(dk, String(d + 1), { expirationTtl: 90000 })]);
+    const t = Date.now(), id = `req:${String(9999999999999 - t).padStart(13, "0")}:${crypto.randomUUID().slice(0, 8)}`; // newest first in list()
+    await env.VISITS.put(id, JSON.stringify({ ...rec, t }), { expirationTtl: 180 * 864e5 / 1000 });
+    return { ok: true };
+  } catch { return { ok: false, error: "store" }; }
+}
+async function listRequests(env, limit = 50) {
+  if (!env.VISITS) return [];
+  const l = await env.VISITS.list({ prefix: "req:", limit });
+  return (await Promise.all(l.keys.map((k) => env.VISITS.get(k.name, "json")))).filter(Boolean);
+}
+async function songRequest(req, env, url) {
+  const h = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
+  const out = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: h });
+  if (req.method !== "POST") return out({ error: "POST only" }, 405);
+  const origin = req.headers.get("origin");
+  if (origin !== url.origin) return out({ error: "forbidden" }, 403);
+  if (Number(req.headers.get("content-length") || 0) > 2000) return out({ error: "too large" }, 413);
+  let b; try { b = JSON.parse((await req.text()).slice(0, 2000)); } catch { return out({ error: "bad json" }, 400); }
+  const r = await saveRequest(env, req.headers.get("cf-connecting-ip") || "0", b);
+  return r.ok ? out({ ok: true }) : out(r, r.error === "rate" ? 429 : r.error === "store" || r.error === "unavailable" ? 503 : 400);
+}
+async function songRequests(req, env, url) {
+  const h = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
+  if (req.method !== "GET") return new Response(JSON.stringify({ error: "GET only" }), { status: 405, headers: h });
+  const tok = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
+  if (!(await validOwner(env, tok))) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: h });
+  return new Response(JSON.stringify({ requests: await listRequests(env, 100) }), { headers: h });
 }
 
 const CJK = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\uff00-\uffef]+/g;
