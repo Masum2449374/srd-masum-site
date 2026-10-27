@@ -71,7 +71,7 @@ export default function ChatLauncher() {
             aria-expanded={open} aria-controls="srd-chat" data-testid="chat-launcher"
             className={`chat-fab ${open ? "" : "chat-fab-alive"} relative flex h-12 items-center gap-2 rounded-full bg-accent pl-3.5 pr-4 text-sm font-semibold text-on-accent shadow-lg shadow-accent/30 ring-1 ring-white/10 transition-transform hover:scale-[1.04] active:scale-95`}>
             <ChatCircleDots size={22} weight="fill" aria-hidden="true" />
-            <span className="hidden sm:inline">Ask Mira</span>
+            <span className="whitespace-nowrap text-[13px] sm:text-sm">Ask Mira</span>
             <span className="chat-online absolute right-0.5 top-0.5 h-3 w-3 rounded-full bg-emerald-500 ring-2 ring-white" aria-hidden="true" />
           </button>
         </div>
