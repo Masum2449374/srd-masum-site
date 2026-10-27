@@ -34,19 +34,19 @@ const RELEASE_DATE = "2026-12-01T00:00:00";
 const RELEASE_NAME = "Next single";
 
 // Photo intro: the portrait in a round frame with a soft blue glow ring, then the name fades in,
-// then the screen slides away into the hero. Shows once per session, tap anywhere to skip, max ~2.5s.
+// then the screen slides away into the hero. Shows on the first visit only (localStorage), tap anywhere to skip, ~1s.
 // Only transform and opacity animate (one small image, no blur filters, no animated shadows).
-const INTRO_HOLD_MS = 2000; // how long the intro stays before it starts leaving
-const INTRO_EXIT_S = 0.5; // leave animation, so the intro is gone by ~2.5s
-const INTRO_TYPE_DELAY_MS = 2500; // first-visit typewriter starts once the intro has gone
+const INTRO_HOLD_MS = 700; // how long the intro stays before it starts leaving
+const INTRO_EXIT_S = 0.3; // leave animation, so the intro is gone by ~2.5s
+const INTRO_TYPE_DELAY_MS = 1000; // first-visit typewriter starts once the intro has gone
 
 function IntroLoader() {
   const reduce = useReducedMotion();
-  const [show, setShow] = useState(() => !sessionStorage.getItem("srd-intro-seen"));
+  const [show, setShow] = useState(() => { try { return !localStorage.getItem("srd-intro-seen"); } catch { return false; } });
   const [leaving, setLeaving] = useState(false);
 
   const finish = () => {
-    sessionStorage.setItem("srd-intro-seen", "1");
+    try { localStorage.setItem("srd-intro-seen", "1"); } catch {}
     setShow(false);
   };
   const leave = () => {
@@ -316,7 +316,7 @@ function Hero() {
   // Background drifts down slower than the page scrolls (gentle parallax). Image is oversized so it never shows an edge.
   const parallaxY = useTransform(scrollY, [0, 900], [0, 120]);
   // On a first visit the intro covers the page for about 1.5s, so the typing waits for it.
-  const [introDelay] = useState(() => (sessionStorage.getItem("srd-intro-seen") ? 250 : INTRO_TYPE_DELAY_MS));
+  const [introDelay] = useState(() => { try { return localStorage.getItem("srd-intro-seen") ? 250 : INTRO_TYPE_DELAY_MS; } catch { return 250; } });
   return (
     <section id="top" className="relative isolate overflow-hidden">
       <picture>
@@ -824,7 +824,7 @@ function Footer() {
   );
 }
 
-// Curtain reveal: on the first open of a session the screen starts dark, "SRD MASUM" ignites with a
+// Curtain reveal: on the very first visit (localStorage), ~1s the screen starts dark, "SRD MASUM" ignites with a
 // fire-like glow, then two velvet panels part and the site is revealed. Tap anywhere to skip.
 // Only transform and opacity animate (no blur filters, no animated shadows). The flame is a plain
 // radial gradient. It sits above the avatar intro (z-50) and clears before the intro is gone.
@@ -835,7 +835,7 @@ function CurtainReveal() {
   const reduce = useReducedMotion();
   const [show, setShow] = useState(() => {
     try {
-      return !sessionStorage.getItem("srd-curtain-seen");
+      return !localStorage.getItem("srd-curtain-seen");
     } catch {
       return false;
     }
@@ -844,7 +844,7 @@ function CurtainReveal() {
 
   const finish = () => {
     try {
-      sessionStorage.setItem("srd-curtain-seen", "1");
+      localStorage.setItem("srd-curtain-seen", "1");
     } catch {
       /* storage unavailable: the curtain just plays again on the next load */
     }
@@ -853,13 +853,13 @@ function CurtainReveal() {
 
   useEffect(() => {
     if (!show) return;
-    const t = setTimeout(() => setOpen(true), reduce ? 900 : 1700);
+    const t = setTimeout(() => setOpen(true), reduce ? 300 : 450);
     return () => clearTimeout(t);
   }, [show, reduce]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (!open) return;
-    const t = setTimeout(finish, reduce ? 650 : 950);
+    const t = setTimeout(finish, reduce ? 350 : 550);
     return () => clearTimeout(t);
   }, [open, reduce]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -878,7 +878,7 @@ function CurtainReveal() {
       <motion.div
         initial={{ x: "0%" }}
         animate={{ x: open ? "-100%" : "0%" }}
-        transition={{ duration: reduce ? 0.5 : 0.9, ease: CURTAIN_EASE }}
+        transition={{ duration: reduce ? 0.3 : 0.5, ease: CURTAIN_EASE }}
         style={panelStyle}
         className="absolute inset-y-0 left-0 w-1/2 will-change-transform"
       >
@@ -887,7 +887,7 @@ function CurtainReveal() {
       <motion.div
         initial={{ x: "0%" }}
         animate={{ x: open ? "100%" : "0%" }}
-        transition={{ duration: reduce ? 0.5 : 0.9, ease: CURTAIN_EASE }}
+        transition={{ duration: reduce ? 0.3 : 0.5, ease: CURTAIN_EASE }}
         style={panelStyle}
         className="absolute inset-y-0 right-0 w-1/2 will-change-transform"
       >
@@ -904,7 +904,7 @@ function CurtainReveal() {
             <span
               key={i}
               className="curtain-letter"
-              style={{ animationDelay: `${reduce ? i * 30 : i * 70}ms` }}
+              style={{ animationDelay: `${reduce ? i * 15 : i * 30}ms` }}
             >
               {ch === " " ? "\u00a0" : ch}
             </span>
