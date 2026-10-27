@@ -45,6 +45,7 @@ const handle = async (req, env) => {
     if (url.pathname === "/api/visits") return visits(req, env);
     if (url.pathname === "/api/chat") return chat(req, env, url);
     if (url.pathname === "/api/tts") return tts(req, env);
+    if (url.pathname === "/api/stt") return stt(req, env);
     if (url.pathname === "/api/song-request") return songRequest(req, env, url);
     if (url.pathname === "/api/song-requests") return songRequests(req, env, url);
     if (url.pathname === "/api/play") return playHit(req, env, url);
@@ -375,7 +376,8 @@ async function ytCached(env, q) {
 }
 
 // ---- /api/tts: Mira's voice. Gemini TTS "Leda" (bn + en) -> fallback model -> Workers AI aura-2 "luna" (en only).
-// Cached in KV 7 days by text hash; 20 req/min per IP. Client falls back to the device voice on any non-200.
+// Cached in KV 7 days by text hash; 80 req/min per IP. Female voices only: Bangla has no non-Gemini female
+// voice, so a Gemini failure returns 503 and the client shows captions (it never uses a male voice).
 const TTS_MODELS = ["gemini-3.8-flash-tts", "gemini-3.8-flash-lite-tts", "gemini-2.5-flash-preview-tts"];
 function wavWrap(pcm, rate = 24000) {
   const h = new DataView(new ArrayBuffer(44)); const w = (o, t) => [...t].forEach((c, i) => h.setUint8(o + i, c.charCodeAt(0)));
@@ -411,7 +413,7 @@ async function tts(req, env) {
   if (origin && origin !== self) return new Response("forbidden", { status: 403, headers: h });
   if (!origin && !(req.headers.get("referer") || "").startsWith(self + "/")) return new Response("forbidden", { status: 403, headers: h });
   { const ip = req.headers.get("cf-connecting-ip") || "x", now = Date.now(), r = TRL.get(ip);
-    if (!r || now - r.t > 60000) TRL.set(ip, { t: now, n: 1 }); else if (++r.n > 30) return new Response("slow down", { status: 429, headers: h });
+    if (!r || now - r.t > 60000) TRL.set(ip, { t: now, n: 1 }); else if (++r.n > 120) return new Response("slow down", { status: 429, headers: h });
     if (TRL.size > 5000) TRL.clear(); }
   let body; try { body = await req.json(); } catch { return new Response("bad json", { status: 400, headers: h }); }
   const text = String(body?.text || "").replace(/\s+/g, " ").trim().slice(0, 400);
@@ -424,7 +426,7 @@ async function tts(req, env) {
   } catch {}
   // per-IP rate limit (cache hits are free)
   const ip = req.headers.get("cf-connecting-ip") || "x"; const rk = `ttsrl:${ip}:${Math.floor(Date.now() / 60000)}`;
-  try { const n = Number(await env.VISITS?.get(rk)) || 0; if (n >= 20) return new Response("slow down", { status: 429, headers: h }); await env.VISITS?.put(rk, String(n + 1), { expirationTtl: 120 }); } catch {}
+  try { const n = Number(await env.VISITS?.get(rk)) || 0; if (n >= 80) return new Response("slow down", { status: 429, headers: h }); await env.VISITS?.put(rk, String(n + 1), { expirationTtl: 120 }); } catch {}
   let out = await gemini(env, text);
   if (!out && env.AI && !/[\u0980-\u09FF]/.test(text)) {
     try {
@@ -436,4 +438,36 @@ async function tts(req, env) {
   if (!out) return new Response("tts unavailable", { status: 503, headers: h });
   try { await env.VISITS?.put(key, out.buf, { expirationTtl: 604800, metadata: { type: out.type } }); } catch {}
   return new Response(out.buf, { headers: { ...h, "content-type": out.type, "cache-control": "public, max-age=86400", "x-tts": out.src } });
+}
+
+// ---- /api/stt: speech-to-text for Mira voice calls. Workers AI Whisper large-v3-turbo, auto language
+// detection restricted to Bangla/English (anything else is re-decoded with the caller's last language).
+const SRL = new Map();
+async function stt(req, env) {
+  const h = { "cache-control": "no-store", "content-type": "application/json" };
+  const J = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: h });
+  if (req.method !== "POST") return J({ error: "POST only" }, 405);
+  const origin = req.headers.get("origin"), self = new URL(req.url).origin;
+  if (origin && origin !== self) return J({ error: "forbidden" }, 403);
+  if (!origin && !(req.headers.get("referer") || "").startsWith(self + "/")) return J({ error: "forbidden" }, 403);
+  { const ip = req.headers.get("cf-connecting-ip") || "x", now = Date.now(), r = SRL.get(ip);
+    if (!r || now - r.t > 60000) SRL.set(ip, { t: now, n: 1 }); else if (++r.n > 40) return J({ error: "slow down" }, 429);
+    if (SRL.size > 5000) SRL.clear(); }
+  if (!env.AI) return J({ error: "stt unavailable" }, 503);
+  const hint = new URL(req.url).searchParams.get("lang") === "en" ? "en" : "bn";
+  const buf = await req.arrayBuffer();
+  if (buf.byteLength < 1500) return J({ text: "", lang: hint });
+  if (buf.byteLength > 2_500_000) return J({ error: "too long" }, 413);
+  let b64 = ""; const u8 = new Uint8Array(buf); for (let i = 0; i < u8.length; i += 0x8000) b64 += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); b64 = btoa(b64);
+  const run = async (language) => env.AI.run("@cf/openai/whisper-large-v3-turbo", { audio: b64, task: "transcribe", vad_filter: true, ...(language ? { language } : {}) });
+  try {
+    let r = await run(), lang = r?.transcription_info?.language, prob = r?.transcription_info?.language_probability ?? 0;
+    // Bangla speech is often mis-detected as English (esp. with English names); trust a switch only when confident.
+    // Clear English scores ~1.0; low-confidence detections are almost always Bangla (or noisy) -> decode as Bangla.
+    if (lang !== "bn" && !(lang === "en" && (prob >= 0.85 || (hint === "en" && prob >= 0.6)))) { r = await run("bn"); lang = "bn"; }
+    let text = String(r?.text || "").trim();
+    // Whisper hallucinations on silence/noise
+    if (/^(thanks for watching!?|[.\s]+|subtitles by.*|.*amara\.org.*)$/i.test(text)) text = "";
+    return J({ text, lang, p: Math.round(prob * 100) / 100 });
+  } catch (e) { return J({ error: "stt failed", detail: String(e?.message || e).slice(0, 160) }, 502); }
 }

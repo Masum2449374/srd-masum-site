@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { callSupported } from "./MiraCall.jsx";
+import { callSupported, unlockAudio } from "./MiraCall.jsx";
 const MiraCall = lazy(() => import("./MiraCall.jsx"));
 import { X, PaperPlaneRight, Sparkle, Microphone, Phone } from "@phosphor-icons/react";
 
@@ -91,7 +91,7 @@ export default function ChatPanel({ open, onClose }) {
           <p className="truncate text-[15px] font-bold text-ink">Mira <span className="text-[11px] font-medium text-muted">SRD Assistant</span></p>
           <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-emerald-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />Online</p>
         </div>
-        <button type="button" data-testid="mira-call-btn" onClick={() => (canCall ? (rec.current?.abort?.(), setCall(true)) : flash("Voice calls aren't supported in this browser 🙏 Try Chrome"))}
+        <button type="button" data-testid="mira-call-btn" onClick={() => (canCall ? (rec.current?.abort?.(), unlockAudio(), setCall(true)) : flash("Voice calls aren't supported in this browser 🙏 Try Chrome"))}
           title="Call Mira" aria-label="Voice call with Mira"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-md shadow-emerald-500/30 transition hover:scale-105 active:scale-95">
           <Phone size={17} weight="fill" />
