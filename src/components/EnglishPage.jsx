@@ -47,6 +47,7 @@ function SongCard({ t, list, onInfo, i }) {
         <p className="mt-0.5 truncate text-xs text-muted">{t.artist}</p>
         <div className="mt-2 flex items-center gap-1">
           <p className="flex-1 font-mono text-[10px] text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</p>
+          <a href={`/song/${encodeURIComponent(t.id)}/`} aria-label={`Details: ${t.title}`} className="shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold text-muted ring-1 ring-hairline hover:text-accent">Details</a>
           <ShareButton track={t} />
           <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline hover:text-accent">
             <Info size={16} weight="bold" />

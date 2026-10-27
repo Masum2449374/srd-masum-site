@@ -35,6 +35,7 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
               <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Original")}</span>
               <span className="pl-time font-mono text-[11px] tabular-nums text-muted">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
             </button>
+            <a href={`/song/${encodeURIComponent(t.id)}/`} aria-label={`Details: ${t.title}`} className="shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-muted ring-1 ring-hairline hover:text-accent" lang="bn">বিস্তারিত</a>
             {onInfo && <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline"><Info size={16} weight="bold" /></button>}
           </li>
         );

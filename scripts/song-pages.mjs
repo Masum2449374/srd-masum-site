@@ -60,23 +60,43 @@ for (const t of all) {
   h = h.replace("</head>", `    <meta property="og:audio" content="${esc(t.src)}" />\n  </head>`);
   // The shell's homepage JSON-LD graph (incl. its MusicRecording) does not belong on song pages.
   h = h.replace(/\s*<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "");
+  // Song pages are standalone (no React app): drop the app bundle and its preloads.
+  h = h.replace(/\s*<script type="module"[^>]*><\/script>/g, "").replace(/\s*<link rel="modulepreload"[^>]*>/g, "");
   // Static, crawler-visible song page inside #root (React replaces it on mount and cues the track).
   const isOriginal = !t.artist || t.artist === "SRD Masum";
   const lang = BANGLA_TRACKS.includes(t) ? "bn" : AUDIO_TRACKS.includes(t) ? "hi" : "en";
+  let li = 0;
+  const times = Array.isArray(t.lyricTimes) ? t.lyricTimes : null;
   const lyr = t.lyrics ? t.lyrics.split("\n").map((l) => {
     const m = /^\[(.+)\]$/.exec(l.trim());
-    return m ? `<h3>${xesc(m[1])}</h3>` : l.trim() ? `<p>${xesc(l.trim())}</p>` : "";
+    if (m) return `<h3 style="color:#a39e98;font-size:.8rem;text-transform:uppercase;letter-spacing:.15em;margin:1.2rem 0 .3rem">${xesc(m[1])}</h3>`;
+    if (!l.trim()) return "";
+    const tt = times && times[li] != null ? ` data-t="${times[li]}"` : "";
+    li++;
+    return `<p class="ly"${tt} style="margin:.25rem 0;transition:color .2s">${xesc(l.trim())}</p>`;
   }).join("") : "";
   const credits = [["Artist", t.artist || "SRD Masum"], ["Album", t.album], ["Writers", t.writers], ["Label", t.label], ["Released", t.released]]
     .filter(([, v]) => v).map(([k, v]) => `<dt style="color:#a39e98">${k}</dt><dd style="margin:0 0 .5rem">${xesc(v)}</dd>`).join("");
   const btn = "display:inline-block;margin:.25rem .5rem .25rem 0;padding:.7rem 1.2rem;border-radius:999px;color:#fff;text-decoration:none;font-weight:600";
   const links = [
-    `<a href="/?song=${encodeURIComponent(t.id)}" style="${btn};background:#0b6cf0">▶ Play on SRD Masum</a>`,
     t.spotifyUrl ? `<a href="${esc(t.spotifyUrl)}" rel="noopener" style="${btn};background:#1DB954;color:#0e0d0c">Spotify</a>` : "",
     t.youtubeUrl ? `<a href="${esc(t.youtubeUrl)}" rel="noopener" style="${btn};background:#c4302b">YouTube</a>` : "",
+    `<a href="/?from=song&song=${encodeURIComponent(t.id)}" style="${btn};background:#26231f">Open full site / Go to home</a>`,
   ].join("");
+  const audioSrc = t.src || "";
+  const dur = t.duration || 0;
+  const fmt = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, "0")}`;
+  const player = audioSrc ? `<div id="sp" style="margin:1rem 0;padding:1rem;border-radius:16px;background:#1a1816"><audio id="sa" preload="none" src="${esc(audioSrc)}"></audio><div style="display:flex;align-items:center;gap:.8rem"><button id="pb" type="button" aria-label="Play ${esc(t.title)}" style="flex:none;width:56px;height:56px;border-radius:50%;border:0;background:#0b6cf0;color:#fff;font-size:1.4rem;cursor:pointer">▶</button><div style="flex:1;min-width:0"><input id="sk" type="range" min="0" max="${dur}" step="0.1" value="0" aria-label="Seek" style="width:100%;accent-color:#0b6cf0"><div style="display:flex;justify-content:space-between;font:12px monospace;color:#a39e98"><span id="tc">0:00</span><span id="td">${fmt(dur)}</span></div></div></div></div>` : "";
+  const script = audioSrc ? `<script>(function(){var a=document.getElementById("sa"),b=document.getElementById("pb"),k=document.getElementById("sk"),c=document.getElementById("tc"),d=document.getElementById("td"),id=${JSON.stringify(t.id)},sent=0,drag=0;var L=[].slice.call(document.querySelectorAll(".ly[data-t]")),cur=-1;function f(x){x=x||0;return Math.floor(x/60)+":"+("0"+Math.floor(x%60)).slice(-2)}
+b.onclick=function(){if(a.paused){var p=a.play();if(p&&p.catch)p.catch(function(){b.textContent="▶"});}else a.pause()};
+a.onplay=function(){b.textContent="❚❚";b.setAttribute("aria-label","Pause");if(!sent){sent=1;try{var K="srd-play-"+id,n=Date.now(),l=+localStorage.getItem(K)||0;if(n-l>18e5){localStorage.setItem(K,n);fetch("/api/play",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:id}),keepalive:true}).catch(function(){})}}catch(e){}}};
+a.onpause=a.onended=function(){b.textContent="▶";b.setAttribute("aria-label","Play")};
+a.onloadedmetadata=function(){if(a.duration&&isFinite(a.duration)){k.max=a.duration;d.textContent=f(a.duration)}};
+a.ontimeupdate=function(){var x=a.currentTime;if(!drag)k.value=x;c.textContent=f(x);if(L.length){var i=-1;for(var j=0;j<L.length;j++){if(+L[j].dataset.t<=x)i=j;else break}if(i!==cur){if(cur>=0)L[cur].style.color="";cur=i;if(i>=0){L[i].style.color="#5aa2ff";L[i].scrollIntoView({block:"center",behavior:"smooth"})}}}};
+k.oninput=function(){drag=1;c.textContent=f(+k.value)};k.onchange=function(){a.currentTime=+k.value;drag=0};
+L.forEach(function(p){p.style.cursor="pointer";p.onclick=function(){a.currentTime=+p.dataset.t;if(a.paused)a.play()}});})();</script>` : "";
   const cover = t.artwork512 || t.cover;
-  h = h.replace(/<div id="root"><\/div>/, `<div id="root"><article lang="${lang}" style="max-width:40rem;margin:0 auto;padding:2rem 1rem;font-family:'DM Sans','Noto Sans Bengali',system-ui,sans-serif;color:#f4f1ea;background:#0e0d0c"><p><a href="/" style="color:#5aa2ff">← SRD Masum · Home</a></p>${cover ? `<img src="${esc(cover)}" alt="${esc(t.title)} cover" width="256" height="256" style="border-radius:16px;max-width:100%;height:auto">` : ""}<h1>${xesc(t.title)}${t.lyrics ? " — লিরিক্স (Lyrics)" : ""}</h1><dl>${credits}</dl><div>${links}</div>${lyr ? `<section><h2>Lyrics</h2>${lyr}</section>` : ""}</article></div>`);
+  h = h.replace(/<div id="root"><\/div>/, `<div id="root"><article lang="${lang}" style="max-width:40rem;margin:0 auto;padding:2rem 1rem;font-family:'DM Sans','Noto Sans Bengali',system-ui,sans-serif;color:#f4f1ea;background:#0e0d0c"><p><a href="/?from=song" style="color:#5aa2ff">← SRD Masum · Home</a></p>${cover ? `<img src="${esc(cover)}" alt="${esc(t.title)} cover" width="256" height="256" style="border-radius:16px;max-width:100%;height:auto">` : ""}<h1>${xesc(t.title)}${t.lyrics ? " — লিরিক্স (Lyrics)" : ""}</h1><dl>${credits}</dl>${player}<div>${links}</div>${lyr ? `<section><h2>Lyrics</h2>${lyr}</section>` : ""}</article></div>${script}`);
   if (isOriginal) {
     const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, byArtist: { "@type": "MusicGroup", "@id": `${SITE}/#artist`, name: "SRD Masum" }, inLanguage: lang, ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
     h = h.replace("</head>", `    <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n  </head>`);

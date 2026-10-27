@@ -9,6 +9,17 @@ import "@fontsource/ibm-plex-mono/500.css";
 import App from "./App.jsx";
 import "./index.css";
 
+// Arriving from a static song page (/?from=song): skip the first-visit intro/curtain.
+try {
+  const q = new URLSearchParams(location.search);
+  if (q.get("from") === "song") {
+    localStorage.setItem("srd-intro-seen", "1");
+    localStorage.setItem("srd-curtain-seen", "1");
+    q.delete("from");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+  }
+} catch { /* storage unavailable */ }
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <App />
