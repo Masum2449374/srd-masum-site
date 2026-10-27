@@ -84,7 +84,7 @@ export default function ChatPanel({ open, onClose }) {
       className="chat-panel fixed inset-x-3 bottom-[9.5rem] z-50 flex max-h-[min(560px,calc(100svh-11rem))] flex-col overflow-hidden rounded-2xl bg-raised shadow-2xl ring-1 ring-hairline sm:left-auto sm:right-4 sm:w-[380px] lg:bottom-44 lg:right-6">
       <header className="flex items-center gap-3 border-b border-hairline bg-gradient-to-r from-accent/15 via-raised to-fuchsia-500/10 px-3.5 py-2.5">
         <span className="relative shrink-0">
-          <img src="/images/mira-v2.webp" alt="Mira" className="h-10 w-10 rounded-full object-cover ring-2 ring-accent/40" onError={(e) => { e.currentTarget.style.display = "none"; }} />
+          <img src="/images/mira-v3-256.webp" alt="Mira" className="h-10 w-10 rounded-full object-cover ring-2 ring-accent/40" onError={(e) => { e.currentTarget.style.display = "none"; }} />
           <span className="chat-online absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-raised" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1 leading-tight">
@@ -99,7 +99,7 @@ export default function ChatPanel({ open, onClose }) {
         <button type="button" onClick={onClose} aria-label="Close chat" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted hover:bg-sunk hover:text-ink"><X size={18} /></button>
       </header>
       <div ref={list} className="flex-1 space-y-2.5 overflow-y-auto px-4 py-3 text-[14px] leading-relaxed" aria-live="polite">
-        <div className="flex items-end gap-2"><img src="/images/mira-v2.webp" alt="" aria-hidden="true" className="h-6 w-6 shrink-0 rounded-full object-cover" /><p className="max-w-[85%] rounded-2xl rounded-bl-md bg-gradient-to-br from-accent/15 to-fuchsia-500/10 px-3.5 py-2.5 text-ink ring-1 ring-accent/15">{GREETING}</p></div>
+        <div className="flex items-end gap-2"><img src="/images/mira-v3-256.webp" alt="" aria-hidden="true" className="h-6 w-6 shrink-0 rounded-full object-cover" /><p className="max-w-[85%] rounded-2xl rounded-bl-md bg-gradient-to-br from-accent/15 to-fuchsia-500/10 px-3.5 py-2.5 text-ink ring-1 ring-accent/15">{GREETING}</p></div>
         {!msgs.length && (
           <div className="flex flex-wrap gap-2 pl-8 pt-1">
             {CHIPS.map((c) => (

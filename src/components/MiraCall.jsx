@@ -255,7 +255,7 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
       </div>
       <div className="flex flex-col items-center">
         <div className={`mira-ring relative rounded-full p-1.5 ${phase === "speaking" ? "mira-speaking" : ""}`}>
-          <img src="/images/mira-v2.webp" alt="Mira" className="h-36 w-36 rounded-full object-cover ring-4 ring-white/20" />
+          <img src="/images/mira-v3-512.webp" alt="Mira" className="h-36 w-36 rounded-full object-cover ring-4 ring-white/20" />
           <span className="absolute bottom-3 right-3 h-4 w-4 rounded-full bg-emerald-500 ring-2 ring-[#101a3a]" />
         </div>
         <p className="mt-5 flex items-center gap-2 text-sm text-white/80">
