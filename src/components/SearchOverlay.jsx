@@ -19,11 +19,12 @@ export default function SearchOverlay({ onClose }) {
     document.addEventListener("keydown", onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; };
+    document.body.classList.add("srd-search-open");
+    return () => { document.removeEventListener("keydown", onKey); document.body.style.overflow = prev; document.body.classList.remove("srd-search-open"); };
   }, [onClose]);
   const results = useMemo(() => {
     const terms = norm(q).trim().split(/\s+/).filter(Boolean);
-    if (!terms.length) return ALL;
+    if (!terms.length) return [];
     return ALL.filter((t) => { const h = norm(`${t.title} ${t.artist || "SRD Masum"} ${t.album || ""}`); return terms.every((w) => h.includes(w)); });
   }, [q]);
   return (
@@ -36,7 +37,7 @@ export default function SearchOverlay({ onClose }) {
             onKeyDown={(e) => { if (e.key === "Enter" && results[0]) location.href = `/song/${results[0].id}/`; }} />
           <button type="button" onClick={onClose} aria-label="Close search" className="srd-menu-close"><X size={18} weight="bold" aria-hidden="true" /></button>
         </div>
-        <p className="srd-search-count">{q.trim() ? `${results.length} result${results.length === 1 ? "" : "s"}` : `All songs · ${ALL.length}`}</p>
+        {q.trim() ? <p className="srd-search-count">{`${results.length} result${results.length === 1 ? "" : "s"}`}</p> : <p className="srd-search-hint" style={{textAlign:"center",padding:"28px 16px",fontSize:"14px",opacity:.6}}>Type a song or artist name</p>}
         <ul className="srd-search-list">
           {results.map((t) => (
             <li key={t.id}>
@@ -50,7 +51,7 @@ export default function SearchOverlay({ onClose }) {
               </a>
             </li>
           ))}
-          {!results.length && <li className="srd-search-empty">No songs found for “{q}”.</li>}
+          {q.trim() && !results.length && <li className="srd-search-empty">No songs found for “{q}”.</li>}
         </ul>
       </div>
     </div>

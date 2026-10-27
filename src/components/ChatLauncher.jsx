@@ -51,7 +51,7 @@ export default function ChatLauncher() {
 
   return (
     <>
-      <div className="fixed bottom-24 right-4 z-40 flex flex-col items-end gap-2 lg:bottom-28 lg:right-6">
+      <div className="srd-chat-launcher fixed bottom-24 right-4 z-40 flex flex-col items-end gap-2 lg:bottom-28 lg:right-6">
         {teaser >= 0 && (
           <div role="status" data-testid="chat-teaser"
             className="chat-teaser relative flex max-w-[230px] items-center gap-1 rounded-2xl rounded-br-sm bg-raised py-2.5 pl-3.5 pr-1 text-[14px] font-medium sm:max-w-[260px] leading-snug text-ink shadow-xl shadow-accent/20 ring-1 ring-accent/25">

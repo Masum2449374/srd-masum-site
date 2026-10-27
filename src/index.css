@@ -886,3 +886,4 @@ html.light .srd-search-sheet{background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.
 .srd-search-empty{padding:24px 12px;text-align:center;opacity:.7;font-size:14px}
 @keyframes srdFade{from{opacity:0}}
 @keyframes srdDrop{from{opacity:0;transform:translateY(-12px) scale(.98)}}
+body.srd-search-open .srd-chat-launcher{display:none!important}
