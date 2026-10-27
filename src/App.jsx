@@ -18,7 +18,6 @@ import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
 import { PlayerProvider, TrackRow, MiniPlayer, usePlayer } from "./components/MiniPlayer.jsx";
 import SpotifyEmbed from "./components/SpotifyEmbed.jsx";
-import { SPOTIFY_TRACKS } from "./data/spotify.js";
 import { VIDEO_IDS, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
@@ -473,21 +472,6 @@ function Music() {
             ))}
           </div>
         </Reveal>
-
-        <Reveal delay={0.1}>
-          <div className="mt-10 flex items-center gap-2 px-1">
-            <SpotifyLogo size={20} weight="fill" className="text-[#1DB954]" aria-hidden="true" />
-            <p className="text-sm font-semibold text-ink">On Spotify</p>
-          </div>
-          <div className="mt-3">
-            <SpotifyEmbed kind="artist" id={SPOTIFY_ARTIST_URL.split("/").pop()} height={352} title="SRD Masum on Spotify" />
-          </div>
-        </Reveal>
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {SPOTIFY_TRACKS.map((t) => (
-            <SpotifyEmbed key={t.id} kind="track" id={t.id} height={152} title={`${t.title} on Spotify`} />
-          ))}
-        </div>
 
         <Reveal delay={0.12} className="mt-8 flex justify-center sm:justify-start">
           <motion.a
