@@ -200,76 +200,6 @@ function NewRelease() {
   );
 }
 
-function FanMessage() {
-  const [name, setName] = useState("");
-  const [message, setMessage] = useState("");
-  const [errors, setErrors] = useState({});
-
-  const submit = (e) => {
-    e.preventDefault();
-    const next = {};
-    if (!name.trim()) next.name = "Please add your name.";
-    if (!message.trim()) next.message = "Please write a message.";
-    setErrors(next);
-    if (Object.keys(next).length) return;
-    const subject = encodeURIComponent(`Fan message from ${name.trim()}`);
-    const body = encodeURIComponent(`${message.trim()}\n\n— ${name.trim()}`);
-    fireConfetti();
-    setTimeout(() => {
-      window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-    }, 700);
-  };
-
-  const inputClass =
-    "mt-2 w-full rounded-xl border border-hairline bg-sunk px-4 py-3 text-ink placeholder:text-faint focus:border-accent focus:outline-none";
-
-  return (
-    <section id="fan-message" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
-        <Reveal>
-          <SectionHeader eyebrow="Fans" title="Send a message" />
-        </Reveal>
-        <Reveal delay={0.08}>
-          <form onSubmit={submit} noValidate className="pro-card flex max-w-2xl flex-col gap-5 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:p-10">
-            <label className="flex flex-col text-sm font-medium text-muted">
-              Your name
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                aria-invalid={!!errors.name}
-                aria-describedby={errors.name ? "name-error" : undefined}
-                className={inputClass}
-                placeholder="Jane"
-              />
-              {errors.name && <span id="name-error" className="mt-2 text-xs text-accent">{errors.name}</span>}
-            </label>
-            <label className="flex flex-col text-sm font-medium text-muted">
-              Your message
-              <textarea
-                rows={5}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                aria-invalid={!!errors.message}
-                aria-describedby={errors.message ? "message-error" : undefined}
-                className={`${inputClass} resize-y`}
-                placeholder="Tell SRD Masum what you think"
-              />
-              {errors.message && <span id="message-error" className="mt-2 text-xs text-accent">{errors.message}</span>}
-            </label>
-            <button
-              type="submit"
-              className="inline-flex items-center gap-2 self-start rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
-            >
-              <EnvelopeSimple size={18} aria-hidden="true" />
-              Send message
-            </button>
-          </form>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
 
 function SectionHeader({ eyebrow, title }) {
   return (
@@ -1028,7 +958,6 @@ export default function App() {
         <NewRelease />
         <Songs />
         <Reviews />
-        <FanMessage />
         <AdSlot type="banner300" />
         <Contact />
       </main>
