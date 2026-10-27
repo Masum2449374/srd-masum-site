@@ -184,6 +184,47 @@ function Countdown() {
   );
 }
 
+function NotifyForm() {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState("idle"); // idle | busy | ok | already | bad | err
+  const submit = async (e) => {
+    e.preventDefault();
+    const v = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v) || v.length > 120) { setState("bad"); return; }
+    setState("busy");
+    try {
+      const r = await fetch("/api/notify", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ email: v }) });
+      const d = await r.json().catch(() => ({}));
+      setState(r.ok ? (d.already ? "already" : "ok") : r.status === 400 ? "bad" : "err");
+      if (r.ok) setEmail("");
+    } catch { setState("err"); }
+  };
+  const msg = {
+    ok: "ধন্যবাদ! নতুন গান এলে জানানো হবে। · You're on the list.",
+    already: "এই ইমেইল আগেই যুক্ত আছে। · You're already on the list.",
+    bad: "সঠিক ইমেইল লিখুন। · Please enter a valid email.",
+    err: "এখন হচ্ছে না, একটু পরে চেষ্টা করুন। · Please try again later.",
+  }[state];
+  return (
+    <form onSubmit={submit} className="mt-8 max-w-xl" noValidate>
+      <label htmlFor="notify-email" className="mb-2 block text-sm font-medium text-ink">
+        <span lang="bn">নতুন গান এলে জানাও</span> · Notify me
+      </label>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <input id="notify-email" type="email" inputMode="email" autoComplete="email" required maxLength={120}
+          value={email} onChange={(e) => { setEmail(e.target.value); if (state !== "busy") setState("idle"); }}
+          placeholder="you@example.com"
+          className="min-h-[48px] flex-1 rounded-full bg-raised px-5 text-ink ring-1 ring-hairline placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent" />
+        <button type="submit" disabled={state === "busy"}
+          className="min-h-[48px] rounded-full bg-accent px-6 font-medium text-white transition active:scale-[0.97] disabled:opacity-60">
+          {state === "busy" ? "…" : "Notify me"}
+        </button>
+      </div>
+      <p className="mt-2 min-h-[1.25rem] text-sm text-muted" role="status" aria-live="polite">{msg || "শুধু ইমেইল, কোনো স্প্যাম নয়। · Email only, no spam."}</p>
+    </form>
+  );
+}
+
 function NewRelease() {
   return (
     <section id="new-release" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
@@ -192,6 +233,7 @@ function NewRelease() {
           <SectionHeader eyebrow="Coming soon" title="New Release" />
           <p className="mb-6 text-muted">{RELEASE_NAME} drops soon. Counting down to the moment.</p>
           <Countdown />
+          <NotifyForm />
         </Reveal>
       </div>
     </section>
@@ -283,6 +325,8 @@ function Hero() {
         <source type="image/webp" srcSet="/images/hero-milan.webp" />
       <motion.img
         src="/images/hero-milan.jpg"
+        fetchpriority="high"
+        decoding="async"
         alt=""
         aria-hidden="true"
         style={reduce ? undefined : { y: parallaxY }}
@@ -358,7 +402,7 @@ function Hero() {
 
 function BanglaSongs() {
   return (
-    <section id="bangla-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="bangla-songs" lang="bn" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Bangla Songs" />
@@ -388,7 +432,7 @@ const SONGS = [
 function AudioSongs() {
   if (AUDIO_TRACKS.length === 0) return null;
   return (
-    <section id="audio-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
+    <section id="audio-songs" lang="hi" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
         <Reveal>
           <SectionHeader eyebrow="Listen" title="Hindi Songs" />

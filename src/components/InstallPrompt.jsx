@@ -24,7 +24,7 @@ export default function InstallPrompt() {
         onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); }}>
         <DownloadSimple size={11} weight="bold" /> Install
       </button>
-      <button type="button" aria-label="Dismiss" onClick={dismiss} className="flex h-5 w-5 items-center justify-center rounded-full text-muted hover:text-ink">
+      <button type="button" aria-label="Dismiss" onClick={dismiss} className="-m-3 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted hover:text-ink">
         <X size={10} />
       </button>
     </div>

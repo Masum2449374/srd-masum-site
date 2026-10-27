@@ -21,10 +21,11 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
         const playing = active && player.playing;
         return (
           <li key={t.id} className={`pl-row ${active ? "pl-on" : ""}`}>
-            <button type="button" onClick={() => player.toggle(t, list)} aria-label={playing ? `Pause ${t.title}` : `Play ${t.title}`} className="pl-main">
+            <button type="button" onClick={() => player.toggle(t, list)} className="pl-main">
+              <span className="sr-only">{playing ? "Pause " : "Play "}</span>
               <span className="pl-num">{active ? <Bars on={playing} /> : i + 1}</span>
               <span className="pl-art">
-                <img src={t.coverSm || t.cover || t.art || "/images/avatar.webp"} alt="" loading="lazy" draggable={false} />
+                <img src={t.thumb || t.coverSm || t.cover || t.art || "/images/avatar.webp"} alt="" width="96" height="96" loading="lazy" decoding="async" draggable={false} />
                 <span className="pl-art-ov">{playing ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}</span>
               </span>
               <span className="pl-title min-w-0 flex-1 text-left">
@@ -32,7 +33,7 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
                 <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
               </span>
               <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Original")}</span>
-              <span className="pl-time font-mono text-[11px] tabular-nums text-faint">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
+              <span className="pl-time font-mono text-[11px] tabular-nums text-muted">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
             </button>
             {onInfo && <button type="button" onClick={() => onInfo(t)} aria-label={`Credits for ${t.title}`} className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted ring-1 ring-hairline"><Info size={16} weight="bold" /></button>}
           </li>

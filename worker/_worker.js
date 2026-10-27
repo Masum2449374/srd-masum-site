@@ -47,6 +47,8 @@ const handle = async (req, env) => {
     if (url.pathname === "/api/tts") return tts(req, env);
     if (url.pathname === "/api/song-request") return songRequest(req, env, url);
     if (url.pathname === "/api/song-requests") return songRequests(req, env, url);
+    if (url.pathname === "/api/play") return playHit(req, env, url);
+    if (url.pathname === "/api/notify") return notifySignup(req, env, url);
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
       // Real 404 for unknown paths (public/404.html also disables the SPA fallback on Pages).
@@ -165,6 +167,14 @@ async function chat(req, env, url) {
     const list = await listRequests(env, 20);
     return out({ reply: list.length ? "গানের অনুরোধ (নতুনগুলো আগে), Masum স্যার:\n" + list.map((r, i) => `${i + 1}. ${r.song} — ${r.artist}${r.name ? ` (${r.name})` : ""}${r.note ? ` · ${r.note}` : ""} · ${new Date(r.t + 6 * 3600e3).toISOString().slice(0, 16).replace("T", " ")} BD`).join("\n") : "এখনো কোনো গানের অনুরোধ আসেনি, Masum স্যার 🙂" });
   }
+  if (OWNER && /^(plays?|play ?counts?|প্লে|প্লে ?কাউন্ট|কতবার বাজল)[?.!।]?$/i.test(last.trim())) {
+    const list = await listPlays(env);
+    return out({ reply: list.length ? "গান বাজার হিসাব (বেশি থেকে কম), Masum স্যার:\n" + list.slice(0, 30).map((r, i) => `${i + 1}. ${r.slug} — ${r.n} বার`).join("\n") : "এখনো কোনো গান বাজানোর হিসাব আসেনি, Masum স্যার 🙂" });
+  }
+  if (OWNER && /^(signups?|subscribers?|সাইন ?আপ(গুলো)?|সাবস্ক্রাইবার)[?.!।]?$/i.test(last.trim())) {
+    const list = await listSignups(env, 50);
+    return out({ reply: list.length ? `নতুন গানের নোটিফিকেশনের জন্য সাইনআপ (${list.length}${list.length >= 50 ? "+" : ""}), Masum স্যার:\n` + list.map((r, i) => `${i + 1}. ${r.email} · ${new Date(r.t + 6 * 3600e3).toISOString().slice(0, 16).replace("T", " ")} BD`).join("\n") : "এখনো কেউ সাইনআপ করেনি, Masum স্যার 🙂" });
+  }
   if (!CTX || now - CTX_AT > 600000) {
     try { const c = await env.ASSETS.fetch(new Request(`${url.origin}/chat-context.txt`)); if (c.ok) { CTX = await c.text(); CTX_AT = now; } } catch {}
   }
@@ -261,6 +271,55 @@ async function songRequests(req, env, url) {
   const tok = (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "");
   if (!(await validOwner(env, tok))) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: h });
   return new Response(JSON.stringify({ requests: await listRequests(env, 100) }), { headers: h });
+}
+
+// ---- Play counter: KV "play:<slug>" = count. One count per IP+song per 30 min, 20k counts/day overall.
+const jsonOut = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
+async function bump(env, key, ttl) { const n = Number(await env.VISITS.get(key)) || 0; await env.VISITS.put(key, String(n + 1), ttl ? { expirationTtl: ttl } : undefined); return n + 1; }
+async function playHit(req, env, url) {
+  if (req.method !== "POST") return jsonOut({ error: "POST only" }, 405);
+  if (req.headers.get("origin") !== url.origin) return jsonOut({ error: "forbidden" }, 403);
+  if (!env.VISITS) return jsonOut({ error: "unavailable" }, 503);
+  let b; try { b = JSON.parse((await req.text()).slice(0, 500)); } catch { return jsonOut({ error: "bad json" }, 400); }
+  const slug = String(b?.slug || "").toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(slug)) return jsonOut({ error: "bad slug" }, 400);
+  const ip = req.headers.get("cf-connecting-ip") || "0";
+  const ik = `playrl:${ip}:${slug}:${Math.floor(Date.now() / 1800000)}`, dk = `playrld:${Math.floor(Date.now() / 864e5)}`;
+  try {
+    const [seen, d] = await Promise.all([env.VISITS.get(ik), env.VISITS.get(dk)]);
+    if (seen || (Number(d) || 0) >= 20000) return jsonOut({ ok: true, counted: false });
+    await Promise.all([env.VISITS.put(ik, "1", { expirationTtl: 1900 }), bump(env, dk, 90000)]);
+    return jsonOut({ ok: true, counted: true, n: await bump(env, `play:${slug}`) });
+  } catch { return jsonOut({ error: "store" }, 503); }
+}
+async function listPlays(env) {
+  if (!env.VISITS) return [];
+  const l = await env.VISITS.list({ prefix: "play:", limit: 200 });
+  const rows = await Promise.all(l.keys.map(async (k) => ({ slug: k.name.slice(5), n: Number(await env.VISITS.get(k.name)) || 0 })));
+  return rows.sort((a, b) => b.n - a.n);
+}
+// ---- "Notify me" signups: KV "sub:<email>" = {email,t}. Email only, 3 per IP/hour, 200/day. Nothing is ever sent from here.
+async function notifySignup(req, env, url) {
+  if (req.method !== "POST") return jsonOut({ error: "POST only" }, 405);
+  if (req.headers.get("origin") !== url.origin) return jsonOut({ error: "forbidden" }, 403);
+  if (!env.VISITS) return jsonOut({ error: "unavailable" }, 503);
+  let b; try { b = JSON.parse((await req.text()).slice(0, 500)); } catch { return jsonOut({ error: "bad json" }, 400); }
+  const email = String(b?.email || "").trim().toLowerCase();
+  if (email.length > 120 || !/^[^\s@<>"'`]+@[^\s@<>"'`]+\.[a-z]{2,}$/i.test(email)) return jsonOut({ error: "invalid email" }, 400);
+  const ip = req.headers.get("cf-connecting-ip") || "0";
+  const hk = `subrl:${ip}:${Math.floor(Date.now() / 3600000)}`, dk = `subrld:${Math.floor(Date.now() / 864e5)}`;
+  try {
+    const [n, d, had] = await Promise.all([env.VISITS.get(hk), env.VISITS.get(dk), env.VISITS.get(`sub:${email}`)]);
+    if (had) return jsonOut({ ok: true, already: true });
+    if ((Number(n) || 0) >= 3 || (Number(d) || 0) >= 200) return jsonOut({ error: "rate" }, 429);
+    await Promise.all([bump(env, hk, 3700), bump(env, dk, 90000), env.VISITS.put(`sub:${email}`, JSON.stringify({ email, t: Date.now() }))]);
+    return jsonOut({ ok: true });
+  } catch { return jsonOut({ error: "store" }, 503); }
+}
+async function listSignups(env, limit = 50) {
+  if (!env.VISITS) return [];
+  const l = await env.VISITS.list({ prefix: "sub:", limit });
+  return (await Promise.all(l.keys.map((k) => env.VISITS.get(k.name, "json")))).filter(Boolean).sort((a, b) => b.t - a.t);
 }
 
 const CJK = /[\u3000-\u303f\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af\uff00-\uffef]+/g;

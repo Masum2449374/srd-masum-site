@@ -10,7 +10,7 @@
     --hairline: 44 42 39;
     --ink: 244 241 234;
     --muted: 163 158 152;
-    --faint: 111 106 100;
+    --faint: 140 134 127;
     color-scheme: dark;
   }
   :root.light {
@@ -20,7 +20,7 @@
     --hairline: 224 219 212;
     --ink: 22 20 17;
     --muted: 92 87 81;
-    --faint: 122 116 109;
+    --faint: 106 100 94;
     color-scheme: light;
   }
   html {

@@ -36,7 +36,7 @@ import {
 } from "../lib/mediasession.js";
 
 // One <audio> element for the whole site. Rows never own audio, so only one track can ever play.
-// preload="auto" fetches the file once a track is chosen; durations come from the data lists, so
+// preload="none": nothing is fetched until a track is played; durations come from the data lists, so
 // nothing is downloaded just to read a length.
 const PlayerContext = createContext(null);
 export const usePlayer = () => useContext(PlayerContext);
@@ -51,6 +51,7 @@ export function formatTime(sec) {
 export function PlayerProvider({ children }) {
   const audioRef = useRef(null);
   const trackRef = useRef(null);
+  const playedRef = useRef(null);
   const queueRef = useRef([]);
   const scrubRef = useRef(null);
   const scrubTimer = useRef(0);
@@ -205,6 +206,15 @@ export function PlayerProvider({ children }) {
     beatPlay(e.currentTarget);
     setMediaSessionState("playing");
     setMediaSessionPosition(e.currentTarget);
+    const id = trackRef.current?.id;
+    if (id && playedRef.current !== id) {
+      playedRef.current = id; // count once per track start, not per pause/resume
+      try {
+        const k = "srd-play-" + id, last = Number(localStorage.getItem(k)) || 0;
+        if (Date.now() - last < 1800000) return; // same song within 30 min counts once per browser
+        localStorage.setItem(k, String(Date.now()));
+        fetch("/api/play", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: String(id).toLowerCase() }), keepalive: true }).catch(() => {}); } catch {}
+    }
   };
   const onPause = (e) => {
     setPlaying(false);
@@ -212,6 +222,7 @@ export function PlayerProvider({ children }) {
     setMediaSessionState("paused");
   };
   const onEnded = (e) => {
+    playedRef.current = null;
     setPlaying(false);
     beatStop(e.currentTarget);
     // Repeat one: replay. Otherwise auto-advance; at the end of the queue wrap only on repeat-all.
@@ -255,7 +266,7 @@ export function PlayerProvider({ children }) {
       {children}
       <audio
         ref={audioRef}
-        preload="auto"
+        preload="none"
         crossOrigin="anonymous"
         className="hidden"
         onPlay={(e) => { exClaim("site"); onPlay(e); }}

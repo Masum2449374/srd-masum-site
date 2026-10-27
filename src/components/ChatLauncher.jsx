@@ -67,7 +67,7 @@ export default function ChatLauncher() {
               <i>💙</i><i>🩷</i><i>💙</i>
             </span>
           )}
-          <button type="button" onClick={toggle} aria-label={open ? "Close chat" : "Chat with Mira, SRD Masum assistant"}
+          <button type="button" onClick={toggle} aria-label={open ? "Close chat" : "Ask Mira, SRD Masum assistant"}
             aria-expanded={open} aria-controls="srd-chat" data-testid="chat-launcher"
             className={`chat-fab ${open ? "" : "chat-fab-alive"} relative flex h-12 items-center gap-2 rounded-full bg-accent pl-3.5 pr-4 text-sm font-semibold text-on-accent shadow-lg shadow-accent/30 ring-1 ring-white/10 transition-transform hover:scale-[1.04] active:scale-95`}>
             <ChatCircleDots size={22} weight="fill" aria-hidden="true" />
