@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sun, Moon, List, X, CaretRight, CaretDown, Disc, Globe, MusicNotes, MusicNote, FilmStrip, Sparkle, Star, Television, PlayCircle, ChatCircleText, Heart, EnvelopeSimple, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, Play } from "@phosphor-icons/react";
+import SearchOverlay from "./SearchOverlay.jsx";
+import { MagnifyingGlass } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
 import { triggerSecret } from "./SecretBurst.jsx";
 import { playTapPop } from "../lib/sounds.js";
@@ -28,6 +30,7 @@ export default function Nav({ page = "home" }) {
   const onHome = page === "home";
   const [active, setActive] = useState(page === "english" ? "english" : "audio-songs");
   const [open, setOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [theme, setTheme] = useState(() =>
     document.documentElement.classList.contains("light") ? "light" : "dark",
   );
@@ -144,6 +147,10 @@ export default function Nav({ page = "home" }) {
             className="pro-btn hidden items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-transform hover:scale-[1.03] active:scale-[0.97] lg:inline-flex">
             <Play size={14} weight="fill" aria-hidden="true" />Listen now
           </a>
+          <button type="button" onClick={() => { playTapPop(); setSearchOpen(true); }} aria-label="Search songs" aria-haspopup="dialog"
+            className="srd-search-btn pro-btn glow-hover text-ink">
+            <MagnifyingGlass size={17} weight="bold" aria-hidden="true" />Search
+          </button>
           <button
             type="button"
             onClick={toggleTheme}
@@ -180,6 +187,7 @@ export default function Nav({ page = "home" }) {
         </div>
       </div>
 
+      {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
       {open && (
         <div className="srd-menu" data-testid="site-menu-root">
           <div className="srd-menu-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
