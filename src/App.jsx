@@ -277,13 +277,18 @@ function Hero() {
   const [introDelay] = useState(() => (sessionStorage.getItem("srd-intro-seen") ? 250 : INTRO_TYPE_DELAY_MS));
   return (
     <section id="top" className="relative isolate overflow-hidden">
+      <picture>
+        <source media="(max-width: 767px)" type="image/webp" srcSet="/images/hero-milan-mobile.webp" />
+        <source media="(max-width: 767px)" srcSet="/images/hero-milan-mobile.jpg" />
+        <source type="image/webp" srcSet="/images/hero-milan.webp" />
       <motion.img
-        src="/images/hero-portrait.jpg"
+        src="/images/hero-milan.jpg"
         alt=""
         aria-hidden="true"
         style={reduce ? undefined : { y: parallaxY }}
-        className="absolute inset-x-0 -top-[12%] -z-10 h-[124%] w-full object-cover object-top opacity-60 will-change-transform"
+        className="absolute inset-x-0 -top-[12%] -z-10 h-[124%] w-full object-cover object-[50%_20%] md:object-[65%_25%] opacity-60 will-change-transform"
       />
+      </picture>
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
       <div className="hero-blend" aria-hidden="true" />
       <HeroGlow />
