@@ -8,7 +8,7 @@ import * as V from "../src/data/videos.js";
 const SITE = "https://srdmasum.bbroot.com";
 const line = (t, sec) => {
   const page = existsSync(`dist/song/${t.id}`) ? `${SITE}/song/${t.id}/` : "";
-  return `- [${sec}] "${t.title}" by ${t.artist || "SRD Masum"}` +
+  return `- [${sec}] "${t.title}" ${!t.artist || t.artist === "SRD Masum" ? "released by SRD Masum (platform/label)" : `by ${t.artist}`}` +
     (t.album ? ` | album: ${t.album}` : "") + (t.writers ? ` | writers: ${t.writers}` : "") +
     (t.label ? ` | label: ${t.label}` : "") + (t.released ? ` | released: ${t.released}` : "") +
     (page ? ` | page: ${page}` : "") + (t.spotifyUrl ? ` | Spotify: ${t.spotifyUrl}` : "") +
@@ -16,7 +16,7 @@ const line = (t, sec) => {
 };
 const socials = Object.entries(V.SOCIAL_LINKS).filter(([, u]) => u && u !== "#").map(([k, u]) => `${k}: ${u}`).join(" | ");
 const txt = [
-  `Site: SRD Masum (${SITE}) — official music site of SRD Masum. Visitors can stream songs in the built-in player (Hindi, Bangla and English playlists), watch videos, read fan reviews, leave fan-wall messages and install the site as an app (Android app also available).`,
+  `Site: SRD Masum (${SITE}) — official site of SRD Masum, a music platform / company (label). Founder & CEO: Masum Bellah. SRD Masum is not an individual artist. Visitors can stream songs in the built-in player (Hindi, Bangla and English playlists), watch videos, read fan reviews, leave fan-wall messages and install the site as an app (Android app also available).`,
   `SRD Masum on Spotify: ${V.SPOTIFY_ARTIST_URL}`,
   `YouTube channel: ${V.CHANNEL_URL}`,
   `Featured YouTube playlist: https://www.youtube.com/playlist?list=${V.FEATURED_PLAYLIST_ID}`,

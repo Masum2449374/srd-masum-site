@@ -349,7 +349,7 @@ function Hero() {
           transition={spring}
           className="eyebrow"
         >
-          Artist · Songs · Sound
+          Music Platform · Songs · Sound
         </motion.p>
         <SeasonBadge season={season} />
         <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] lg:text-[clamp(4.5rem,6.4vw,6.75rem)] lg:whitespace-nowrap tracking-display">

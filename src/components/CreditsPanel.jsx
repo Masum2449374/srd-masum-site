@@ -32,12 +32,12 @@ export default function CreditsPanel({ t, onClose, onPlay }) {
               <div className="min-w-0 flex-1">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">Credits</p>
                 <h3 className="mt-1 truncate font-display text-2xl text-ink">{t.title}</h3>
-                <p className="text-sm text-muted">{orig ? "Original by SRD Masum" : t.artist}</p>
+                <p className="text-sm text-muted">{orig ? "Released by SRD Masum" : t.artist}</p>
               </div>
               <button type="button" onClick={onClose} aria-label="Close credits" className="flex h-9 w-9 items-center justify-center rounded-full ring-1 ring-hairline text-muted"><X size={16} weight="bold" /></button>
             </div>
             <dl className="mt-5 space-y-2 text-sm">
-              <div className="flex justify-between gap-4"><dt className="text-faint">Artist</dt><dd className="text-right text-ink">{t.artist || "SRD Masum"}</dd></div>
+              <div className="flex justify-between gap-4"><dt className="text-faint">{t.artist && t.artist !== "SRD Masum" ? "Artist" : "Released by"}</dt><dd className="text-right text-ink">{t.artist || "SRD Masum"}</dd></div>
               {t.album && <div className="flex justify-between gap-4"><dt className="text-faint">Release</dt><dd className="text-right text-ink">{t.album}</dd></div>}
               {t.writers && <div className="flex justify-between gap-4"><dt className="text-faint">Writers</dt><dd className="text-right text-ink">{t.writers}</dd></div>}
               {t.producer && <div className="flex justify-between gap-4"><dt className="text-faint">Producer</dt><dd className="text-right text-ink">{t.producer}</dd></div>}

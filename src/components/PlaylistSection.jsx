@@ -32,7 +32,7 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
                 <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
                 <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
               </span>
-              <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Original")}</span>
+              <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Release")}</span>
               <span className="pl-time font-mono text-[11px] tabular-nums text-muted">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
             </button>
             <a href={`/song/${encodeURIComponent(t.id)}/`} aria-label={`Details: ${t.title}`} className="shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-muted ring-1 ring-hairline hover:text-accent" >Details</a>

@@ -41,7 +41,7 @@ fs.mkdirSync(path.join(dist, "og"), { recursive: true });
 for (const t of all) {
   const url = `${SITE}/song/${t.id}/`;
   const title = !t.artist || t.artist === "SRD Masum" ? `${t.title} | SRD Masum` : `${t.title} — ${t.artist} | SRD Masum`;
-  const desc = `Listen to "${t.title}" by ${t.artist || "SRD Masum"}`;
+  const desc = !t.artist || t.artist === "SRD Masum" ? `Listen to "${t.title}", released by SRD Masum` : `Listen to "${t.title}" by ${t.artist}`;
   let h = shell;
   h = h.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
   h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(desc)}" />`);
@@ -175,19 +175,19 @@ L.forEach(function(p){p.style.cursor="pointer";p.onclick=function(){a.currentTim
   h = h.replace(/<div id="root"><\/div>/, `<div id="root"><div class="sp-bg"></div><article class="sp" lang="${lang}">
 <div class="sp-top"><a class="sp-brand" href="/?from=song"><img src="/images/avatar.webp" alt="" width="28" height="28">SRD Masum</a></div>
 ${cover ? `<img class="sp-cover" src="${esc(cover)}" alt="${esc(t.title)} cover" width="300" height="300">` : ""}
-<h1>${xesc(t.title)}</h1><p class="sp-artist">${xesc(t.artist || "SRD Masum")}</p><div class="chips">${chips}</div>
+<h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by SRD Masum" : xesc(t.artist)}</p><div class="chips">${chips}</div>
 ${player}${links}
 ${credRows ? `<section class="sec"><h2>Credits</h2><dl>${credRows}</dl></section>` : ""}
 ${lyr ? `<section class="sec"><h2>Lyrics</h2>${lyr}</section>` : ""}
 </article><div class="toast" id="toast" role="status"></div></div>${script}`);
   h = h.replace("</head>", css + "\n</head>");
   if (isOriginal) {
-    const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, byArtist: { "@type": "MusicGroup", "@id": `${SITE}/#artist`, name: "SRD Masum" }, inLanguage: lang, ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
+    const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, ...(!t.artist || t.artist === "SRD Masum" ? {} : { byArtist: { "@type": "MusicGroup", name: t.artist } }), recordLabel: { "@type": "Organization", "@id": `${SITE}/#org`, name: "SRD Masum" }, inLanguage: lang, ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
     h = h.replace("</head>", `    <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n  </head>`);
   }
   if (t.lyrics) {
     const first = t.lyrics.split("\n").find((l) => l.trim() && !/^\[|^আহা/.test(l.trim())) || "";
-    h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(`${t.title} lyrics — ${t.artist || "SRD Masum"}. ${first}`)}" />`);
+    h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(`${t.title} lyrics — ${!t.artist || t.artist === "SRD Masum" ? "released by SRD Masum" : t.artist}. ${first}`)}" />`);
   }
   const dir = path.join(dist, "song", t.id);
   fs.mkdirSync(dir, { recursive: true });
