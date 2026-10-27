@@ -1,4 +1,4 @@
-/* Fan Wall notes + secret burst. Only transform and opacity are animated. No blur, no animated shadows. */
+/* Secret burst animation. Only transform and opacity are animated. No blur, no animated shadows. */
 .fan-note{display:flex;flex-direction:column;justify-content:space-between;gap:.75rem;min-height:120px;padding:1.25rem 1.25rem 1rem;border-radius:14px;transform:rotate(var(--tilt,0deg));animation:fan-float var(--dur,6s) ease-in-out var(--delay,0s) infinite alternate;}
 @keyframes fan-float{
   from{transform:translate3d(0,0,0) rotate(var(--tilt,0deg));}

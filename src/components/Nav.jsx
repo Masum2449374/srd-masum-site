@@ -16,7 +16,6 @@ const LINKS = [
   { id: "featured", label: "Featured", sub: "Hand-picked highlights", Icon: Star, g: 1 },
   { id: "videos", label: "Videos", sub: "Watch the latest", Icon: Television, g: 1 },
   { id: "reviews", label: "Reviews", sub: "What listeners say", Icon: ChatCircleText, g: 2 },
-  { id: "fan-wall", label: "Fan Wall", sub: "Leave a message", Icon: Heart, g: 2 },
   { id: "contact", label: "Contact", sub: "Bookings & collabs", Icon: EnvelopeSimple, g: 2 },
 ];
 const GROUPS = ["Listen", "Watch & Explore", "Community"];

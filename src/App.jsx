@@ -13,7 +13,6 @@ import Snow from "./components/Snow.jsx";
 import Seasonal, { SeasonBadge, SeasonalTaps, useSeason } from "./components/Seasonal.jsx";
 import HeroAurora from "./components/HeroAurora.jsx";
 import Reviews from "./components/Reviews.jsx";
-import FanWall from "./components/FanWall.jsx";
 import SecretBurst from "./components/SecretBurst.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
@@ -1029,7 +1028,6 @@ export default function App() {
         <NewRelease />
         <Songs />
         <Reviews />
-        <FanWall />
         <FanMessage />
         <AdSlot type="banner300" />
         <Contact />
