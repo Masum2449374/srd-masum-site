@@ -25,7 +25,16 @@ export default function SearchOverlay({ onClose }) {
   const results = useMemo(() => {
     const terms = norm(q).trim().split(/\s+/).filter(Boolean);
     if (!terms.length) return [];
-    return ALL.filter((t) => { const h = norm(`${t.title} ${t.artist || "SRD Masum"} ${t.album || ""}`); return terms.every((w) => h.includes(w)); });
+    const words = (x) => norm(x).split(/[\s\-–—_.,:;!?'"()\[\]\/&|·]+/).filter(Boolean);
+    const out = [];
+    for (const t of ALL) {
+      const tw = words(t.title), aw = words(t.artist || "SRD Masum");
+      if (!terms.every((w) => tw.some((x) => x.startsWith(w)) || aw.some((x) => x.startsWith(w)))) continue;
+      const nq = norm(q).trim();
+      const rank = norm(t.title).startsWith(nq) ? 0 : terms.every((w) => tw.some((x) => x.startsWith(w))) ? 1 : 2;
+      out.push([rank, t]);
+    }
+    return out.sort((a, b) => a[0] - b[0]).map((x) => x[1]);
   }, [q]);
   return (
     <div className="srd-search" role="dialog" aria-modal="true" aria-label="Search songs">
