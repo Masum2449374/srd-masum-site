@@ -160,14 +160,20 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
     const rms = Math.sqrt(sum / buf.length), p = phaseRef.current;
     if (mutedRef.current) return;
     if (p === "listening" || p === "hearing") {
-      const thr = Math.max(v.floor * 3, 0.012);
+      const thr = Math.max(v.floor * 2.5, 0.008);
       if (!v.inSpeech) {
         if (rms > thr) { v.voiced += 50; if (v.voiced >= 150) { v.inSpeech = true; v.silent = 0; v.start = Date.now(); go("hearing"); } }
         else { v.voiced = 0; v.floor = Math.min(0.05, Math.max(0.002, v.floor * 0.95 + rms * 0.05)); }
         if (Date.now() - (m.recAt || 0) > 12000 && !v.inSpeech) startRec(); // keep idle clips short
       } else {
-        if (rms < thr * 0.7) { v.silent += 50; if (v.silent >= 850) endUtterance(); } else v.silent = 0;
-        if (Date.now() - v.start > 15000) endUtterance();
+        if (rms < thr * 0.7) {
+          v.silent += 50;
+          if (v.silent >= 1300) { // Bangla speakers pause mid-sentence; 1.3s of quiet ends the turn
+            if (Date.now() - v.start - v.silent < 500) { v.inSpeech = false; v.voiced = 0; go("listening"); } // a cough/click, not speech
+            else endUtterance();
+          }
+        } else { v.silent = 0; v.speechMs = (v.speechMs || 0) + 50; }
+        if (Date.now() - v.start > 20000) endUtterance();
       }
     } else if (p === "speaking") {
       // barge-in: clearly louder than the noise floor (and Mira's echo) for ~400ms

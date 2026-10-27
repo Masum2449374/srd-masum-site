@@ -454,21 +454,61 @@ async function stt(req, env) {
   { const ip = req.headers.get("cf-connecting-ip") || "x", now = Date.now(), r = SRL.get(ip);
     if (!r || now - r.t > 60000) SRL.set(ip, { t: now, n: 1 }); else if (++r.n > 40) return J({ error: "slow down" }, 429);
     if (SRL.size > 5000) SRL.clear(); }
-  if (!env.AI) return J({ error: "stt unavailable" }, 503);
+  if (!env.AI && !env.GEMINI_API_KEY) return J({ error: "stt unavailable" }, 503);
   const hint = new URL(req.url).searchParams.get("lang") === "en" ? "en" : "bn";
   const buf = await req.arrayBuffer();
   if (buf.byteLength < 1500) return J({ text: "", lang: hint });
   if (buf.byteLength > 2_500_000) return J({ error: "too long" }, 413);
   let b64 = ""; const u8 = new Uint8Array(buf); for (let i = 0; i < u8.length; i += 0x8000) b64 += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); b64 = btoa(b64);
-  const run = async (language) => env.AI.run("@cf/openai/whisper-large-v3-turbo", { audio: b64, task: "transcribe", vad_filter: true, ...(language ? { language } : {}) });
-  try {
-    let r = await run(), lang = r?.transcription_info?.language, prob = r?.transcription_info?.language_probability ?? 0;
-    // Bangla speech is often mis-detected as English (esp. with English names); trust a switch only when confident.
-    // Clear English scores ~1.0; low-confidence detections are almost always Bangla (or noisy) -> decode as Bangla.
-    if (lang !== "bn" && !(lang === "en" && (prob >= 0.85 || (hint === "en" && prob >= 0.6)))) { r = await run("bn"); lang = "bn"; }
-    let text = String(r?.text || "").trim();
-    // Whisper hallucinations on silence/noise
-    if (/^(thanks for watching!?|[.\s]+|subtitles by.*|.*amara\.org.*)$/i.test(text)) text = "";
-    return J({ text, lang, p: Math.round(prob * 100) / 100 });
-  } catch (e) { return J({ error: "stt failed", detail: String(e?.message || e).slice(0, 160) }, 502); }
+  const mime = (req.headers.get("content-type") || "audio/webm").split(";")[0].trim();
+  const t0 = Date.now();
+  const whisperRun = (language) => env.AI.run("@cf/openai/whisper-large-v3-turbo", { audio: b64, task: "transcribe", vad_filter: true, ...(language ? { language } : {}) });
+  const whisper = async () => {
+    let r = await whisperRun(), lang = r?.transcription_info?.language, prob = r?.transcription_info?.language_probability ?? 0;
+    if (lang !== "bn" && !(lang === "en" && (prob >= 0.85 || (hint === "en" && prob >= 0.6)))) { r = await whisperRun("bn"); lang = "bn"; }
+    return { text: String(r?.text || "").trim(), lang, src: "whisper" };
+  };
+  // Whisper starts in parallel (free, no Gemini quota) so it is ready instantly if Gemini is slow/over quota.
+  const wP = env.AI ? whisper().catch(() => null) : Promise.resolve(null);
+  let out = await sttGemini(env, b64, mime);
+  if (!out) out = await wP;
+  if (!out) return J({ error: "stt failed" }, 502);
+  let text = out.text;
+  if (/^(thanks for watching!?|[.\s]+|subtitles by.*|.*amara\.org.*)$/i.test(text)) text = "";
+  // TEMP debug (no audio stored): visible in `wrangler pages deployment tail`
+  console.log(JSON.stringify({ stt: out.src, lang: out.lang, ms: Date.now() - t0, bytes: buf.byteLength, mime, text: text.slice(0, 200) }));
+  return J({ text, lang: out.lang === "en" ? "en" : "bn", src: out.src });
+}
+
+// Gemini multimodal STT: far better than Whisper for Bangla / Banglish. One call per turn; 6.5s budget;
+// after a 429/quota error Gemini STT is skipped for 60s (Whisper covers).
+const STT_MODELS = ["gemini-3.5-flash-lite", "gemini-flash-lite-latest"];
+const STT_SYS = "You are a speech-to-text engine for a voice call. Transcribe exactly what the speaker says, word for word. " +
+  "Bangla speech MUST be written in Bangla script (বাংলা অক্ষর), never romanized. English words stay in English letters. " +
+  "Do not translate, answer, summarize, or add words that were not spoken. Possible proper nouns (use only if actually heard): " +
+  "SRD Masum, Mira, Radivyne, Aashiqana (আশিকানা), Laal Dupatta (লাল দোপাট্টা), Tomar Jonno Mon Kandere, Koto Din Bhebechhi. " +
+  'Output JSON {"text": "...", "lang": "bn" or "en"}; lang is the main spoken language. If the audio is silent, only noise, or has no clearly audible human words, output {"text":"","lang":"bn"} — never guess a word or name.';
+let sttCool = 0;
+async function sttGemini(env, b64, mime) {
+  if (!env.GEMINI_API_KEY || Date.now() < sttCool) return null;
+  const deadline = Date.now() + 6500;
+  const body = JSON.stringify({ systemInstruction: { parts: [{ text: STT_SYS }] },
+    contents: [{ parts: [{ inlineData: { mimeType: mime || "audio/webm", data: b64 } }, { text: "Transcribe this audio." }] }],
+    generationConfig: { temperature: 0, responseMimeType: "application/json", thinkingConfig: { thinkingLevel: "minimal" },
+      responseSchema: { type: "OBJECT", properties: { text: { type: "STRING" }, lang: { type: "STRING", enum: ["bn", "en"] } }, required: ["text", "lang"] } } });
+  for (const m of STT_MODELS) {
+    const left = deadline - Date.now(); if (left < 1500) break;
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), left);
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`, { method: "POST", signal: ctl.signal, headers: { "content-type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY }, body });
+      if (r.status === 429) { sttCool = Date.now() + 60000; return null; }
+      if (!r.ok) continue;
+      const d = await r.json(); const raw = d?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+      let j; try { j = JSON.parse(raw); } catch { j = JSON.parse((raw.match(/\{[\s\S]*\}/) || ["{}"])[0]); }
+      if (Array.isArray(j)) j = j[0] || {};
+      const text = String(j.text || "").trim();
+      return { text, lang: j.lang === "en" ? "en" : /[\u0980-\u09ff]/.test(text) || !text ? "bn" : (j.lang || "bn"), src: m };
+    } catch { if (ctl.signal.aborted) return null; } finally { clearTimeout(t); }
+  }
+  return null;
 }
