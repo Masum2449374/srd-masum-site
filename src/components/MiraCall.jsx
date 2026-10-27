@@ -81,7 +81,7 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
     const r = new SR(); rec.current = r; let fin = "";
     r.lang = lang.current; r.interimResults = true; r.continuous = false;
     r.onresult = (e) => { let f = "", t = ""; for (let i = 0; i < e.results.length; i++) (e.results[i].isFinal ? (f += e.results[i][0].transcript) : (t += e.results[i][0].transcript)); fin = f; setCap({ who: "you", text: f + t }); };
-    r.onerror = (e) => { if (e.error === "not-allowed" || e.error === "service-not-allowed") { setErr("মাইক্রোফোনের অনুমতি দাও 🎙️ — please allow the microphone"); alive.current = false; setPhase("idle"); } };
+    r.onerror = (e) => { if (e.error === "not-allowed" || e.error === "service-not-allowed") { setErr("Please allow microphone access 🎙️"); alive.current = false; setPhase("idle"); } };
     r.onend = () => { if (!alive.current) return; const q = fin.trim(); if (q) ask(q); else if (!mutedRef.current) setTimeout(listen, 250); };
     try { r.start(); setPhase("listening"); } catch { setTimeout(listen, 500); }
   };
@@ -121,14 +121,14 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
     else if (phase !== "speaking" && phase !== "thinking") listen();
   };
   const mm = String(Math.floor(secs / 60)).padStart(2, "0"), ss = String(secs % 60).padStart(2, "0");
-  const status = { speaking: "মিরা বলছে…", listening: "শুনছি… বলো 🎙️", thinking: "ভাবছি…", idle: muted ? "মিউট করা" : "…" }[phase];
+  const status = { speaking: "Mira is speaking…", listening: "Listening… go ahead 🎙️", thinking: "Thinking…", idle: muted ? "Muted" : "…" }[phase];
 
   return (
     <div role="dialog" aria-label="Voice call with Mira" data-testid="mira-call"
       className="fixed inset-0 z-[60] flex flex-col items-center justify-between bg-gradient-to-b from-[#0a2a6b] via-[#101a3a] to-[#3a1430] px-6 pb-10 pt-14 text-white">
       <div className="text-center">
         <p className="text-xs uppercase tracking-[0.25em] text-white/60">Voice call</p>
-        <p className="mt-1 text-2xl font-semibold">Mira · মিরা</p>
+        <p className="mt-1 text-2xl font-semibold">Mira</p>
         <p className="mt-1 font-mono text-sm text-white/70" aria-live="off">{mm}:{ss}</p>
       </div>
       <div className="flex flex-col items-center">

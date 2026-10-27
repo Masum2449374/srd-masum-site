@@ -7,8 +7,8 @@ import { X, PaperPlaneRight, Sparkle, Microphone, Phone } from "@phosphor-icons/
 const OWNER_KEY = "srd-mira-owner";
 export const getOwner = () => { try { return localStorage.getItem(OWNER_KEY) || undefined; } catch { return undefined; } };
 export const setOwner = (t) => { try { t ? localStorage.setItem(OWNER_KEY, t) : localStorage.removeItem(OWNER_KEY); } catch {} };
-const GREETING = "হাই! আমি মিরা 💙 — Hi, I'm Mira, SRD Masum's assistant. Ask me about the songs, artists, Spotify/YouTube links or the site — in English, বাংলা or हिन्दी.";
-const CHIPS = ["Spotify link?", "Who sings Aashiqana?", "নতুন গান কোনটা?", "How do I contact SRD Masum?"];
+const GREETING = "Hi, I'm Mira 💙 SRD Masum's assistant. Ask me about the songs, artists, Spotify/YouTube links or the site — in English, Bangla or Hindi.";
+const CHIPS = ["Spotify link?", "Who sings Aashiqana?", "What's the newest song?", "How do I contact SRD Masum?"];
 const KEY = "srd-chat";
 
 const linkify = (t) => t.split(/(https?:\/\/[^\s)]+)/g).map((p, i) =>
@@ -53,12 +53,12 @@ export default function ChatPanel({ open, onClose }) {
       finalTxt.current = fin; setText((fin + tmp).slice(0, 500));
     };
     r.onerror = (e) => {
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") flash("মাইক্রোফোনের অনুমতি দাও 🎙️ — please allow microphone access");
-      else if (e.error === "no-speech") flash("কিছু শুনতে পাইনি 🙈 আবার চেষ্টা করো");
-      else if (e.error !== "aborted") flash("ভয়েস কাজ করছে না, টাইপ করে লেখো 💙");
+      if (e.error === "not-allowed" || e.error === "service-not-allowed") flash("Please allow microphone access 🎙️");
+      else if (e.error === "no-speech") flash("Didn't catch that 🙈 Please try again");
+      else if (e.error !== "aborted") flash("Voice isn't working here, please type 💙");
     };
     r.onend = () => { setListening(false); const f = finalTxt.current.trim(); if (f) send(f); };
-    try { r.start(); setListening(true); } catch { flash("ভয়েস চালু করা গেল না"); }
+    try { r.start(); setListening(true); } catch { flash("Couldn't start voice input"); }
   };
   useEffect(() => () => rec.current?.abort?.(), []);
 
@@ -91,8 +91,8 @@ export default function ChatPanel({ open, onClose }) {
           <p className="truncate text-[15px] font-bold text-ink">Mira <span className="text-[11px] font-medium text-muted">SRD Assistant</span></p>
           <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-emerald-500"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />Online</p>
         </div>
-        <button type="button" data-testid="mira-call-btn" onClick={() => (canCall ? (rec.current?.abort?.(), setCall(true)) : flash("এই ব্রাউজারে ভয়েস কল চলে না 🙏 Chrome-এ চেষ্টা করো"))}
-          title="মিরার সাথে কথা বলো · Call Mira" aria-label="Voice call with Mira"
+        <button type="button" data-testid="mira-call-btn" onClick={() => (canCall ? (rec.current?.abort?.(), setCall(true)) : flash("Voice calls aren't supported in this browser 🙏 Try Chrome"))}
+          title="Call Mira" aria-label="Voice call with Mira"
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-md shadow-emerald-500/30 transition hover:scale-105 active:scale-95">
           <Phone size={17} weight="fill" />
         </button>
@@ -120,7 +120,7 @@ export default function ChatPanel({ open, onClose }) {
       <form onSubmit={(e) => { e.preventDefault(); send(); }} className="flex items-center gap-2 border-t border-hairline p-2.5">
         <label htmlFor="srd-chat-input" className="sr-only">Your message</label>
         <input id="srd-chat-input" ref={input} value={text} onChange={(e) => setText(e.target.value)} maxLength={500}
-          placeholder={listening ? "শুনছি… 🎙️" : "Ask Mira anything…"} autoComplete="off"
+          placeholder={listening ? "Listening… 🎙️" : "Ask Mira anything…"} autoComplete="off"
           className="min-w-0 flex-1 rounded-full bg-sunk px-4 py-2.5 text-[16px] text-ink placeholder:text-faint outline-none ring-1 ring-transparent focus:ring-accent/60 sm:text-sm" />
         {SR && (
           <div className="flex shrink-0 items-center gap-1">

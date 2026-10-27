@@ -200,15 +200,15 @@ function NotifyForm() {
     } catch { setState("err"); }
   };
   const msg = {
-    ok: "ধন্যবাদ! নতুন গান এলে জানানো হবে। · You're on the list.",
-    already: "এই ইমেইল আগেই যুক্ত আছে। · You're already on the list.",
-    bad: "সঠিক ইমেইল লিখুন। · Please enter a valid email.",
-    err: "এখন হচ্ছে না, একটু পরে চেষ্টা করুন। · Please try again later.",
+    ok: "Thanks! You're on the list.",
+    already: "You're already on the list.",
+    bad: "Please enter a valid email.",
+    err: "Something went wrong. Please try again later.",
   }[state];
   return (
     <form onSubmit={submit} className="mt-8 max-w-xl" noValidate>
       <label htmlFor="notify-email" className="mb-2 block text-sm font-medium text-ink">
-        <span lang="bn">নতুন গান এলে জানাও</span> · Notify me
+        Get notified about new releases
       </label>
       <div className="flex flex-col gap-3 sm:flex-row">
         <input id="notify-email" type="email" inputMode="email" autoComplete="email" required maxLength={120}
@@ -220,7 +220,7 @@ function NotifyForm() {
           {state === "busy" ? "…" : "Notify me"}
         </button>
       </div>
-      <p className="mt-2 min-h-[1.25rem] text-sm text-muted" role="status" aria-live="polite">{msg || "শুধু ইমেইল, কোনো স্প্যাম নয়। · Email only, no spam."}</p>
+      <p className="mt-2 min-h-[1.25rem] text-sm text-muted" role="status" aria-live="polite">{msg || "Email only. No spam."}</p>
     </form>
   );
 }
@@ -409,7 +409,7 @@ function BanglaSongs() {
         </Reveal>
         {BANGLA_TRACKS.length === 0 ? (
           <Reveal>
-            <p className="font-mono text-sm text-faint">শীঘ্রই আসছে · coming soon</p>
+            <p className="font-mono text-sm text-faint">Coming soon</p>
           </Reveal>
         ) : (
           <div className="flex flex-col gap-1 lg:grid lg:grid-cols-2 lg:gap-x-8">
@@ -474,7 +474,7 @@ function Music() {
   const player = usePlayer();
   const groups = [
     { label: "Hindi", list: AUDIO_TRACKS },
-    { label: "Bangla · বাংলা", list: BANGLA_TRACKS },
+    { label: "Bangla", list: BANGLA_TRACKS },
   ].filter((g) => g.list.length);
   return (
     <section id="music" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
@@ -486,7 +486,7 @@ function Music() {
         <Reveal delay={0.06}>
           <div className="mt-2 overflow-hidden rounded-2xl bg-raised/60 p-3 ring-1 ring-hairline sm:p-5">
             <div className="mb-3 flex items-center justify-between gap-3 px-1">
-              <p className="text-sm font-semibold text-ink">এখানেই শুনুন · Play on this site</p>
+              <p className="text-sm font-semibold text-ink">Play on this site</p>
               {player?.track && (
                 <span className="truncate font-mono text-[11px] text-accent">{player.playing ? "▶ " : "❚❚ "}{player.track.title}</span>
               )}

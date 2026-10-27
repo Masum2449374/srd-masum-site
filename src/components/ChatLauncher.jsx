@@ -4,7 +4,7 @@ import { ChatCircleDots, X } from "@phosphor-icons/react";
 // Floating "Ask SRD" button. The panel (and its code) only loads on first open.
 const ChatPanel = lazy(() => import("./ChatPanel.jsx"));
 
-const LINES = ["হ্যালো 💙 কোন গান খুঁজছো?", "গানের কথা জিজ্ঞেস করো ✨", "I'm Mira 💙 Ask me about any song 🎵", "আজ কোন গানে মন ভালো করবে? 🎶"];
+const LINES = ["Hi 💙 Looking for a song?", "Ask me about the lyrics ✨", "I'm Mira 💙 Ask me about any song 🎵", "Which song fits your mood today? 🎶"];
 const KEY = "srd-chat-teaser-off";
 const off = () => { try { return sessionStorage.getItem(KEY) === "1"; } catch { return false; } };
 // Soft two-note bell via Web Audio; only after a user gesture (autoplay policy).

@@ -10,7 +10,7 @@ const LINKS = [
   { id: "music", label: "Music", sub: "Albums & singles", Icon: Disc, g: 0 },
   { id: "english", label: "English", sub: "International tracks", href: "/english/", Icon: Globe, g: 0 },
   { id: "audio-songs", label: "Hindi Songs", sub: "Covers & originals", Icon: MusicNotes, g: 0 },
-  { id: "bangla-songs", label: "Bangla Songs", sub: "বাংলা গান", Icon: MusicNote, g: 0 },
+  { id: "bangla-songs", label: "Bangla Songs", sub: "Bengali songs", Icon: MusicNote, g: 0 },
   { id: "songs", label: "Bollywood", sub: "Classic hits", Icon: FilmStrip, g: 0 },
   { id: "new-release", label: "New Release", sub: "Just dropped", Icon: Sparkle, g: 0 },
   { id: "videos", label: "Videos", sub: "Watch the latest", Icon: Television, g: 1 },

@@ -45,7 +45,7 @@ export default function ShareButton({ track }) {
         onClick={onShare}
         aria-label={`Share ${track.title}`}
         aria-expanded={open}
-        title="শেয়ার করুন · Share"
+        title="Share"
         className="flex h-9 w-9 items-center justify-center rounded-full text-muted transition hover:text-accent active:scale-95"
       >
         <ShareNetwork size={16} weight="bold" />
@@ -54,7 +54,7 @@ export default function ShareButton({ track }) {
         <div role="menu" className="absolute bottom-full right-0 z-40 mb-2 w-48 rounded-xl bg-sunk p-1 shadow-xl ring-1 ring-hairline">
           <button type="button" role="menuitem" onClick={copy} className={item}>
             {copied ? <Check size={16} className="text-accent" /> : <Copy size={16} />}
-            {copied ? "কপি হয়েছে · Copied" : "লিংক কপি · Copy link"}
+            {copied ? "Copied" : "Copy link"}
           </button>
           <a role="menuitem" className={item} target="_blank" rel="noopener noreferrer"
              href={`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`} onClick={() => setOpen(false)}>
