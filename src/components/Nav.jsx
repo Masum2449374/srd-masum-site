@@ -13,7 +13,6 @@ const LINKS = [
   { id: "bangla-songs", label: "Bangla Songs", sub: "বাংলা গান", Icon: MusicNote, g: 0 },
   { id: "songs", label: "Bollywood", sub: "Classic hits", Icon: FilmStrip, g: 0 },
   { id: "new-release", label: "New Release", sub: "Just dropped", Icon: Sparkle, g: 0 },
-  { id: "featured", label: "Featured", sub: "Hand-picked highlights", Icon: Star, g: 1 },
   { id: "videos", label: "Videos", sub: "Watch the latest", Icon: Television, g: 1 },
   { id: "reviews", label: "Reviews", sub: "What listeners say", Icon: ChatCircleText, g: 2 },
   { id: "contact", label: "Contact", sub: "Bookings & collabs", Icon: EnvelopeSimple, g: 2 },

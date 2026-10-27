@@ -17,7 +17,6 @@ import SecretBurst from "./components/SecretBurst.jsx";
 import { useDecorReduce } from "./lib/motion.js";
 import { VideoCard } from "./components/SongPlayer.jsx";
 import { PlayerProvider, TrackRow, MiniPlayer, usePlayer } from "./components/MiniPlayer.jsx";
-import SpotifyEmbed from "./components/SpotifyEmbed.jsx";
 import { VIDEO_IDS, CHANNEL_URL, CONTACT_EMAIL, SOCIAL_LINKS, SPOTIFY_ARTIST_URL } from "./data/videos.js";
 import { AUDIO_TRACKS } from "./data/songs.js";
 import { BANGLA_TRACKS } from "./data/bangla-songs.js";
@@ -352,23 +351,6 @@ function Hero() {
   );
 }
 
-function Featured() {
-  return (
-    <section id="featured" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
-      <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
-        <Reveal>
-          <SectionHeader eyebrow="Now playing" title="Featured" />
-        </Reveal>
-        <Reveal delay={0.08}>
-          <div className="overflow-hidden rounded-xl ring-1 ring-hairline">
-            <SpotifyEmbed kind="track" id="0wqbduMup8NkUnRVEERKqb" height={352} title="SRD Masum featured track on Spotify" />
-          </div>
-        </Reveal>
-      </div>
-    </section>
-  );
-}
-
 function BanglaSongs() {
   return (
     <section id="bangla-songs" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
@@ -487,17 +469,6 @@ function Music() {
             <ArrowUpRight size={16} aria-hidden="true" />
             <span className="sr-only">(opens in a new tab)</span>
           </motion.a>
-        </Reveal>
-        <Reveal delay={0.18} className="mt-8 overflow-hidden rounded-xl ring-1 ring-hairline">
-          <iframe
-            title="SRD Masum on Spotify"
-            src="https://open.spotify.com/embed/artist/267kT30bpgEoiGFawat8k6?utm_source=generator&theme=0"
-            width="100%"
-            height="352"
-            loading="lazy"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            className="block w-full border-0"
-          />
         </Reveal>
       </div>
     </section>
@@ -937,7 +908,6 @@ export default function App() {
         <AudioSongs />
         <AdSlot type="native" />
         <BanglaSongs />
-        <Featured />
         <Videos />
         <NewRelease />
         <Songs />

@@ -9,7 +9,7 @@ const CSP = [
   "img-src 'self' data: blob: https:",
   "media-src 'self' blob: data: https://cdn.jsdelivr.net",
   "connect-src 'self' https://cdn.jsdelivr.net https://cloudflareinsights.com https://static.cloudflareinsights.com",
-  "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://open.spotify.com",
+  "frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com",
   "worker-src 'self'", "manifest-src 'self'", "object-src 'none'", "base-uri 'self'",
   "frame-ancestors 'none'", "upgrade-insecure-requests",
 ].join("; ");
@@ -20,7 +20,7 @@ function harden(res, url) {
   if (ads) { h.set("content-security-policy", "frame-ancestors 'self'"); h.set("x-frame-options", "SAMEORIGIN"); }
   else { h.set("content-security-policy", CSP); h.set("x-frame-options", "DENY"); }
   h.set("strict-transport-security", "max-age=31536000; includeSubDomains");
-  h.set("permissions-policy", "camera=(), geolocation=(), payment=(), usb=(), microphone=(self), autoplay=(self), fullscreen=(self \"https://www.youtube-nocookie.com\" \"https://www.youtube.com\" \"https://open.spotify.com\")");
+  h.set("permissions-policy", "camera=(), geolocation=(), payment=(), usb=(), microphone=(self), autoplay=(self), fullscreen=(self \"https://www.youtube-nocookie.com\" \"https://www.youtube.com\")");
   h.set("x-content-type-options", "nosniff");
   h.set("referrer-policy", "strict-origin-when-cross-origin");
   if (!(p.startsWith("/audio/") || p === "/.well-known/assetlinks.json")) h.delete("access-control-allow-origin");
