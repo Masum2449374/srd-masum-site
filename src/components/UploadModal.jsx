@@ -7,7 +7,9 @@ export default function UploadModal({ onClose, onDone, left }) {
   const [title, setTitle] = useState(""), [language, setLanguage] = useState(""), [lyrics, setLyrics] = useState(""), [rights, setRights] = useState(false);
   const [err, setErr] = useState(""), [busy, setBusy] = useState(false), [pct, setPct] = useState(0), [done, setDone] = useState(false);
   const xhr = useRef(null);
-  useEffect(() => { const k = (e) => e.key === "Escape" && !busy && onClose(); document.addEventListener("keydown", k); const p = document.body.style.overflow; document.body.style.overflow = "hidden"; return () => { document.removeEventListener("keydown", k); document.body.style.overflow = p; xhr.current?.abort(); }; }, [busy, onClose]);
+  useEffect(() => { const k = (e) => e.key === "Escape" && !busy && onClose(); document.addEventListener("keydown", k); const p = document.body.style.overflow; document.body.style.overflow = "hidden"; return () => { document.removeEventListener("keydown", k); document.body.style.overflow = p; }; }, [busy, onClose]);
+  // Abort only when the modal unmounts (not when `busy` flips, which re-runs the effect above).
+  useEffect(() => () => { const x = xhr.current; xhr.current = null; x?.abort(); }, []);
   useEffect(() => () => coverUrl && URL.revokeObjectURL(coverUrl), [coverUrl]);
   const pickAudio = (f) => { setErr(""); if (!f) return; if (!AUDIO_OK.test(f.name)) return setErr("Use an MP3, M4A, AAC or WAV file."); if (f.size > 20 * 1024 * 1024) return setErr("Audio must be 20 MB or less."); setAudio(f); if (!title) setTitle(f.name.replace(/\.[^.]+$/, "").replace(/[_-]+/g, " ").slice(0, 100)); };
   const pickCover = (f) => { setErr(""); if (!f) return; if (!IMG_OK.test(f.name)) return setErr("Cover must be JPG, PNG or WebP."); if (f.size > 3 * 1024 * 1024) return setErr("Cover image must be 3 MB or less."); setCover(f); setCoverUrl(URL.createObjectURL(f)); };
@@ -18,9 +20,13 @@ export default function UploadModal({ onClose, onDone, left }) {
     const x = new XMLHttpRequest(); xhr.current = x; setBusy(true); setPct(0);
     x.open("POST", "/api/songs/upload"); x.withCredentials = true;
     x.upload.onprogress = (ev) => ev.lengthComputable && setPct(Math.round((ev.loaded / ev.total) * 100));
-    x.onload = () => { setBusy(false); let d = {}; try { d = JSON.parse(x.responseText); } catch {} if (x.status >= 200 && x.status < 300) { setDone(true); onDone?.(d.song); } else setErr(d.error || "Upload failed. Please try again."); };
-    x.onerror = () => { setBusy(false); setErr("Network error. Please try again."); };
-    x.send(fd);
+    const fail = (m) => { if (xhr.current !== x) return; xhr.current = null; setBusy(false); setPct(0); setErr(m); };
+    x.timeout = 10 * 60 * 1000;
+    x.onload = () => { if (xhr.current !== x) return; xhr.current = null; setBusy(false); let d = {}; try { d = JSON.parse(x.responseText); } catch {} if (x.status >= 200 && x.status < 300) { setPct(100); setDone(true); onDone?.(d.song); } else { setPct(0); setErr(d.error || (x.status === 413 ? "Files are too large." : `Upload failed (${x.status || "network"}). Please try again.`)); } };
+    x.onerror = () => fail("Network error — check your connection and tap Submit to try again.");
+    x.ontimeout = () => fail("Upload timed out. Please tap Submit to try again.");
+    x.onabort = () => fail("Upload was interrupted. Please tap Submit to try again.");
+    try { x.send(fd); } catch { fail("Couldn't start the upload. Please try again."); }
   };
   return (
     <div className="srd-up" role="dialog" aria-modal="true" aria-labelledby="up-title">
