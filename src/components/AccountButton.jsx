@@ -19,8 +19,8 @@ export default function AccountButton() {
     <>
       {user ? (
         <div ref={ref} className="relative">
-          <button type="button" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu} aria-label="Account menu" className="pro-btn inline-flex rounded-full transition-transform active:scale-[0.92]">
-            <Avatar user={user} size={36} />
+          <button type="button" onClick={() => setMenu((m) => !m)} aria-haspopup="menu" aria-expanded={menu} aria-label="Account menu" className="hv2-avatar pro-btn">
+            <Avatar user={user} size={34} />
           </button>
           {menu && (
             <div role="menu" className="srd-acct-menu">
@@ -35,7 +35,7 @@ export default function AccountButton() {
           )}
         </div>
       ) : (
-        <button type="button" onClick={() => openAuth("signin")} aria-label="Sign in" className="srd-search-btn srd-signin-btn pro-btn glow-hover text-ink">
+        <button type="button" onClick={() => openAuth("signin")} aria-label="Sign in" className="hv2-signin pro-btn">
           <UserCircle size={19} weight="bold" aria-hidden="true" /><span className="srd-signin-label">Sign in</span>
         </button>
       )}

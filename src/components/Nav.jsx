@@ -55,6 +55,15 @@ export default function Nav({ page = "home" }) {
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
 
+  // "/" opens search (desktop shortcut shown in the pill), ignored while typing.
+  useEffect(() => {
+    const k = (e) => { if (e.key !== "/" || e.metaKey || e.ctrlKey || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || e.target.isContentEditable) return; e.preventDefault(); setSearchOpen(true); };
+    document.addEventListener("keydown", k); return () => document.removeEventListener("keydown", k);
+  }, []);
+  // Scrolled state: glass bar gets its hairline + shadow only after leaving the top.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => { const f = () => setScrolled(window.scrollY > 8); f(); window.addEventListener("scroll", f, { passive: true }); return () => window.removeEventListener("scroll", f); }, []);
+
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     document.documentElement.classList.toggle("light", next === "light");
@@ -129,28 +138,30 @@ export default function Nav({ page = "home" }) {
   };
 
   return (
-    <header className="pro-nav sticky top-0 z-40 border-b border-hairline" style={open ? { zIndex: 2147483000 } : undefined}>
-      <div className="mx-auto flex h-16 max-w-6xl items-center lg:max-w-[1240px] justify-between gap-4 px-5 sm:px-8">
+    <header className={`pro-nav hv2 sticky top-0 z-40${scrolled ? " is-scrolled" : ""}`} style={open ? { zIndex: 2147483000 } : undefined}>
+      <div className="hv2-bar mx-auto flex max-w-6xl items-center lg:max-w-[1240px] justify-between gap-4">
         <a
-          href="#top"
+          href="/"
+          onClick={(e) => { if (onHome && location.pathname === "/") { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); } }}
           onPointerDown={onLogoTap}
           style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", WebkitUserSelect: "none", userSelect: "none" }}
-          className="flex items-center gap-2 font-display text-lg tracking-display"
+          className="hv2-brand"
+          aria-label="SRD Masum home"
         >
-          <img src="/images/avatar.webp" alt="" aria-hidden="true" width="34" height="34" className="h-[34px] w-[34px] shrink-0 rounded-full object-cover ring-1 ring-accent" />
-          <span>SRD <span className="text-accent">Masum</span></span>
+          <img src="/images/avatar.webp" alt="" aria-hidden="true" width="32" height="32" className="hv2-logo" />
+          <span className="hv2-word">SRD<span className="hv2-word-b">Masum</span></span>
         </a>
 
         <DeskNav active={active} onHome={onHome} goTo={goTo} />
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="hv2-actions flex shrink-0 items-center">
           <a href={onHome ? "#audio-songs" : "/#audio-songs"} onClick={(e) => { if (!onHome) return; goTo(e, "audio-songs"); }}
             className="pro-btn hidden items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-transform hover:scale-[1.03] active:scale-[0.97] lg:inline-flex">
             <Play size={14} weight="fill" aria-hidden="true" />Listen now
           </a>
           <button type="button" onClick={() => { playTapPop(); setSearchOpen(true); }} aria-label="Search songs" aria-haspopup="dialog"
-            className="srd-search-btn pro-btn glow-hover text-ink">
-            <MagnifyingGlass size={17} weight="bold" aria-hidden="true" />Search
+            className="hv2-search pro-btn">
+            <MagnifyingGlass size={18} weight="bold" aria-hidden="true" /><span className="hv2-search-label">Search</span><kbd className="hv2-kbd">/</kbd>
           </button>
           <AccountButton />
           <button
@@ -158,7 +169,7 @@ export default function Nav({ page = "home" }) {
             onClick={toggleTheme}
             aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
             title={theme === "dark" ? "Light theme" : "Dark theme"}
-            className="glow-hover pro-btn inline-flex h-9 w-9 items-center justify-center rounded-full text-muted ring-1 ring-hairline transition-colors duration-200 hover:text-ink active:scale-[0.92]"
+            className="hv2-icon pro-btn"
           >
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
@@ -182,7 +193,7 @@ export default function Nav({ page = "home" }) {
             aria-expanded={open}
             aria-controls="site-menu"
             aria-label={open ? "Close menu" : "Open menu"}
-            className="pro-btn inline-flex lg:hidden h-9 w-9 items-center justify-center rounded-full bg-accent text-on-accent transition-transform duration-200 active:scale-[0.92]"
+            className="hv2-icon hv2-menu pro-btn lg:hidden"
           >
             {open ? <X size={18} weight="bold" aria-hidden="true" /> : <List size={18} weight="bold" aria-hidden="true" />}
           </button>
