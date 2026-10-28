@@ -20,3 +20,10 @@ export default function VerifiedBadge({ size = 14, className = "" }) {
     </svg>
   );
 }
+
+// Name with the badge glued to its last word (never orphans onto its own line).
+export function NameWithBadge({ name, verified, size = 22, className = "" }) {
+  const s = String(name || ""), i = s.lastIndexOf(" ");
+  if (!verified) return s;
+  return (<>{i > 0 ? s.slice(0, i + 1) : ""}<span className="whitespace-nowrap">{i > 0 ? s.slice(i + 1) : s}<VerifiedBadge size={size} className={`ml-[5px] align-middle relative -top-[0.06em] ${className}`} /></span></>);
+}
