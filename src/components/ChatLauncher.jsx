@@ -13,7 +13,7 @@ if (typeof window !== "undefined") {
   const mark = () => { gestured = true; };
   ["pointerdown", "keydown", "touchstart"].forEach((e) => window.addEventListener(e, mark, { once: true, passive: true }));
 }
-function chime() {
+function chime() { return; // sound disabled by owner request
   if (!gestured || document.hidden) return;
   try {
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
