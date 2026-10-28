@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sun, Moon, List, X, CaretRight, CaretDown, Disc, Globe, MusicNotes, MusicNote, FilmStrip, Sparkle, Star, Television, PlayCircle, ChatCircleText, Heart, EnvelopeSimple, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, Play } from "@phosphor-icons/react";
 import SearchOverlay from "./SearchOverlay.jsx";
 import AccountButton from "./AccountButton.jsx";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { MagnifyingGlass, ArrowLeft } from "@phosphor-icons/react";
 import { spring } from "./Reveal.jsx";
 import { triggerSecret } from "./SecretBurst.jsx";
 import { playTapPop } from "../lib/sounds.js";
@@ -29,6 +29,7 @@ const THEME_KEY = "srd-theme";
 
 export default function Nav({ page = "home" }) {
   const onHome = page === "home";
+  const showBack = !onHome && page !== "english";
   const [active, setActive] = useState(page === "english" ? "english" : "audio-songs");
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -140,6 +141,13 @@ export default function Nav({ page = "home" }) {
   return (
     <header className={`pro-nav hv2 sticky top-0 z-40${scrolled ? " is-scrolled" : ""}`} style={open ? { zIndex: 2147483000 } : undefined}>
       <div className="hv2-bar mx-auto flex max-w-6xl items-center lg:max-w-[1240px] justify-between gap-4">
+        <div className="hv2-left">
+        {showBack && (
+          <button type="button" aria-label="Back" title="Back" className="hv2-icon hv2-back pro-btn"
+            onClick={() => { let same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {} if (same && history.length > 1) history.back(); else location.href = "/"; }}>
+            <ArrowLeft size={19} weight="bold" aria-hidden="true" />
+          </button>
+        )}
         <a
           href="/"
           onClick={(e) => { if (onHome && location.pathname === "/") { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); } }}
@@ -151,6 +159,7 @@ export default function Nav({ page = "home" }) {
           <img src="/images/avatar.webp" alt="" aria-hidden="true" width="32" height="32" className="hv2-logo" />
           <span className="hv2-word">SRD<span className="hv2-word-b">Masum</span></span>
         </a>
+        </div>
 
         <DeskNav active={active} onHome={onHome} goTo={goTo} />
 
