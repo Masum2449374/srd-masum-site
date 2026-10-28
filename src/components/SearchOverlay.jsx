@@ -105,7 +105,7 @@ export default function SearchOverlay({ onClose }) {
               </a>
             </li>
           ))}
-          {q.trim() && !total && !users.length && <li className="srd-search-empty">No results for “{q}”.</li>}
+          {q.trim() && !total && !users.length && (q.trim().length < 2 || remote.q === q.trim()) && <li className="srd-search-empty">No results for “{q}”.</li>}
         </ul>
       </div>
     </div>
