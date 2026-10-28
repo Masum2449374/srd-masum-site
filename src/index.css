@@ -942,10 +942,4 @@ section.border-t::before { content: ""; position: absolute; top: 0; left: 8%; ri
 .season-item { opacity: .45 !important; filter: saturate(.7); }
 [data-season="halloween"] .seasonal-tint-halloween { opacity: .7; }
 
-/* Mobile: Ask Mira never covers hero CTAs — compact while hero is on screen */
-@media (max-width: 1023px) {
-  html:not([data-hero-visible="false"]) .srd-chat-launcher .chat-teaser { display: none; }
-  html:not([data-hero-visible="false"]) .srd-chat-launcher .chat-fab span.whitespace-nowrap { display: none; }
-  html:not([data-hero-visible="false"]) .srd-chat-launcher .chat-fab { padding: 0 .8rem; }
-}
 @media (prefers-reduced-motion: reduce) { .hero-ink { animation: none; } }
