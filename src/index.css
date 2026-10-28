@@ -887,3 +887,65 @@ html.light .srd-search-sheet{background:#fff;box-shadow:0 20px 60px rgba(0,0,0,.
 @keyframes srdFade{from{opacity:0}}
 @keyframes srdDrop{from{opacity:0;transform:translateY(-12px) scale(.98)}}
 body.srd-search-open .srd-chat-launcher{display:none!important}
+
+/* ============ Premium redesign layer (visual only) ============ */
+:root { --canvas: 9 10 14; --raised: 18 19 25; --sunk: 14 15 20; --hairline: 38 40 50; --muted: 160 163 175; --faint: 128 131 145; }
+:root.light { --canvas: 250 250 252; --raised: 255 255 255; --sunk: 243 244 247; --hairline: 225 227 233; }
+body { font-feature-settings: "cv11", "ss01", "ss03"; letter-spacing: -0.006em; }
+.font-display { font-weight: 700; font-optical-sizing: auto; }
+h2.font-display { letter-spacing: -0.04em; }
+.eyebrow { font-family: "Inter Variable", system-ui, sans-serif; font-weight: 600; font-size: .7rem; letter-spacing: .26em; color: #5b9dff; }
+
+/* Hero: cinematic letterbox vignette + film grain + luminous title */
+.hero-cine { position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background: radial-gradient(120% 80% at 70% 30%, transparent 40%, rgba(0,0,0,.55) 100%),
+              linear-gradient(90deg, rgba(5,6,10,.75) 0%, rgba(5,6,10,.15) 55%, transparent 100%); }
+:root.light .hero-cine { background: linear-gradient(90deg, rgba(250,250,252,.8), transparent 70%); }
+.hero-grain { position: absolute; inset: -50%; z-index: -2; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.hero-ink { background: linear-gradient(180deg, #fff 30%, rgba(255,255,255,.62) 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 10px 40px rgba(11,108,240,.25)); letter-spacing: -0.055em; }
+:root.light .hero-ink { background: linear-gradient(180deg, #0c0d12 40%, #3a3f52); -webkit-background-clip: text; background-clip: text; }
+.hero-ink * { -webkit-text-fill-color: currentColor; }
+.hero-sub { text-shadow: 0 1px 20px rgba(0,0,0,.4); }
+@keyframes heroRise { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+.hero-ink { animation: heroRise 1.1s cubic-bezier(.2,.7,.2,1) both; }
+
+/* Buttons */
+.btn-primary { background: linear-gradient(180deg, #2b84ff, #0b6cf0 60%, #0a5bd0) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 12px 30px -10px rgba(11,108,240,.75); }
+.btn-primary:hover { box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 18px 40px -10px rgba(11,108,240,.9); }
+.btn-glass { background: rgba(255,255,255,.06) !important; border-color: rgba(255,255,255,.16) !important;
+  backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); }
+.btn-glass:hover { background: rgba(255,255,255,.12) !important; }
+:root.light .btn-glass { background: rgba(255,255,255,.7) !important; border-color: rgba(0,0,0,.1) !important; }
+
+/* Glass cards everywhere */
+.pro-card, .hero-desk-card { background: linear-gradient(180deg, rgb(var(--raised) / .78), rgb(var(--raised) / .55)) !important;
+  border: 1px solid rgba(255,255,255,.07); border-radius: 1.5rem;
+  box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 30px 60px -30px rgba(0,0,0,.8); }
+:root.light .pro-card, :root.light .hero-desk-card { border-color: rgba(0,0,0,.06); box-shadow: 0 20px 50px -30px rgba(20,30,60,.35); }
+.hero-desk-card { backdrop-filter: blur(24px) saturate(150%); -webkit-backdrop-filter: blur(24px) saturate(150%); }
+
+/* Sections: softer dividers + ambient glow */
+section.border-t { border-top-color: transparent !important; position: relative; }
+section.border-t::before { content: ""; position: absolute; top: 0; left: 8%; right: 8%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(var(--hairline)), transparent); }
+.pro-nav { background: rgb(var(--canvas) / .82); border-bottom: 1px solid rgba(255,255,255,.05); }
+@supports (backdrop-filter: blur(1px)) { @media (min-width: 1024px) { .pro-nav { backdrop-filter: blur(18px) saturate(160%); } } }
+
+/* Footer */
+.pro-footer { background: radial-gradient(80% 120% at 50% 0%, rgba(11,108,240,.10), transparent 60%), rgb(var(--sunk)) !important; border-top-color: transparent !important; }
+
+/* Halloween: tasteful — fewer, softer emoji; warm ambient tint instead of loud */
+[data-season="halloween"] .eyebrow { color: #f0a35e; }
+.season-item { opacity: .45 !important; filter: saturate(.7); }
+[data-season="halloween"] .seasonal-tint-halloween { opacity: .7; }
+
+/* Mobile: Ask Mira never covers hero CTAs — compact while hero is on screen */
+@media (max-width: 1023px) {
+  html:not([data-hero-visible="false"]) .srd-chat-launcher .chat-teaser { display: none; }
+  html:not([data-hero-visible="false"]) .srd-chat-launcher .chat-fab span.whitespace-nowrap { display: none; }
+  html:not([data-hero-visible="false"]) .srd-chat-launcher .chat-fab { padding: 0 .8rem; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-ink { animation: none; } }

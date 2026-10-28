@@ -335,14 +335,16 @@ function Hero() {
       </picture>
       <div className="absolute inset-0 -z-10 bg-gradient-to-b from-canvas/60 via-canvas/75 to-canvas/95" aria-hidden="true" />
       <div className="hero-blend" aria-hidden="true" />
+      <div className="hero-cine" aria-hidden="true" />
+      <div className="hero-grain" aria-hidden="true" />
       <HeroGlow />
       <HeroAurora />
       <Sparkles />
       {season === "christmas" ? null : <Snow />}
       <Seasonal season={season} />
       <SeasonalTaps season={season} />
-      <div className="mx-auto min-h-[78svh] max-w-6xl px-5 pb-0 pt-28 sm:px-8 sm:pb-24 lg:grid lg:min-h-[82svh] lg:max-w-[1240px] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-end lg:gap-14">
-        <div className="flex min-h-[calc(78svh-7rem)] flex-col justify-end lg:min-h-0">
+      <div className="mx-auto min-h-[78svh] max-w-6xl px-5 pb-24 pt-28 sm:px-8 sm:pb-24 lg:grid lg:min-h-[82svh] lg:max-w-[1240px] lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-end lg:gap-14">
+        <div className="flex min-h-[calc(78svh-13rem)] flex-col justify-end lg:min-h-0">
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -352,14 +354,14 @@ function Hero() {
           Music Platform · Songs · Sound
         </motion.p>
         <SeasonBadge season={season} />
-        <h1 className="beat-hero hero-title mt-4 font-display text-[clamp(3.5rem,13vw,10rem)] leading-[0.9] lg:text-[clamp(4.5rem,6.4vw,6.75rem)] lg:whitespace-nowrap tracking-display">
+        <h1 className="beat-hero hero-title hero-ink mt-4 font-display font-bold text-[clamp(3.25rem,14vw,10rem)] leading-[0.92] lg:text-[clamp(4.5rem,6.4vw,6.75rem)] lg:whitespace-nowrap tracking-display">
           <Typewriter text="SRD Masum" delay={introDelay} />
         </h1>
         <motion.p
           initial={reduce ? false : { opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...spring, delay: 0.35 }}
-          className="mt-6 max-w-[34rem] text-base leading-relaxed text-muted sm:text-xl sm:leading-relaxed"
+          className="hero-sub mt-5 max-w-[34rem] text-[1.0625rem] leading-relaxed text-ink/75 sm:text-xl sm:leading-relaxed"
         >
           Music made to be played loud, late, and on repeat. Every new track lands here first.
         </motion.p>
@@ -367,7 +369,7 @@ function Hero() {
           initial={reduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-8 flex flex-wrap gap-3"
+          className="hero-ctas mt-8 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap"
         >
           <a
             href="#music"
@@ -377,7 +379,7 @@ function Hero() {
               if (player && first && !player.track) player.toggle(first, AUDIO_TRACKS.length ? AUDIO_TRACKS : BANGLA_TRACKS);
               document.getElementById("music")?.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
             }}
-            className="glow-hover pro-btn beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-semibold text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
+            className="glow-hover pro-btn btn-primary beat-pop inline-flex items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-semibold text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
           >
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z" /></svg>
             Listen now
@@ -386,7 +388,7 @@ function Hero() {
             href={CHANNEL_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="glow-hover pro-btn beat-pop inline-flex items-center gap-2 rounded-full border border-hairline bg-raised px-6 py-3 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-sunk"
+            className="glow-hover pro-btn btn-glass beat-pop inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full border border-hairline bg-raised px-5 py-3.5 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-sunk"
           >
             Watch on YouTube
             <ArrowUpRight size={16} aria-hidden="true" />
@@ -484,7 +486,7 @@ function Music() {
         </Reveal>
 
         <Reveal delay={0.06}>
-          <div className="mt-2 overflow-hidden rounded-2xl bg-raised/60 p-3 ring-1 ring-hairline sm:p-5">
+          <div className="pro-card mt-2 overflow-hidden rounded-2xl bg-raised/60 p-3 ring-1 ring-hairline sm:p-5">
             <div className="mb-3 flex items-center justify-between gap-3 px-1">
               <p className="text-sm font-semibold text-ink">Play on this site</p>
               {player?.track && (
@@ -702,7 +704,7 @@ function Contact() {
   return (
     <section id="contact" className="scroll-mt-20 border-t border-hairline px-5 py-20 sm:px-8 sm:py-28">
       <div className="mx-auto max-w-6xl lg:max-w-[1240px]">
-        <Reveal className="flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:flex-row sm:items-center sm:justify-between sm:p-12">
+        <Reveal className="pro-card flex flex-col gap-8 rounded-2xl bg-raised p-6 ring-1 ring-hairline sm:flex-row sm:items-center sm:justify-between sm:p-12">
           <div>
             <p className="eyebrow">Get in touch</p>
             <h2 className="mt-4 font-display text-3xl leading-[1.05] tracking-display sm:text-5xl">Contact</h2>
@@ -789,7 +791,7 @@ function VisitorCounter() {
 
 function Footer() {
   return (
-    <footer className="border-t border-hairline bg-sunk px-5 pb-10 pt-12 sm:px-8 sm:pt-14">
+    <footer className="pro-footer border-t border-hairline bg-sunk px-5 pb-10 pt-12 sm:px-8 sm:pt-14">
       <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:max-w-[1240px] text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-3">
           <p className="flex items-center gap-2 font-display text-xl tracking-display text-ink">

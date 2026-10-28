@@ -1,9 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "@fontsource/archivo-black/400.css";
-import "@fontsource/dm-sans/400.css";
-import "@fontsource/dm-sans/500.css";
-import "@fontsource/dm-sans/700.css";
+import "@fontsource-variable/sora/wght.css";
+import "@fontsource-variable/inter/wght.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import App from "./App.jsx";

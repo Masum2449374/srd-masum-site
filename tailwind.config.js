@@ -16,12 +16,12 @@ export default {
         "accent-deep": "#0a2a6b",
       },
       fontFamily: {
-        display: ['"Archivo Black"', "system-ui", "sans-serif"],
-        body: ['"DM Sans"', "system-ui", "sans-serif"],
+        display: ['"Sora Variable"', "system-ui", "sans-serif"],
+        body: ['"Inter Variable"', "system-ui", "sans-serif"],
         mono: ['"IBM Plex Mono"', "ui-monospace", "monospace"],
       },
       letterSpacing: {
-        display: "-0.04em",
+        display: "-0.045em",
       },
     },
   },
