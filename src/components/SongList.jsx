@@ -1,6 +1,7 @@
 import { Play, Pause, Trash, Clock } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { artistHref, artistOf } from "../lib/artists.js";
+import { spaClick } from "../lib/nav.js";
 
 // Spotify-style numbered track list. Works for catalog tracks and user uploads (mapped via toTrack).
 export const toTrack = (s) => ({ id: "u" + s.id, songId: s.id, title: s.title, artist: s.uploader?.displayName, uploader: s.uploader, src: s.audio, cover: s.cover, thumb: s.cover, lyrics: s.lyrics || undefined, playlist: true, uploaded: true });
@@ -24,7 +25,7 @@ export default function SongList({ tracks, onDelete, status }) {
               <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
               <span className="flex min-w-0 items-center gap-2 text-[13px] text-muted">
                 {st?.label && <span className={`srd-pill srd-pill-${st.tone}`}>{st.label}</span>}
-                <a href={artistHref(t)} className="srd-artist-link truncate">{artistOf(t)}</a>
+                <a href={artistHref(t)} onClick={spaClick} className="srd-artist-link truncate">{artistOf(t)}</a>
               </span>
               {st?.note && <span className="mt-0.5 block truncate text-xs text-faint">{st.note}</span>}
             </span>

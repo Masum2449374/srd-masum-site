@@ -4,6 +4,7 @@ import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
 import { ENGLISH_ALL } from "../data/english-songs.js";
 import Avatar from "./Avatar.jsx";
+import { spaClick } from "../lib/nav.js";
 
 const ALL = (() => {
   const seen = new Set();
@@ -67,7 +68,7 @@ export default function SearchOverlay({ onClose }) {
           <ul className="srd-search-list srd-search-users" data-testid="search-profiles">
             {users.map((u) => (
               <li key={u.username}>
-                <a href={`/u/${u.username}`} className="srd-search-row">
+                <a href={`/u/${u.username}`} onClick={(e) => { spaClick(e); if (e.defaultPrevented) onClose(); }} className="srd-search-row">
                   <Avatar user={u} size={44} className="!h-11 !w-11 shrink-0" />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-semibold text-ink">{u.displayName}</span>
@@ -95,7 +96,7 @@ export default function SearchOverlay({ onClose }) {
           ))}
           {upSongs.map((t) => (
             <li key={"u" + t.id}>
-              <a href={`/u/${t.uploader?.username}`} className="srd-search-row">
+              <a href={`/u/${t.uploader?.username}`} onClick={(e) => { spaClick(e); if (e.defaultPrevented) onClose(); }} className="srd-search-row">
                 <img src={t.cover || "/images/avatar.webp"} alt="" width="44" height="44" loading="lazy" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px] font-semibold text-ink">{t.title}</span>

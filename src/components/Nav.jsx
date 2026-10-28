@@ -145,7 +145,7 @@ export default function Nav({ page = "home" }) {
         <div className="hv2-left">
         {showBack && (
           <button type="button" aria-label="Back" title="Back" className="hv2-icon hv2-back pro-btn"
-            onClick={() => { let same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {} if (same && history.length > 1) history.back(); else location.href = "/"; }}>
+            onClick={() => { if (history.state?.srdSpa) { history.back(); return; } let same = false; try { same = !!document.referrer && new URL(document.referrer).origin === location.origin; } catch (e) {} if (same && history.length > 1) history.back(); else location.href = "/"; }}>
             <ArrowLeft size={19} weight="bold" aria-hidden="true" />
           </button>
         )}

@@ -1,4 +1,6 @@
 import { artistHref } from "../lib/artists.js";
+import { navigate, spaClick } from "../lib/nav.js";
+import { CaretRight as ArtistCaret } from "@phosphor-icons/react";
 import { register as exRegister, claim as exClaim } from "../lib/exclusive.js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Info, Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown, CaretUp, SpeakerHigh, SpeakerLow, SpeakerX } from "@phosphor-icons/react";
@@ -440,7 +442,7 @@ function MiniBar({ player, scrub }) {
           {player.repeat === "one" ? <RepeatOnce size={16} weight="bold" /> : <Repeat size={16} weight="bold" />}
         </button>
       </div>
-      <AnimatePresence>{open ? <NowPlaying player={player} scrub={scrub} onClose={close} /> : null}</AnimatePresence>
+      <AnimatePresence>{open ? <NowPlaying player={player} scrub={scrub} onClose={close} onArtist={(href) => { const np = !!history.state?.srdNowPlaying; setOpen(false); navigate(href, { replace: np }); }} /> : null}</AnimatePresence>
     </div>
   );
 }
@@ -457,7 +459,7 @@ function DeskBar({ player, shown, max, pct, onExpand }) {
         <img src={t.thumb || t.coverSm || t.cover || "/images/avatar.webp"} alt="" aria-hidden="true" className="h-14 w-14 shrink-0 rounded-lg object-cover shadow-lg" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-ink">{t.title}</p>
-          <a href={artistHref(t)} onClick={(e) => e.stopPropagation()} className="srd-artist-link block truncate text-xs text-muted">{t.artist || "SRD Masum"}</a>
+          <a href={artistHref(t)} onClick={(e) => { e.stopPropagation(); spaClick(e); }} className="srd-artist-link block truncate text-xs">{t.artist || "SRD Masum"}</a>
         </div>
       </div>
       <div className="flex min-w-0 flex-col items-center gap-1">
@@ -491,7 +493,7 @@ function DeskBar({ player, shown, max, pct, onExpand }) {
   );
 }
 
-function NowPlaying({ player, scrub, onClose }) {
+function NowPlaying({ player, scrub, onClose, onArtist }) {
   const shown = scrub ?? player.current;
   const max = player.duration || 0;
   const pct = max ? Math.min(100, (shown / max) * 100) : 0;
@@ -553,7 +555,9 @@ function NowPlaying({ player, scrub, onClose }) {
         <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex shrink-0 items-end justify-between gap-3`}>
           <div className="min-w-0 flex-1">
             <p data-testid="np-title" title={t.title} className={`np-title font-bold leading-tight text-ink ${lyricsOn ? "text-xl" : "text-2xl"} lg:text-4xl`}>{t.title}</p>
-            <a href={artistHref(t)} onClick={(e) => { e.stopPropagation(); }} className="srd-artist-link mt-1 block truncate text-[15px] font-medium text-ink/60 lg:text-lg">{t.artist || "SRD Masum"}</a>
+            <a href={artistHref(t)} data-testid="np-artist" onPointerDownCapture={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArtist ? onArtist(artistHref(t)) : navigate(artistHref(t)); }}
+              className="srd-artist-pill mt-1.5 lg:text-lg"><span className="truncate">{t.artist || "SRD Masum"}</span><ArtistCaret size={14} weight="bold" aria-hidden="true" className="shrink-0" /></a>
           </div>
           {hasLyrics ? (
             <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"

@@ -28,6 +28,7 @@ import EnglishPage from "./components/EnglishPage.jsx";
 import CopyrightPage from "./components/CopyrightPage.jsx";
 import ProfilePage from "./components/ProfilePage.jsx";
 import AccountPage from "./components/AccountPage.jsx";
+import { usePath, SPA_RE } from "./lib/nav.js";
 import ArtistPage from "./components/ArtistPage.jsx";
 import AdminUploads from "./components/AdminUploads.jsx";
 import { ENGLISH_ALL } from "./data/english-songs.js";
@@ -937,9 +938,8 @@ const PAGE = (() => {
   return id && ENGLISH_ALL.some((t) => t.id === decodeURIComponent(id)) ? "english" : "home";
 })();
 
-export default function App() {
+function BasePage() {
   if (PAGE === "copyright") return (
-    <PlayerProvider>
     <div className="min-h-screen pb-24">
       <BeatField />
       <Nav page="copyright" />
@@ -947,20 +947,16 @@ export default function App() {
       <Footer />
       <ChatLauncher />
     </div>
-    </PlayerProvider>
   );
   if (PAGE === "artist" || PAGE === "admin") return (
-    <PlayerProvider>
     <div className="min-h-screen pb-24">
       <BeatField />
       <Nav page={PAGE} />
       <main>{PAGE === "artist" ? <ArtistPage slug={decodeURIComponent(window.location.pathname.split("/")[2])} /> : <AdminUploads />}</main>
       <Footer />
     </div>
-    </PlayerProvider>
   );
   if (PAGE === "profile" || PAGE === "account") return (
-    <PlayerProvider>
     <div className="min-h-screen pb-24">
       <BeatField />
       <Nav page={PAGE} />
@@ -968,10 +964,8 @@ export default function App() {
       <Footer />
       <ChatLauncher />
     </div>
-    </PlayerProvider>
   );
   if (PAGE === "english") return (
-    <PlayerProvider>
     <div className="min-h-screen pb-24">
       <BeatField />
       <CursorGlow />
@@ -982,10 +976,8 @@ export default function App() {
       <InstallPrompt />
       <ChatLauncher />
     </div>
-    </PlayerProvider>
   );
   return (
-    <PlayerProvider>
     <div className="min-h-screen pb-24">
       <CurtainReveal />
       <IntroLoader />
@@ -1014,6 +1006,37 @@ export default function App() {
       <InstallPrompt />
       <ChatLauncher />
     </div>
-    </PlayerProvider>
   );
+}
+
+const INITIAL_PATH = typeof window === "undefined" ? "/" : window.location.pathname;
+const norm = (p) => p.replace(/\/+$/, "") || "/";
+// Artist / profile pages opened in-app render over the original page (kept mounted but hidden),
+// so the one <audio> element in PlayerProvider never unmounts and music keeps playing.
+function SpaPage({ path }) {
+  const [, kind, name] = path.split("/");
+  const slug = decodeURIComponent(name || "");
+  const page = kind === "artist" ? "artist" : "profile";
+  return (
+    <div className="min-h-screen pb-24">
+      <BeatField />
+      <Nav page={page} />
+      <main>{page === "artist" ? <ArtistPage key={slug} slug={slug} /> : <ProfilePage key={slug} username={slug} />}</main>
+      <Footer />
+      <ChatLauncher />
+    </div>
+  );
+}
+function Router() {
+  const path = usePath();
+  const over = norm(path) !== norm(INITIAL_PATH) && SPA_RE.test(path);
+  return (
+    <>
+      <div hidden={over} style={over ? { display: "none" } : undefined}><BasePage /></div>
+      {over && <SpaPage key={path} path={path} />}
+    </>
+  );
+}
+export default function App() {
+  return <PlayerProvider><Router /></PlayerProvider>;
 }
