@@ -780,6 +780,10 @@ ${box}
 async function mailTo(env, url, to, subject, line, code, title) {
   const html = mailHtml(title || subject, line, code);
   const text = `${title || subject}\n\n${line}\n${code ? `\nYour code: ${code}\nIt expires in 10 minutes. Never share it with anyone.\n` : ""}\nIf you didn't request this, ignore this email.\nSRD Masum · https://srdmasum.bbroot.com`;
+  if (isLocal(url) && env.MAIL_DEV_LOG === "1" && !env.BREVO_API_KEY && !env.RESEND_API_KEY) { console.log(`DEVMAIL to=${to} subject=${subject} code=${code || "-"}`); return; }
+  return sendMail(env, url, to, subject, html, text);
+}
+async function sendMail(env, url, to, subject, html, text) {
   const fromName = "SRD Masum";
   if (env.BREVO_API_KEY && env.MAIL_FROM) {
     const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(env.MAIL_FROM), fromAddr = m ? m[2] : env.MAIL_FROM.trim(), fName = (m && m[1].replace(/"/g, "")) || fromName;
@@ -794,8 +798,60 @@ async function mailTo(env, url, to, subject, line, code, title) {
     if (!r.ok) throw new Error("resend " + r.status + " " + (await r.text()).slice(0, 120));
     return;
   }
-  if (isLocal(url) && env.MAIL_DEV_LOG === "1") { console.log(`DEVMAIL to=${to} subject=${subject} code=${code || "-"}`); return; }
+  if (isLocal(url) && env.MAIL_DEV_LOG === "1") { console.log(`DEVMAIL to=${to} subject=${subject}`); return; }
   throw new Error("no mail sender configured");
+}
+
+// ---- Song review notifications (uploader email) ----
+const SITE = "https://srdmasum.bbroot.com";
+function songMail(kind, s, u, reason) {
+  const title = s.title || "Your song", name = u.display_name || u.username, prof = `${SITE}/u/${encodeURIComponent(u.username)}/`;
+  const F = "Inter,Segoe UI,Arial,sans-serif", H = "Sora,Segoe UI,Arial,sans-serif";
+  const btn = (href, label, bg = "#2f7cf6") => `<a href="${href}" style="display:inline-block;background:${bg};color:#fff;text-decoration:none;font:600 15px/1 ${F};padding:15px 28px;border-radius:999px">${esc(label)}</a>`;
+  const reasonBox = reason ? `<tr><td style="padding:4px 0 22px"><div style="background:#1a1220;border:1px solid #3a2233;border-left:3px solid #ff6b6b;border-radius:12px;padding:14px 16px;font:14px/1.6 ${F};color:#f1d6dc"><div style="font:600 12px/1 ${F};letter-spacing:.08em;text-transform:uppercase;color:#ff8f8f;padding-bottom:8px">Reason from the reviewer</div>${esc(reason).replace(/\n/g, "<br>")}</div></td></tr>` : "";
+  let subject, badge, head, body, cta, text;
+  if (kind === "approved") {
+    subject = `🎉 "${title}" is live on SRD Masum`;
+    badge = `<span style="display:inline-block;background:#0f2e1c;color:#4ade80;border:1px solid #1d5a35;font:600 12px/1 ${F};letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:999px">Approved</span>`;
+    head = "Your song is live";
+    body = `Hi ${esc(name)}, great news — <b style="color:#fff">${esc(title)}</b> passed review and is now live on SRD Masum. Anyone can find it, play it and share it from your profile.`;
+    cta = btn(prof, "Listen on your profile");
+    text = `Hi ${name},\n\nGreat news: "${title}" passed review and is now live on SRD Masum.\n\nListen on your profile: ${prof}\n\nThanks for sharing your music.\nSRD Masum · ${SITE}`;
+  } else {
+    const del = kind === "removed";
+    subject = del ? `Update about "${title}" on SRD Masum` : `"${title}" wasn't approved this time`;
+    badge = `<span style="display:inline-block;background:#2a1418;color:#ff8f8f;border:1px solid #4a2229;font:600 12px/1 ${F};letter-spacing:.08em;text-transform:uppercase;padding:7px 12px;border-radius:999px">${del ? "Removed" : "Not approved"}</span>`;
+    head = del ? "Your song was removed" : "Your song wasn't approved";
+    body = `Hi ${esc(name)}, thank you for uploading <b style="color:#fff">${esc(title)}</b>. After review, ${del ? "it has been removed from SRD Masum" : "we couldn't publish it this time"}.${reason ? " Here's why:" : ""}`;
+    cta = `${btn(`${SITE}/copyright/`, "Read the upload guidelines")}<div style="font:14px/1.7 ${F};color:#c3c9d8;padding-top:22px">You're welcome to try again. Make sure you own the song or have permission to share it, fix anything mentioned above, then upload it again from <a href="${SITE}/" style="color:#6aa8ff">srdmasum.bbroot.com</a> → your profile → <b style="color:#fff">Upload</b>.</div>`;
+    text = `Hi ${name},\n\nThank you for uploading "${title}". After review, ${del ? "it has been removed from SRD Masum" : "we couldn't publish it this time"}.\n${reason ? `\nReason from the reviewer:\n${reason}\n` : ""}\nUpload guidelines: ${SITE}/copyright/\nYou're welcome to try again: fix anything mentioned above, then upload it again from ${SITE}/ (your profile > Upload).\n\nSRD Masum · ${SITE}`;
+  }
+  const cover = kind === "approved" && s.cover_key ? `<tr><td style="padding:0 0 22px"><img src="${SITE}/media/songs/${s.id}/cover" width="132" height="132" alt="" style="display:block;width:132px;height:132px;border-radius:16px;object-fit:cover;border:1px solid #1c2645"></td></tr>` : "";
+  const html = `<!doctype html><html><head><meta name="color-scheme" content="dark"><meta name="viewport" content="width=device-width"></head><body style="margin:0;background:#070a14;padding:32px 16px">
+<div style="display:none;max-height:0;overflow:hidden">${esc(kind === "approved" ? `"${title}" is now live on SRD Masum.` : `An update about "${title}".`)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#0c1122;border:1px solid #1c2645;border-radius:22px;overflow:hidden">
+<tr><td style="height:4px;background:${kind === "approved" ? "linear-gradient(90deg,#2f7cf6,#4ade80)" : "linear-gradient(90deg,#2f7cf6,#ff6b6b)"};background-color:#2f7cf6"></td></tr>
+<tr><td style="padding:32px 32px 36px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+<tr><td style="font:700 20px/1 ${H};color:#fff;padding-bottom:28px">SRD <span style="color:#3b82f6">Masum</span></td></tr>
+${cover}<tr><td style="padding-bottom:14px">${badge}</td></tr>
+<tr><td style="font:700 26px/1.25 ${H};color:#fff;padding-bottom:12px">${head}</td></tr>
+<tr><td style="font:15px/1.7 ${F};color:#c3c9d8;padding-bottom:22px">${body}</td></tr>
+${reasonBox}<tr><td>${cta}</td></tr>
+<tr><td style="height:30px;line-height:30px;font-size:0">&nbsp;</td></tr>
+<tr><td style="font:12px/1.6 ${F};color:#6b7490;padding-top:22px;border-top:1px solid #1c2645">You're receiving this because you uploaded a song to SRD Masum.<br><a href="${SITE}/" style="color:#6b7490">srdmasum.bbroot.com</a></td></tr>
+</table></td></tr></table></td></tr></table></body></html>`;
+  return { subject, html, text };
+}
+async function notifySong(env, url, kind, s, reason) {
+  try {
+    const u = await env.DB.prepare("SELECT username, display_name, email, email_verified FROM users WHERE id = ?").bind(s.user_id).first();
+    if (!u || !u.email) return "skipped: no email";
+    if (!u.email_verified) return "skipped: email not verified";
+    const m = songMail(kind, s, u, reason);
+    await Promise.race([sendMail(env, url, u.email, m.subject, m.html, m.text), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 8000))]);
+    return "sent";
+  } catch (e) { console.log("notify failed", String(e).slice(0, 160)); return "failed"; }
 }
 
 // ---- Avatars (R2: MEDIA) ----
@@ -964,10 +1020,19 @@ async function adminApi(req, env, url) {
     if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
     const s = await env.DB.prepare("SELECT * FROM songs WHERE id = ?").bind(Number(b.id) || 0).first();
     if (!s) return AJ({ error: "Song not found." }, 404);
-    if (b.action === "delete") { await delSong(env, s); return AJ({ ok: true }); }
+    const reason = tclean(b.reason, 300) || null;
+    if (b.action === "delete") {
+      await delSong(env, s);
+      const email = s.status === "approved" && reason ? await notifySong(env, url, "removed", s, reason) : "not sent";
+      return AJ({ ok: true, email });
+    }
     if (b.action !== "approve" && b.action !== "reject") return AJ({ error: "Bad action" }, 400);
-    await env.DB.prepare("UPDATE songs SET status = ?, reject_reason = ?, reviewed_at = ? WHERE id = ?").bind(b.action === "approve" ? "approved" : "rejected", b.action === "reject" ? tclean(b.reason, 300) || null : null, Date.now(), s.id).run();
-    return AJ({ ok: true });
+    const next = b.action === "approve" ? "approved" : "rejected";
+    if (s.status === next) return AJ({ ok: true, email: "not sent (no change)" });
+    const upd = await env.DB.prepare("UPDATE songs SET status = ?, reject_reason = ?, reviewed_at = ? WHERE id = ? AND status = ?").bind(next, next === "rejected" ? reason : null, Date.now(), s.id, s.status).run();
+    if (!upd.meta?.changes) return AJ({ ok: true, email: "not sent (no change)" });
+    const email = await notifySong(env, url, next, { ...s, status: next }, next === "rejected" ? reason : null);
+    return AJ({ ok: true, email });
   }
   return AJ({ error: "Not found" }, 404);
 }

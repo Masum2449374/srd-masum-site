@@ -16,12 +16,21 @@ export default function AdminUploads() {
     const r = await post("login", { passcode: pass }).catch(() => null); setBusy(false);
     if (r?.ok) { setPass(""); setAuthed(true); } else { const j = await r?.json().catch(() => ({})); setErr(j?.error || "Wrong passcode."); }
   };
-  const act = async (s, action) => {
-    let reason = "";
-    if (action === "reject") { reason = prompt("Reason for rejecting (optional):", "") ?? null; if (reason === null) return; }
-    if (action === "delete" && !confirm(`Delete "${s.title}" permanently?`)) return;
+  const [dlg, setDlg] = useState(null), [reasonTxt, setReasonTxt] = useState(""), [note, setNote] = useState("");
+  const EMAIL_MSG = { sent: "Email sent to the uploader.", failed: "Email could not be sent (action still saved).", "skipped: email not verified": "No email sent: uploader's email isn't verified.", "skipped: no email": "No email sent: uploader has no email." };
+  const send = async (s, action, reason = "") => {
+    setNote("");
     const r = await post("review", { id: s.id, action, reason });
-    if (r.ok) load(); else alert("Action failed.");
+    const j = r.ok ? await r.json().catch(() => ({})) : null;
+    if (!r.ok) { alert("Action failed."); return; }
+    const verb = action === "approve" ? "Approved" : action === "reject" ? "Rejected" : "Deleted";
+    setNote(`${verb} “${s.title}”. ${EMAIL_MSG[j.email] || "No email sent."}`);
+    load();
+  };
+  const act = (s, action) => {
+    if (action === "approve") return send(s, "approve");
+    if (action === "delete" && s.status !== "approved") { if (confirm(`Delete "${s.title}" permanently?`)) send(s, "delete"); return; }
+    setReasonTxt(""); setDlg({ s, action });
   };
   if (authed === null) return <div className="pt-40 text-center text-muted">Loading…</div>;
   if (!authed) return (
@@ -37,6 +46,25 @@ export default function AdminUploads() {
   const c = data?.counts || {};
   return (
     <div className="mx-auto max-w-4xl px-4 pb-24 pt-24 sm:px-8 sm:pt-28" data-testid="admin-page">
+      {note && <p role="status" data-testid="admin-note" className="mb-4 rounded-xl bg-sunk/70 px-4 py-3 text-sm text-ink ring-1 ring-hairline">{note}</p>}
+      {dlg && (
+        <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="rj-title" onClick={() => setDlg(null)}>
+          <form className="w-full max-w-md rounded-2xl bg-raised p-5 ring-1 ring-hairline" onClick={(e) => e.stopPropagation()}
+            onSubmit={(e) => { e.preventDefault(); const d = dlg; setDlg(null); send(d.s, d.action, reasonTxt.trim()); }}>
+            <h2 id="rj-title" className="font-display text-lg font-bold text-ink">{dlg.action === "reject" ? "Reject" : "Delete"} “{dlg.s.title}”</h2>
+            <label htmlFor="rj-reason" className="mt-4 block text-sm font-semibold text-ink">Reason {dlg.action === "delete" && <span className="font-normal text-muted">(optional)</span>}</label>
+            <p className="mt-1 text-xs text-muted">{dlg.action === "reject" ? "This is emailed to the uploader so they know what to fix. Be clear and kind." : "If you add a reason, the uploader is emailed that their song was removed. Leave empty to delete silently."}</p>
+            <textarea id="rj-reason" autoFocus rows={4} maxLength={300} value={reasonTxt} onChange={(e) => setReasonTxt(e.target.value)}
+              placeholder={dlg.action === "reject" ? "e.g. This song appears to be someone else's copyrighted recording. Please upload only music you own." : "e.g. Copyright claim received from the label."}
+              className="mt-2 w-full resize-y rounded-xl bg-sunk/70 px-3 py-2.5 text-sm text-ink ring-1 ring-hairline outline-none focus:ring-2 focus:ring-[#3D91F4]" />
+            <p className="mt-1 text-right text-[11px] text-muted">{reasonTxt.length}/300</p>
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" onClick={() => setDlg(null)} className="srd-adm-btn">Cancel</button>
+              <button type="submit" className="srd-adm-btn bad">{dlg.action === "reject" ? "Reject & notify" : reasonTxt.trim() ? "Delete & notify" : "Delete"}</button>
+            </div>
+          </form>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-3">
         <h1 className="font-display text-3xl font-bold tracking-display text-ink">Uploads</h1>
         <button type="button" onClick={async () => { await post("logout"); setAuthed(false); }} className="srd-search-btn pro-btn text-ink"><SignOut size={16} />Sign out</button>
