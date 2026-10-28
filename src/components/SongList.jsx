@@ -26,7 +26,7 @@ export default function SongList({ tracks, onDelete, status }) {
               <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
               <span className="flex min-w-0 items-center gap-2 text-[13px] text-muted">
                 {st?.label && <span className={`srd-pill srd-pill-${st.tone}`}>{st.label}</span>}
-                <a href={artistHref(t)} onClick={spaClick} className="srd-artist-link inline-flex min-w-0 items-center gap-1"><span className="truncate">{artistOf(t)}</span>{isVerified(t) && <VerifiedBadge size={13} />}</a>
+                <a href={artistHref(t)} onClick={spaClick} className="srd-artist-link inline-flex min-w-0 items-center gap-1"><span className="truncate">{artistOf(t)}</span>{isVerified(t) && <VerifiedBadge size={12} />}</a>
               </span>
               {st?.note && <span className="mt-0.5 block truncate text-xs text-faint">{st.note}</span>}
             </span>

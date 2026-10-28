@@ -101,7 +101,7 @@ function UsersPanel({ onUnauth }) {
             <li key={u.username} className="flex items-center gap-3 py-3">
               {u.avatar ? <img src={u.avatar} alt="" className="h-10 w-10 rounded-full object-cover" /> : <span className="grid h-10 w-10 place-items-center rounded-full bg-sunk text-muted">{(u.displayName || u.username || "?")[0]}</span>}
               <div className="min-w-0 flex-1">
-                <p className="flex items-center gap-1 font-semibold text-ink"><span className="truncate">{u.displayName}</span>{u.verified && <VerifiedBadge size={15} />}</p>
+                <p className="flex items-center gap-1 font-semibold text-ink"><span className="truncate">{u.displayName}</span>{u.verified && <VerifiedBadge size={14} />}</p>
                 <p className="truncate text-xs text-muted">@{u.username}{u.emailVerified ? "" : " · email not confirmed"}</p>
               </div>
               <button type="button" disabled={busy === u.username} onClick={() => toggle(u)} aria-pressed={u.verified}

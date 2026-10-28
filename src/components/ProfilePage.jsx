@@ -54,7 +54,7 @@ export default function ProfilePage({ username, edit = false }) {
           <div className="min-w-0 flex-1 text-white">
             <p className="text-sm font-semibold">Profile</p>
             <h1 className="mt-1 break-words font-display text-[2.6rem] font-black leading-[1.02] tracking-tight drop-shadow-sm sm:text-7xl lg:text-8xl">
-              {mine ? <button type="button" onClick={() => setEditing(true)} className="text-left hover:underline">{u.displayName}</button> : u?.displayName || "\u00a0"}{u?.verified && <VerifiedBadge size={30} className="ml-2" />}</h1>
+              {mine ? <button type="button" onClick={() => setEditing(true)} className="text-left hover:underline">{u.displayName}</button> : u?.displayName || "\u00a0"}{u?.verified && <VerifiedBadge size={22} className="ml-1.5 align-middle" />}</h1>
             {u && <p className="mt-3 text-sm font-medium text-white/85">@{u.username} <span aria-hidden="true">·</span> Joined {joined} <span aria-hidden="true">·</span> {n} {n === 1 ? "song" : "songs"}</p>}
           </div>
         </div>

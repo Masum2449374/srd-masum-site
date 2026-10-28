@@ -72,7 +72,7 @@ export default function SearchOverlay({ onClose }) {
                 <a href={`/u/${u.username}`} onClick={(e) => { spaClick(e); if (e.defaultPrevented) onClose(); }} className="srd-search-row">
                   <Avatar user={u} size={44} className="!h-11 !w-11 shrink-0" />
                   <span className="min-w-0 flex-1">
-                    <span className="flex min-w-0 items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{u.displayName}</span>{u.verified && <VerifiedBadge size={15} />}</span>
+                    <span className="flex min-w-0 items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{u.displayName}</span>{u.verified && <VerifiedBadge size={14} />}</span>
                     <span className="block truncate text-xs text-muted">@{u.username} · Profile</span>
                   </span>
                   <CaretRight size={16} weight="bold" aria-hidden="true" className="text-muted" />
