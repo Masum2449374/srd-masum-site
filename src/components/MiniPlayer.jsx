@@ -1,4 +1,5 @@
-import { artistHref } from "../lib/artists.js";
+import { artistHref, isVerified } from "../lib/artists.js";
+import VerifiedBadge from "./VerifiedBadge.jsx";
 import { navigate, spaClick } from "../lib/nav.js";
 import { CaretRight as ArtistCaret } from "@phosphor-icons/react";
 import { register as exRegister, claim as exClaim } from "../lib/exclusive.js";
@@ -459,7 +460,7 @@ function DeskBar({ player, shown, max, pct, onExpand }) {
         <img src={t.thumb || t.coverSm || t.cover || "/images/avatar.webp"} alt="" aria-hidden="true" className="h-14 w-14 shrink-0 rounded-lg object-cover shadow-lg" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-ink">{t.title}</p>
-          <a href={artistHref(t)} onClick={(e) => { e.stopPropagation(); spaClick(e); }} className="srd-artist-link block truncate text-xs">{t.artist || "SRD Masum"}</a>
+          <a href={artistHref(t)} onClick={(e) => { e.stopPropagation(); spaClick(e); }} className="srd-artist-link flex min-w-0 items-center gap-1 text-xs"><span className="truncate">{t.artist || "SRD Masum"}</span>{isVerified(t) && <VerifiedBadge size={12} />}</a>
         </div>
       </div>
       <div className="flex min-w-0 flex-col items-center gap-1">
@@ -557,7 +558,7 @@ function NowPlaying({ player, scrub, onClose, onArtist }) {
             <p data-testid="np-title" title={t.title} className={`np-title font-bold leading-tight text-ink ${lyricsOn ? "text-xl" : "text-2xl"} lg:text-4xl`}>{t.title}</p>
             <a href={artistHref(t)} data-testid="np-artist" onPointerDownCapture={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArtist ? onArtist(artistHref(t)) : navigate(artistHref(t)); }}
-              className="srd-artist-pill mt-1 text-[15px] lg:text-lg"><span className="truncate">{t.artist || "SRD Masum"}</span><ArtistCaret size={14} weight="bold" aria-hidden="true" className="shrink-0" /></a>
+              className="srd-artist-pill mt-1 text-[15px] lg:text-lg"><span className="truncate">{t.artist || "SRD Masum"}</span>{isVerified(t) && <VerifiedBadge size={15} />}<ArtistCaret size={14} weight="bold" aria-hidden="true" className="shrink-0" /></a>
           </div>
           {hasLyrics ? (
             <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"

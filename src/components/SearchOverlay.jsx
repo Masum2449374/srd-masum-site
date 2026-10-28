@@ -1,3 +1,4 @@
+import VerifiedBadge from "./VerifiedBadge.jsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MagnifyingGlass, X, CaretRight } from "@phosphor-icons/react";
 import { AUDIO_TRACKS } from "../data/songs.js";
@@ -71,7 +72,7 @@ export default function SearchOverlay({ onClose }) {
                 <a href={`/u/${u.username}`} onClick={(e) => { spaClick(e); if (e.defaultPrevented) onClose(); }} className="srd-search-row">
                   <Avatar user={u} size={44} className="!h-11 !w-11 shrink-0" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15px] font-semibold text-ink">{u.displayName}</span>
+                    <span className="flex min-w-0 items-center gap-1 text-[15px] font-semibold text-ink"><span className="truncate">{u.displayName}</span>{u.verified && <VerifiedBadge size={15} />}</span>
                     <span className="block truncate text-xs text-muted">@{u.username} · Profile</span>
                   </span>
                   <CaretRight size={16} weight="bold" aria-hidden="true" className="text-muted" />
@@ -88,7 +89,7 @@ export default function SearchOverlay({ onClose }) {
                 <img src={t.thumb || t.cover || "/images/avatar.webp"} alt="" width="44" height="44" loading="lazy" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px] font-semibold text-ink">{t.title}</span>
-                  <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
+                  <span className="flex min-w-0 items-center gap-1 text-xs text-muted"><span className="truncate">{t.artist || "SRD Masum"}</span>{t.verified !== false && <VerifiedBadge size={12} />}</span>
                 </span>
                 <CaretRight size={16} weight="bold" aria-hidden="true" className="text-muted" />
               </a>
@@ -100,7 +101,7 @@ export default function SearchOverlay({ onClose }) {
                 <img src={t.cover || "/images/avatar.webp"} alt="" width="44" height="44" loading="lazy" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px] font-semibold text-ink">{t.title}</span>
-                  <span className="block truncate text-xs text-muted">{t.uploader?.displayName}</span>
+                  <span className="flex min-w-0 items-center gap-1 text-xs text-muted"><span className="truncate">{t.uploader?.displayName}</span>{t.uploader?.verified && <VerifiedBadge size={12} />}</span>
                 </span>
                 <CaretRight size={16} weight="bold" aria-hidden="true" className="text-muted" />
               </a>

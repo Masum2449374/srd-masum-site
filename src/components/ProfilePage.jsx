@@ -1,3 +1,4 @@
+import VerifiedBadge from "./VerifiedBadge.jsx";
 import { useEffect, useState } from "react";
 import { MusicNotes, PencilSimple, UploadSimple } from "@phosphor-icons/react";
 import SongList, { toTrack } from "./SongList.jsx";
@@ -53,7 +54,7 @@ export default function ProfilePage({ username, edit = false }) {
           <div className="min-w-0 flex-1 text-white">
             <p className="text-sm font-semibold">Profile</p>
             <h1 className="mt-1 break-words font-display text-[2.6rem] font-black leading-[1.02] tracking-tight drop-shadow-sm sm:text-7xl lg:text-8xl">
-              {mine ? <button type="button" onClick={() => setEditing(true)} className="text-left hover:underline">{u.displayName}</button> : u?.displayName || "\u00a0"}</h1>
+              {mine ? <button type="button" onClick={() => setEditing(true)} className="text-left hover:underline">{u.displayName}</button> : u?.displayName || "\u00a0"}{u?.verified && <VerifiedBadge size={30} className="ml-2" />}</h1>
             {u && <p className="mt-3 text-sm font-medium text-white/85">@{u.username} <span aria-hidden="true">·</span> Joined {joined} <span aria-hidden="true">·</span> {n} {n === 1 ? "song" : "songs"}</p>}
           </div>
         </div>
@@ -68,7 +69,7 @@ export default function ProfilePage({ username, edit = false }) {
           <section className="mt-10">
             <h2 className="font-display text-2xl font-bold tracking-display text-ink">Songs</h2>
             {(() => {
-              const up = { username: u?.username, displayName: u?.displayName };
+              const up = { username: u?.username, displayName: u?.displayName, verified: u?.verified };
               const list = mine && mineSongs ? mineSongs.map((x) => toTrack({ ...x, uploader: up })) : (d?.songs || []).map((x) => toTrack({ ...x, uploader: x.uploader || up }));
               const ST = { approved: null, pending: { label: "Pending review", tone: "wait", playable: true }, rejected: { label: "Rejected", tone: "bad", playable: true } };
               const byId = Object.fromEntries((mine && mineSongs ? mineSongs : []).map((x) => ["u" + x.id, x]));

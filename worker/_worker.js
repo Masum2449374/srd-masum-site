@@ -568,7 +568,7 @@ async function pbkdf2(pw, saltB64, iter) {
 const sha256 = async (s) => hex(await crypto.subtle.digest("SHA-256", te.encode(s)));
 const readCookie = (req, n) => (req.headers.get("cookie") || "").split(/;\s*/).map((c) => c.split("=")).find(([k]) => k === n)?.[1] || "";
 const sessCookie = (v, maxAge) => `${SESSION_COOKIE}=${v}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
-const pubUser = (u) => u && { username: u.username, displayName: u.display_name, bio: u.bio, joined: u.created_at, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null };
+const pubUser = (u) => u && { username: u.username, displayName: u.display_name, bio: u.bio, joined: u.created_at, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null, verified: !!u.verified };
 async function currentUser(req, env) {
   const t = readCookie(req, SESSION_COOKIE);
   if (!/^[a-f0-9]{64}$/.test(t)) return null;
@@ -608,7 +608,7 @@ async function auth(req, env, url) {
     if (!USER_RE.test(name)) return AJ({ error: "Not found" }, 404);
     const u = await env.DB.prepare("SELECT * FROM users WHERE username = ? AND email_verified = 1").bind(name).first();
     if (!u) return AJ({ error: "Not found" }, 404);
-    const songs = ((await env.DB.prepare("SELECT * FROM songs WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || []).map((s) => pubSong(s, { username: u.username, displayName: u.display_name }));
+    const songs = ((await env.DB.prepare("SELECT * FROM songs WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || []).map((s) => pubSong(s, { username: u.username, displayName: u.display_name, verified: !!u.verified }));
     return AJ({ user: pubUser(u), songs, songCount: songs.length });
   }
   if (req.method !== "POST") return AJ({ error: "Method not allowed" }, 405);
@@ -915,6 +915,12 @@ async function adminApi(req, env, url) {
   if (!env.DB) return AJ({ error: "unavailable" }, 503);
   const p = url.pathname.slice("/api/admin/".length), ip = req.headers.get("cf-connecting-ip") || "0";
   if (req.method === "GET" && p === "me") return AJ({ admin: await isAdmin(req, env) });
+  if (req.method === "GET" && p === "users") {
+    if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
+    const q = String(url.searchParams.get("q") || "").replace(/^@/, "").replace(/[%_\\]/g, "").trim().slice(0, 40);
+    const rows = (await env.DB.prepare(q ? "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users WHERE username LIKE ? OR display_name LIKE ? ORDER BY verified DESC, created_at DESC LIMIT 50" : "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users ORDER BY verified DESC, created_at DESC LIMIT 50").bind(...(q ? [`%${q}%`, `%${q}%`] : [])).all()).results || [];
+    return AJ({ users: rows.map((u) => ({ username: u.username, displayName: u.display_name, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null, verified: !!u.verified, emailVerified: !!u.email_verified, joined: u.created_at })) });
+  }
   if (req.method === "GET" && p === "uploads") {
     if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
     const st = ["pending", "approved", "rejected"].includes(url.searchParams.get("status")) ? url.searchParams.get("status") : "pending";
@@ -939,6 +945,13 @@ async function adminApi(req, env, url) {
     if (/^[a-f0-9]{64}$/.test(t)) await env.DB.prepare("DELETE FROM admin_sessions WHERE token_hash = ?").bind(await sha256(t)).run();
     return AJ({ ok: true }, 200, { "set-cookie": `${ADM_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0` });
   }
+  if (p === "verify") {
+    if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
+    const un = String(b.username || "").replace(/^@/, "").trim().slice(0, 40);
+    const r = await env.DB.prepare("UPDATE users SET verified = ? WHERE username = ?").bind(b.verified ? 1 : 0, un).run();
+    if (!r.meta?.changes) return AJ({ error: "No user with that username." }, 404);
+    return AJ({ ok: true, username: un, verified: !!b.verified });
+  }
   if (p === "review") {
     if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
     const s = await env.DB.prepare("SELECT * FROM songs WHERE id = ?").bind(Number(b.id) || 0).first();
@@ -959,10 +972,10 @@ async function userSearch(req, env, url) {
   const q = String(url.searchParams.get("q") || "").normalize("NFC").replace(/^@/, "").replace(/[%_\\<>\u0000-\u001f]/g, "").trim().slice(0, 40);
   if (q.length < 2) return AJ({ users: [], songs: [] });
   const like = `%${q}%`, pre = `${q}%`;
-  const users = (await env.DB.prepare("SELECT username, display_name, avatar_key FROM users WHERE email_verified = 1 AND (username LIKE ? OR display_name LIKE ?) ORDER BY (username LIKE ? OR display_name LIKE ?) DESC, created_at ASC LIMIT 8").bind(like, like, pre, pre).all()).results || [];
-  const songs = (await env.DB.prepare("SELECT s.id, s.title, s.language, s.cover_key, s.created_at, s.status, u.username, u.display_name FROM songs s JOIN users u ON u.id = s.user_id WHERE s.status = 'approved' AND (s.title LIKE ? OR u.display_name LIKE ?) ORDER BY s.created_at DESC LIMIT 8").bind(like, like).all()).results || [];
-  return AJ({ users: users.map((u) => ({ username: u.username, displayName: u.display_name, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null })),
-    songs: songs.map((s) => pubSong(s, { username: s.username, displayName: s.display_name })) });
+  const users = (await env.DB.prepare("SELECT username, display_name, avatar_key, verified FROM users WHERE email_verified = 1 AND (username LIKE ? OR display_name LIKE ?) ORDER BY (username LIKE ? OR display_name LIKE ?) DESC, created_at ASC LIMIT 8").bind(like, like, pre, pre).all()).results || [];
+  const songs = (await env.DB.prepare("SELECT s.id, s.title, s.language, s.cover_key, s.created_at, s.status, u.username, u.display_name, u.verified FROM songs s JOIN users u ON u.id = s.user_id WHERE s.status = 'approved' AND (s.title LIKE ? OR u.display_name LIKE ?) ORDER BY s.created_at DESC LIMIT 8").bind(like, like).all()).results || [];
+  return AJ({ users: users.map((u) => ({ username: u.username, displayName: u.display_name, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null, verified: !!u.verified })),
+    songs: songs.map((s) => pubSong(s, { username: s.username, displayName: s.display_name, verified: !!s.verified })) });
 }
 
 async function songMedia(req, env, url) {

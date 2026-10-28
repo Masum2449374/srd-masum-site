@@ -13,3 +13,5 @@ export function artistBySlug(slug) {
 }
 // Where an artist name should link: uploaded songs -> uploader profile; catalog songs -> /artist/<slug>/.
 export const artistHref = (t) => (t?.uploader?.username ? `/u/${t.uploader.username}` : `/artist/${slugify(artistOf(t))}/`);
+// Built-in catalog artists are verified (set verified:false on a track to opt out); uploads use the owner-set account flag.
+export const isVerified = (t) => (t?.uploader ? !!t.uploader.verified : t?.verified !== false);
