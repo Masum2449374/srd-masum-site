@@ -50,6 +50,12 @@ const handle = async (req, env) => {
     if (url.pathname === "/api/song-requests") return songRequests(req, env, url);
     if (url.pathname === "/api/play") return playHit(req, env, url);
     if (url.pathname === "/api/notify") return notifySignup(req, env, url);
+    if (url.pathname.startsWith("/api/auth/")) return auth(req, env, url);
+    // App routes rendered by the SPA (404.html disables the Pages fallback, so serve the shell here).
+    if ((req.method === "GET" || req.method === "HEAD") && /^\/(u\/[a-z0-9_]{1,20}|account)\/?$/i.test(url.pathname)) {
+      const shell = await env.ASSETS.fetch(new Request(`${url.origin}/`));
+      return new Response(req.method === "HEAD" ? null : shell.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    }
     if (!url.pathname.startsWith("/audio/") || req.method !== "GET") {
       const r = await env.ASSETS.fetch(req);
       // Real 404 for unknown paths (public/404.html also disables the SPA fallback on Pages).
@@ -531,4 +537,114 @@ async function sttGemini(env, b64, mime) {
     } catch { if (ctl.signal.aborted) return null; } finally { clearTimeout(t); }
   }
   return null;
+}
+
+// ---- Accounts (phase 1): D1 binding DB. Email + password (PBKDF2-SHA256), hashed session tokens in an HttpOnly cookie.
+const SESSION_COOKIE = "srd_sess", SESSION_DAYS = 30, PBKDF2_ITER = 100000;
+const te = new TextEncoder();
+const b64 = (u8) => btoa(String.fromCharCode(...new Uint8Array(u8)));
+const AJ = (o, s = 200, extra = {}) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json", "cache-control": "no-store", ...extra } });
+async function pbkdf2(pw, saltB64, iter) {
+  const key = await crypto.subtle.importKey("raw", te.encode(pw), "PBKDF2", false, ["deriveBits"]);
+  const salt = Uint8Array.from(atob(saltB64), (c) => c.charCodeAt(0));
+  return b64(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations: iter }, key, 256));
+}
+const sha256 = async (s) => hex(await crypto.subtle.digest("SHA-256", te.encode(s)));
+const readCookie = (req, n) => (req.headers.get("cookie") || "").split(/;\s*/).map((c) => c.split("=")).find(([k]) => k === n)?.[1] || "";
+const sessCookie = (v, maxAge) => `${SESSION_COOKIE}=${v}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
+const pubUser = (u) => u && { username: u.username, displayName: u.display_name, bio: u.bio, joined: u.created_at, avatar: null };
+async function currentUser(req, env) {
+  const t = readCookie(req, SESSION_COOKIE);
+  if (!/^[a-f0-9]{64}$/.test(t)) return null;
+  return env.DB.prepare("SELECT u.* FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.token_hash = ? AND s.expires_at > ?").bind(await sha256(t), Date.now()).first();
+}
+// Sliding-window limiter stored in D1 (no KV writes). Returns true when over the limit.
+async function limited(env, keys, max, windowMs) {
+  const since = Date.now() - windowMs;
+  for (const k of keys) {
+    const r = await env.DB.prepare("SELECT COUNT(*) AS n FROM auth_attempts WHERE k = ? AND ts > ?").bind(k, since).first();
+    if ((r?.n || 0) >= max) return true;
+  }
+  return false;
+}
+async function note(env, keys) {
+  const now = Date.now();
+  await env.DB.batch([...keys.map((k) => env.DB.prepare("INSERT INTO auth_attempts (k, ts) VALUES (?, ?)").bind(k, now)),
+    env.DB.prepare("DELETE FROM auth_attempts WHERE ts < ?").bind(now - 864e5)]);
+}
+async function newSession(env, userId) {
+  const raw = hex(crypto.getRandomValues(new Uint8Array(32))), now = Date.now();
+  await env.DB.batch([
+    env.DB.prepare("INSERT INTO sessions (token_hash, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)").bind(await sha256(raw), userId, now, now + SESSION_DAYS * 864e5),
+    env.DB.prepare("DELETE FROM sessions WHERE expires_at < ?").bind(now),
+  ]);
+  return sessCookie(raw, SESSION_DAYS * 86400);
+}
+const EMAIL_RE = /^[^\s@<>"']{1,64}@[^\s@<>"']{1,190}\.[a-z]{2,}$/i, USER_RE = /^[a-z0-9_]{3,20}$/;
+const RESERVED = new Set(["admin", "root", "mira", "srd", "srdmasum", "srd_masum", "masum", "masumbellah", "support", "api", "account", "settings", "login", "signup", "owner", "official"]);
+const aclean = (s, n) => String(s ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, n);
+async function auth(req, env, url) {
+  if (!env.DB) return AJ({ error: "Accounts are not available right now." }, 503);
+  const p = url.pathname.slice("/api/auth/".length);
+  if (req.method === "GET" && p === "me") return AJ({ user: pubUser(await currentUser(req, env)) });
+  if (req.method === "GET" && p.startsWith("profile/")) {
+    const name = decodeURIComponent(p.slice(8)).toLowerCase();
+    if (!USER_RE.test(name)) return AJ({ error: "Not found" }, 404);
+    const u = await env.DB.prepare("SELECT * FROM users WHERE username = ?").bind(name).first();
+    if (!u) return AJ({ error: "Not found" }, 404);
+    const songs = (await env.DB.prepare("SELECT id, title, artist, cover_key, created_at FROM songs WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || [];
+    return AJ({ user: pubUser(u), songs });
+  }
+  if (req.method !== "POST") return AJ({ error: "Method not allowed" }, 405);
+  // CSRF: same-origin JSON only.
+  if (req.headers.get("origin") !== url.origin) return AJ({ error: "forbidden" }, 403);
+  if (!(req.headers.get("content-type") || "").includes("application/json")) return AJ({ error: "Bad request" }, 400);
+  const len = Number(req.headers.get("content-length") || 0);
+  if (len > 4096) return AJ({ error: "Request too large" }, 413);
+  let b; try { b = JSON.parse((await req.text()).slice(0, 4096)); } catch { return AJ({ error: "Bad request" }, 400); }
+  const ip = req.headers.get("cf-connecting-ip") || "0";
+  if (p === "logout") {
+    const t = readCookie(req, SESSION_COOKIE);
+    if (/^[a-f0-9]{64}$/.test(t)) await env.DB.prepare("DELETE FROM sessions WHERE token_hash = ?").bind(await sha256(t)).run();
+    return AJ({ ok: true }, 200, { "set-cookie": sessCookie("", 0) });
+  }
+  if (p === "signup") {
+    const email = aclean(b.email, 254).toLowerCase(), username = aclean(b.username, 20).toLowerCase(), pw = String(b.password ?? "");
+    const displayName = aclean(b.displayName, 40) || username;
+    if (await limited(env, ["su:" + ip], 5, 36e5)) return AJ({ error: "Too many attempts. Please try again later." }, 429);
+    if (!EMAIL_RE.test(email)) return AJ({ error: "Please enter a valid email address." }, 400);
+    if (!USER_RE.test(username)) return AJ({ error: "Username must be 3–20 characters: a–z, 0–9 or _." }, 400);
+    if (RESERVED.has(username)) return AJ({ error: "That username isn't available." }, 409);
+    if (pw.length < 8 || pw.length > 128) return AJ({ error: "Password must be 8–128 characters." }, 400);
+    await note(env, ["su:" + ip]);
+    const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+    const hash = await pbkdf2(pw, salt, PBKDF2_ITER);
+    const taken = await env.DB.prepare("SELECT email, username FROM users WHERE email = ? OR username = ?").bind(email, username).first();
+    if (taken) return AJ({ error: taken.username.toLowerCase() === username ? "That username isn't available." : "Couldn't create an account with those details. Try signing in instead." }, 409);
+    let r;
+    try { r = await env.DB.prepare("INSERT INTO users (email, username, display_name, pw_hash, pw_salt, pw_iter, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(email, username, displayName, hash, salt, PBKDF2_ITER, Date.now()).run(); }
+    catch { return AJ({ error: "Couldn't create an account with those details. Try signing in instead." }, 409); }
+    const cookie = await newSession(env, r.meta.last_row_id);
+    const u = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(r.meta.last_row_id).first();
+    return AJ({ user: pubUser(u) }, 201, { "set-cookie": cookie });
+  }
+  if (p === "login") {
+    const email = aclean(b.email, 254).toLowerCase(), pw = String(b.password ?? "").slice(0, 128);
+    const keys = ["li:" + ip, "le:" + (await sha256(email))];
+    if (await limited(env, [keys[0]], 20, 9e5) || await limited(env, [keys[1]], 8, 9e5)) return AJ({ error: "Too many attempts. Please wait 15 minutes and try again." }, 429);
+    const u = email ? await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first() : null;
+    // Always run PBKDF2 so response timing doesn't reveal whether the email exists.
+    const hash = await pbkdf2(pw, u?.pw_salt || "AAAAAAAAAAAAAAAAAAAAAA==", u?.pw_iter || PBKDF2_ITER);
+    if (!u || !(await sameSecret(hash, u.pw_hash))) { await note(env, keys); return AJ({ error: "Incorrect email or password." }, 401); }
+    return AJ({ user: pubUser(u) }, 200, { "set-cookie": await newSession(env, u.id) });
+  }
+  if (p === "profile") {
+    const u = await currentUser(req, env);
+    if (!u) return AJ({ error: "Please sign in." }, 401);
+    const displayName = aclean(b.displayName, 40), bio = aclean(b.bio, 200).replace(/\s+/g, " ");
+    if (!displayName) return AJ({ error: "Display name is required." }, 400);
+    await env.DB.prepare("UPDATE users SET display_name = ?, bio = ? WHERE id = ?").bind(displayName, bio, u.id).run();
+    return AJ({ user: pubUser({ ...u, display_name: displayName, bio }) });
+  }
+  return AJ({ error: "Not found" }, 404);
 }

@@ -26,6 +26,8 @@ import ChatLauncher from "./components/ChatLauncher.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import EnglishPage from "./components/EnglishPage.jsx";
 import CopyrightPage from "./components/CopyrightPage.jsx";
+import ProfilePage from "./components/ProfilePage.jsx";
+import AccountPage from "./components/AccountPage.jsx";
 import { ENGLISH_ALL } from "./data/english-songs.js";
 
 const YEAR = new Date().getFullYear();
@@ -925,6 +927,8 @@ const PAGE = (() => {
   const p = window.location.pathname;
   if (/^\/english(\/|$)/.test(p)) return "english";
   if (/^\/copyright(\/|$)/.test(p)) return "copyright";
+  if (/^\/u\/[^/]+\/?$/.test(p)) return "profile";
+  if (/^\/account\/?$/.test(p)) return "account";
   const id = p.match(/^\/song\/([^/]+)\/?$/)?.[1];
   return id && ENGLISH_ALL.some((t) => t.id === decodeURIComponent(id)) ? "english" : "home";
 })();
@@ -936,6 +940,17 @@ export default function App() {
       <BeatField />
       <Nav page="copyright" />
       <main><CopyrightPage /></main>
+      <Footer />
+      <ChatLauncher />
+    </div>
+    </PlayerProvider>
+  );
+  if (PAGE === "profile" || PAGE === "account") return (
+    <PlayerProvider>
+    <div className="min-h-screen pb-24">
+      <BeatField />
+      <Nav page={PAGE} />
+      <main>{PAGE === "profile" ? <ProfilePage username={decodeURIComponent(window.location.pathname.split("/")[2])} /> : <AccountPage />}</main>
       <Footer />
       <ChatLauncher />
     </div>
