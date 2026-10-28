@@ -752,14 +752,15 @@ async function mailTo(env, url, to, subject, line, code, title) {
   const text = `${title || subject}\n\n${line}\n${code ? `\nYour code: ${code}\nIt expires in 10 minutes. Never share it with anyone.\n` : ""}\nIf you didn't request this, ignore this email.\nSRD Masum · https://srdmasum.bbroot.com`;
   const fromName = "SRD Masum";
   if (env.BREVO_API_KEY && env.MAIL_FROM) {
+    const m = /^\s*(.*?)\s*<([^>]+)>\s*$/.exec(env.MAIL_FROM), fromAddr = m ? m[2] : env.MAIL_FROM.trim(), fName = (m && m[1].replace(/"/g, "")) || fromName;
     const r = await fetch("https://api.brevo.com/v3/smtp/email", { method: "POST", headers: { "api-key": env.BREVO_API_KEY, "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({ sender: { name: fromName, email: env.MAIL_FROM }, to: [{ email: to }], subject, htmlContent: html, textContent: text }) });
+      body: JSON.stringify({ sender: { name: fName, email: fromAddr }, to: [{ email: to }], subject, htmlContent: html, textContent: text }) });
     if (!r.ok) throw new Error("brevo " + r.status + " " + (await r.text()).slice(0, 120));
     return;
   }
   if (env.RESEND_API_KEY && env.MAIL_FROM) {
     const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: `${fromName} <${env.MAIL_FROM}>`, to: [to], subject, html, text }) });
+      body: JSON.stringify({ from: env.MAIL_FROM.includes("<") ? env.MAIL_FROM : `${fromName} <${env.MAIL_FROM}>`, to: [to], subject, html, text }) });
     if (!r.ok) throw new Error("resend " + r.status + " " + (await r.text()).slice(0, 120));
     return;
   }
