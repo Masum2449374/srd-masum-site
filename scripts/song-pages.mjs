@@ -7,6 +7,8 @@ import { AUDIO_TRACKS } from "../src/data/songs.js";
 import { BANGLA_TRACKS } from "../src/data/bangla-songs.js";
 import { ENGLISH_ALL } from "../src/data/english-songs.js";
 import sharp from "sharp";
+import { artistHref, artistOf, isVerified } from "../src/lib/artists.js";
+const BADGE = `<svg class="vbadge" role="img" aria-label="Verified artist" width="14" height="14" viewBox="0 0 24 24"><title>Verified artist</title><path d="M12.00 2.60Q15.89 0.02 17.53 4.40Q22.19 4.59 20.94 9.10Q24.60 12.00 20.94 14.90Q22.19 19.41 17.53 19.60Q15.89 23.98 12.00 21.40Q8.11 23.98 6.47 19.60Q1.81 19.41 3.06 14.90Q-0.60 12.00 3.06 9.10Q1.81 4.59 6.47 4.40Q8.11 0.02 12.00 2.60Z" fill="#0A66FF"/><path d="M8.1 12.2l2.7 2.7 5.1-5.5" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 // 1200x630 share card: avatar + song title + SRD Masum branding. Rendered to PNG at build time
 // so Facebook/WhatsApp crawlers see it without running JS.
@@ -106,6 +108,7 @@ body{background:#0e0d0c}
 .sp-cover{display:block;width:min(78vw,300px);aspect-ratio:1;margin:.5rem auto 1.4rem;border-radius:22px;object-fit:cover;box-shadow:0 24px 60px -12px rgba(var(--a),.55),0 0 0 1px rgba(255,255,255,.08)}
 .sp h1{font-size:clamp(1.7rem,7vw,2.3rem);line-height:1.12;margin:0;font-weight:800;letter-spacing:-.01em;text-align:center}
 .sp-artist{margin:.4rem 0 .8rem;text-align:center;color:rgb(var(--a));filter:brightness(1.35);font-weight:600}
+.sp-alink{display:inline-flex;align-items:center;gap:4px;color:#4c9bff;text-decoration:none;font-weight:600;filter:brightness(.75)}.sp-alink:hover{text-decoration:underline}.sp-alink:active{opacity:.55}.vbadge{flex:none;display:block}
 .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin-bottom:1.2rem}
 .chip{font-size:.72rem;padding:.3rem .65rem;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#d6d1ca}
 .card{position:relative;padding:1.1rem 1.1rem 1rem;border-radius:24px;background:linear-gradient(160deg,rgba(var(--a),.22),rgba(255,255,255,.04) 60%);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 40px -20px rgba(0,0,0,.8)}
@@ -175,7 +178,7 @@ L.forEach(function(p){p.style.cursor="pointer";p.onclick=function(){a.currentTim
   h = h.replace(/<div id="root"><\/div>/, `<div id="root"><div class="sp-bg"></div><article class="sp" lang="${lang}">
 <div class="sp-top"><a class="sp-brand" href="/?from=song"><img src="/images/avatar.webp" alt="" width="28" height="28">SRD Masum</a></div>
 ${cover ? `<img class="sp-cover" src="${esc(cover)}" alt="${esc(t.title)} cover" width="300" height="300">` : ""}
-<h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by SRD Masum" : xesc(t.artist)}</p><div class="chips">${chips}</div>
+<h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by " : ""}<a class="sp-alink" href="${esc(artistHref(t))}">${xesc(artistOf(t))}${isVerified(t) ? BADGE : ""}</a></p><div class="chips">${chips}</div>
 ${player}${links}
 ${credRows ? `<section class="sec"><h2>Credits</h2><dl>${credRows}</dl></section>` : ""}
 ${lyr ? `<section class="sec"><h2>Lyrics</h2>${lyr}</section>` : ""}
