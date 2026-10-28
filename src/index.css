@@ -694,7 +694,17 @@ html[data-tab-hidden="true"] *::after {
 
 
 /* Now Playing effects */
-.np-glow { background: radial-gradient(circle, rgba(11,108,240,.75) 0%, rgba(90,162,255,.35) 45%, transparent 70%); filter: blur(28px); opacity: .5; will-change: transform, opacity; }
+.np-glow { background: rgba(0,0,0,.55); filter: blur(30px); transform: translateY(18px); opacity: .5; }
+.np-art { transition: transform .6s cubic-bezier(.2,.8,.2,1); }
+.np-art > img { transform: scale(.92); transition: transform .6s cubic-bezier(.2,.8,.2,1), box-shadow .6s; border-radius: 22px; box-shadow: 0 24px 60px -18px rgba(0,0,0,.75), 0 0 0 1px rgba(255,255,255,.08); }
+.np-art-on > img { transform: scale(1); }
+.np-bgimg { position: absolute; inset: -15%; width: 130%; height: 130%; object-fit: cover; filter: blur(70px) saturate(1.25) brightness(.75); transform: scale(1.1); opacity: .9; }
+.np-bgshade { background: linear-gradient(180deg, rgba(8,10,18,.35) 0%, rgba(8,10,18,.55) 45%, rgba(8,10,18,.88) 100%); }
+:root.light .np-bgshade { background: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,.8)); }
+.np-title { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; letter-spacing: -.01em; }
+.np-seek { height: 4px; border-radius: 9999px; transition: height .15s; }
+.np-seek:hover, .np-seek:active { height: 6px; }
+@media (prefers-reduced-motion: reduce) { .np-art, .np-art > img { transition: none; } .np-art > img { transform: none; } }
 .np-blob { position: absolute; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(80px); opacity: .55; will-change: transform; }
 .np-blob1 { top: -25vmax; left: -20vmax; animation: npb1 18s ease-in-out infinite alternate; }
 .np-blob2 { bottom: -30vmax; right: -25vmax; animation: npb2 22s ease-in-out infinite alternate; }
@@ -943,3 +953,5 @@ section.border-t::before { content: ""; position: absolute; top: 0; left: 8%; ri
 [data-season="halloween"] .seasonal-tint-halloween { opacity: .7; }
 
 @media (prefers-reduced-motion: reduce) { .hero-ink { animation: none; } }
+.np-seek::-webkit-slider-thumb { background: rgb(var(--ink)); box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.np-seek::-moz-range-thumb { background: rgb(var(--ink)); }

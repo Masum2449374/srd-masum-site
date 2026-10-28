@@ -28,10 +28,11 @@ export function FXBackground({ src }) {
   const [a, b, c] = useCoverColors(src);
   return (
     <div aria-hidden="true" className="np-bg pointer-events-none absolute inset-0 overflow-hidden">
+      <img src={src} alt="" className="np-bgimg" />
       <div className="np-blob np-blob1" style={{ background: `rgb(${a})` }} />
       <div className="np-blob np-blob2" style={{ background: `rgb(${b})` }} />
       <div className="np-blob np-blob3" style={{ background: `rgb(${c})` }} />
-      <div className="absolute inset-0 bg-canvas/55" />
+      <div className="np-bgshade absolute inset-0" />
     </div>
   );
 }
@@ -92,17 +93,19 @@ export function FXCover({ src, playing, children }) {
       cv.dataset.mode = live ? "live" : "sim";
       smooth += (bass - smooth) * 0.35;
       g.clearRect(0, 0, w, h);
-      const R = Math.min(w, h) * 0.355;
-      g.lineCap = "round"; g.lineWidth = 4;
-      for (let i = 0; i < BARS; i++) {
-        const v = spec[i] / 255, ang = (i / BARS) * Math.PI * 2 - Math.PI / 2, len = 4 + Math.pow(v, 1.3) * R * 0.6;
-        const c = Math.cos(ang), s = Math.sin(ang);
-        g.strokeStyle = `hsla(${210 + v * 60},100%,${55 + v * 20}%,${0.35 + v * 0.65})`;
-        g.beginPath(); g.moveTo(cx + c * (R + 4), cy + s * (R + 4)); g.lineTo(cx + c * (R + 4 + len), cy + s * (R + 4 + len)); g.stroke();
+      // Slim centred equalizer strip under the artwork: mirrored around the centre, soft white bars.
+      const n = 40, gap = 3, bw = Math.max(2, (w - gap * (n - 1)) / n);
+      for (let i = 0; i < n; i++) {
+        const k = Math.abs(i - (n - 1) / 2) / (n / 2); // 0 centre .. 1 edges
+        const v = spec[Math.min(BARS - 1, Math.floor(k * (BARS / 2)))] / 255;
+        const bh = Math.max(2, Math.pow(v, 1.4) * h * (1 - k * 0.55));
+        g.fillStyle = `rgba(255,255,255,${0.18 + v * 0.45})`;
+        const x = i * (bw + gap), y = cy - bh / 2;
+        g.beginPath(); g.roundRect ? g.roundRect(x, y, bw, bh, bw / 2) : g.rect(x, y, bw, bh); g.fill();
       }
-      if (cover.current) cover.current.style.transform = `scale(${1 + smooth * 0.08})`;
+      if (cover.current) cover.current.style.transform = reduce ? "" : `scale(${1 + smooth * 0.015})`;
       if (dbg) dbg.textContent = `fx ${cv.dataset.mode} max=${mx} min=${mn} rm=${reduce ? 1 : 0} play=${playing ? 1 : 0} hid=${document.hidden ? 1 : 0} ${window.__srdSW || "sw?"} ${window.__srdBuild}`;
-      if (glow.current) { glow.current.style.opacity = String(0.35 + smooth * 0.65); glow.current.style.transform = `scale(${1 + smooth * 0.12})`; }
+      if (glow.current) { glow.current.style.opacity = String(0.45 + smooth * 0.3); }
     };
     const loop = (now) => { draw(now); raf = requestAnimationFrame(loop); };
     // Reduced motion (Android "Remove animations") still animates the bars; only background drift stops.
@@ -123,10 +126,12 @@ export function FXCover({ src, playing, children }) {
     return () => { stop(); clearTimeout(kick); dbg?.remove(); document.removeEventListener("visibilitychange", vis); window.removeEventListener("resize", size); };
   }, [playing]);
   return (
-    <div className="relative mx-auto aspect-square w-full max-w-[280px] lg:max-w-[min(360px,40svh)]" data-testid="np-fx">
-      <div ref={glow} aria-hidden="true" className="np-glow pointer-events-none absolute -inset-6 rounded-full" />
-      <canvas ref={canvas} aria-hidden="true" className="pointer-events-none absolute -inset-[22%] h-[144%] w-[144%]" />
-      <div ref={cover} className="relative h-full w-full will-change-transform">{children}</div>
+    <div className="mx-auto flex w-full flex-col items-center" data-testid="np-fx">
+      <div className="relative aspect-square w-full max-w-[min(340px,100%,calc(100dvh-430px))] lg:max-w-[min(400px,46svh)]">
+        <div ref={glow} aria-hidden="true" className="np-glow pointer-events-none absolute inset-4 rounded-[28px]" />
+        <div ref={cover} className={`np-art relative h-full w-full will-change-transform ${playing ? "np-art-on" : ""}`}>{children}</div>
+      </div>
+      <canvas ref={canvas} aria-hidden="true" className="pointer-events-none mt-4 h-5 w-full max-w-[200px] opacity-90" />
     </div>
   );
 }

@@ -526,7 +526,7 @@ function NowPlaying({ player, scrub, onClose }) {
         <button type="button" onClick={onClose} aria-label="Close" data-testid="np-close" className={`${ctl} h-11 w-11 text-ink/80 hover:text-accent`}>
           <CaretDown size={26} weight="bold" />
         </button>
-        <p className="font-mono text-[11px] uppercase tracking-[0.25em] text-muted">Now Playing</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink/60">Now Playing</p>
         <ShareButton track={t} />
       </div>
       <div className={desktop ? `relative mx-auto grid min-h-0 w-full flex-1 items-center gap-16 px-12 pb-8 ${lyricsOn ? "max-w-[1280px] grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]" : "max-w-[640px] grid-cols-1"}` : `relative mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-6 ${lyricsOn ? "pt-2" : "justify-center"}`}>
@@ -539,31 +539,31 @@ function NowPlaying({ player, scrub, onClose }) {
         {desktop ? (
           <div className="pb-16 pt-8"><FXCover src={art} playing={player.playing}>
             <img src={art} alt="" draggable={false}
-              className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/40 transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
+              className="h-full w-full object-cover" />
           </FXCover></div>
         ) : lyricsOn ? (
           <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
         ) : (
           <FXCover src={art} playing={player.playing}>
             <img src={art} alt="" draggable={false}
-              className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/40 transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
+              className="h-full w-full object-cover" />
           </FXCover>
         )}
         <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex shrink-0 items-end justify-between gap-3`}>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-2xl font-bold text-ink lg:text-4xl">{t.title}</p>
-            <p className="mt-1 text-sm text-muted lg:text-base">{t.artist || "SRD Masum"}</p>
+            <p data-testid="np-title" title={t.title} className={`np-title font-bold leading-tight text-ink ${lyricsOn ? "text-xl" : "text-2xl"} lg:text-4xl`}>{t.title}</p>
+            <p className="mt-1 truncate text-[15px] font-medium text-ink/60 lg:text-lg">{t.artist || "SRD Masum"}</p>
           </div>
           {hasLyrics ? (
             <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"
               onPointerDownCapture={(e) => e.stopPropagation()}
-              className={`shrink-0 rounded-full border px-3 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] transition-colors ${lyricsOn ? "border-accent bg-accent text-on-accent" : "border-hairline text-ink/80 hover:text-accent"}`}>
+              className={`shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] backdrop-blur-md transition-colors ${lyricsOn ? "bg-ink text-canvas" : "bg-white/10 text-ink/85 ring-1 ring-white/15 hover:bg-white/20"}`}>
               Lyrics
             </button>
           ) : null}
           <button type="button" onClick={() => setInfo(t)} aria-label={`Credits for ${t.title}`} data-testid="np-info"
             onPointerDownCapture={(e) => e.stopPropagation()}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink/80 ring-1 ring-hairline hover:text-accent">
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-ink/85 ring-1 ring-white/15 backdrop-blur-md hover:bg-white/20">
             <Info size={18} weight="bold" />
           </button>
         </div>
@@ -573,19 +573,19 @@ function NowPlaying({ player, scrub, onClose }) {
             onChange={(e) => player.onScrub(Number(e.target.value))}
             onPointerUp={player.endScrub} onTouchEnd={player.endScrub} onKeyUp={player.endScrub} onBlur={player.endScrub}
             aria-label={`Seek ${t.title}`} data-testid="np-seek"
-            className="seek w-full"
-            style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, rgb(var(--hairline)) ${pct}%)` }}
+            className="seek np-seek w-full"
+            style={{ background: `linear-gradient(to right, rgb(var(--ink) / .92) ${pct}%, rgb(var(--ink) / .18) ${pct}%)` }}
           />
-          <div className="mt-1 flex justify-between font-mono text-xs tabular-nums text-muted">
+          <div className="mt-1.5 flex justify-between text-[11px] font-medium tabular-nums text-ink/55">
             <span data-testid="np-elapsed">{formatTime(shown)}</span><span>{formatTime(max)}</span>
           </div>
         </div>
-        <div className="mt-6 flex shrink-0 items-center justify-between">
+        <div className="mt-5 flex shrink-0 items-center justify-between">
           <button type="button" onClick={player.toggleShuffle} aria-label="Shuffle" aria-pressed={player.shuffle}
             className={`${ctl} h-11 w-11 ${player.shuffle ? "text-accent" : "text-ink/50"}`}><Shuffle size={22} weight="bold" /></button>
           <button type="button" onClick={player.previous} aria-label="Previous" className={`${ctl} h-14 w-14 text-ink`}><SkipBack size={30} weight="fill" /></button>
           <button type="button" onClick={() => player.toggle(t)} aria-label={player.playing ? "Pause" : "Play"} data-testid="np-play"
-            className={`${ctl} h-20 w-20 bg-accent text-on-accent shadow-lg active:scale-95`}>
+            className={`${ctl} h-[72px] w-[72px] bg-ink text-canvas shadow-[0_10px_30px_-8px_rgba(0,0,0,.6)] transition-transform hover:scale-105 active:scale-95`}>
             {player.playing ? <Pause size={34} weight="fill" /> : <Play size={34} weight="fill" className="translate-x-[2px]" />}
           </button>
           <button type="button" onClick={() => player.step(1, true)} aria-label="Next" data-testid="np-next" className={`${ctl} h-14 w-14 text-ink`}><SkipForward size={30} weight="fill" /></button>
