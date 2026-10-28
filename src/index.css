@@ -971,3 +971,33 @@ html.light .srd-acct-menu{background:#fff;box-shadow:0 20px 50px rgba(0,0,0,.2),
 @media (max-width:339px){.pro-nav .srd-search-btn:not(.srd-signin-btn){font-size:0;gap:0;width:2.25rem;padding:0;justify-content:center}}
 .srd-otp{width:100%;min-width:0;height:3.4rem;text-align:center;border-radius:14px;background:rgba(127,127,127,.08);box-shadow:inset 0 0 0 1px rgb(var(--hairline));font:600 1.5rem/1 "IBM Plex Mono",monospace;color:rgb(var(--ink));outline:0;transition:box-shadow .15s}
 .srd-otp:focus{box-shadow:inset 0 0 0 1.5px rgb(59 130 246)}
+/* Profile details modal + crop */
+.srd-pe-layer{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+.srd-pe-sheet{position:relative;width:100%;max-height:calc(100dvh - 32px);overflow:auto;border-radius:22px;padding:24px;background:rgb(var(--raised));box-shadow:0 0 0 1px rgb(var(--hairline)),0 30px 80px rgba(0,0,0,.55);animation:pe-in .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes pe-in{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+.srd-pe-x{display:inline-flex;height:2.25rem;width:2.25rem;align-items:center;justify-content:center;border-radius:9999px;color:rgb(var(--muted));transition:background .15s,color .15s}
+.srd-pe-x:hover{background:rgb(var(--sunk));color:rgb(var(--ink))}
+.srd-pe-avatar{position:relative;display:block;height:180px;width:180px;overflow:hidden;border-radius:9999px;box-shadow:0 10px 40px rgba(0,0,0,.45)}
+.srd-pe-ov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;background:rgba(0,0,0,.55);opacity:0;transition:opacity .18s}
+.srd-pe-avatar:hover .srd-pe-ov,.srd-pe-avatar:focus-visible .srd-pe-ov{opacity:1}
+@media (hover:none){.srd-pe-ov{opacity:1;background:linear-gradient(to top,rgba(0,0,0,.6),rgba(0,0,0,0) 60%);justify-content:flex-end;padding-bottom:18px}.srd-pe-ov svg{display:none}}
+.srd-pe-spin{position:absolute;inset:6px;border-radius:9999px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;animation:pe-spin .8s linear infinite}
+@keyframes pe-spin{to{transform:rotate(360deg)}}
+.srd-pe-menu{position:absolute;left:50%;top:calc(100% + 8px);z-index:2;min-width:180px;transform:translateX(-50%);padding:6px;border-radius:12px;background:rgb(var(--sunk));box-shadow:0 0 0 1px rgb(var(--hairline)),0 16px 40px rgba(0,0,0,.45)}
+.srd-pe-menu button{display:flex;width:100%;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;font-size:14px;font-weight:600;color:rgb(var(--ink));text-align:left}
+.srd-pe-menu button:hover{background:rgb(var(--hairline)/.6)}
+.srd-pe-float{position:relative;display:block}
+.srd-pe-float input,.srd-pe-float textarea{width:100%;resize:none;border-radius:10px;padding:22px 14px 8px;background:rgb(var(--sunk));color:rgb(var(--ink));font-size:15px;outline:0;box-shadow:inset 0 0 0 1px rgb(var(--hairline));transition:box-shadow .15s}
+.srd-pe-float textarea{padding-bottom:22px}
+.srd-pe-float input:focus,.srd-pe-float textarea:focus{box-shadow:inset 0 0 0 1.5px rgb(var(--ink)/.7)}
+.srd-pe-float>span{pointer-events:none;position:absolute;left:14px;top:15px;font-size:15px;color:rgb(var(--faint));transition:all .15s}
+.srd-pe-float :focus+span,.srd-pe-float :not(:placeholder-shown)+span{top:6px;font-size:11px;font-weight:600;letter-spacing:.04em;color:rgb(var(--muted))}
+.srd-pe-err{border-radius:12px;padding:8px 12px;font-size:14px;color:#fca5a5;background:rgba(239,68,68,.1);box-shadow:inset 0 0 0 1px rgba(248,113,113,.3)}
+.srd-crop{position:relative;aspect-ratio:1;width:100%;overflow:hidden;border-radius:14px;background:#000;touch-action:none;cursor:grab;user-select:none}
+.srd-crop:active{cursor:grabbing}
+.srd-crop img{position:absolute;left:0;top:0;max-width:none;transform-origin:0 0;will-change:transform}
+.srd-crop-mask{position:absolute;inset:0;pointer-events:none;border-radius:9999px;box-shadow:0 0 0 999px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.8)}
+.srd-range{accent-color:rgb(var(--ink));height:4px}
+/* Profile header */
+.srd-prof-band{position:relative;transition:background 0.6s ease}
+.srd-prof-band::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0) 40%,rgba(0,0,0,.35));pointer-events:none}

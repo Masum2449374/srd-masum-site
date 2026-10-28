@@ -7,6 +7,7 @@ export function loadMe() {
   if (!loading) loading = fetch("/api/auth/me", { credentials: "same-origin" }).then((r) => r.ok ? r.json() : { user: null }).then((d) => { authInfo.mail = d.mail !== false; set(d.user || null); }).catch(() => set(null));
   return loading;
 }
+if (typeof window !== "undefined") window.addEventListener("srd-user-refresh", () => { loading = null; loadMe(); });
 export function useUser() {
   const [u, setU] = useState(state.user);
   useEffect(() => { subs.add(setU); loadMe(); return () => subs.delete(setU); }, []);

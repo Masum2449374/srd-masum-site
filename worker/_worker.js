@@ -51,6 +51,7 @@ const handle = async (req, env) => {
     if (url.pathname === "/api/play") return playHit(req, env, url);
     if (url.pathname === "/api/notify") return notifySignup(req, env, url);
     if (url.pathname.startsWith("/api/auth/")) return auth(req, env, url);
+    if (url.pathname.startsWith("/media/avatars/")) return media(req, env, url);
     // App routes rendered by the SPA (404.html disables the Pages fallback, so serve the shell here).
     if ((req.method === "GET" || req.method === "HEAD") && /^\/(u\/[a-z0-9_]{1,20}|account)\/?$/i.test(url.pathname)) {
       const shell = await env.ASSETS.fetch(new Request(`${url.origin}/`));
@@ -552,7 +553,7 @@ async function pbkdf2(pw, saltB64, iter) {
 const sha256 = async (s) => hex(await crypto.subtle.digest("SHA-256", te.encode(s)));
 const readCookie = (req, n) => (req.headers.get("cookie") || "").split(/;\s*/).map((c) => c.split("=")).find(([k]) => k === n)?.[1] || "";
 const sessCookie = (v, maxAge) => `${SESSION_COOKIE}=${v}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`;
-const pubUser = (u) => u && { username: u.username, displayName: u.display_name, bio: u.bio, joined: u.created_at, avatar: null };
+const pubUser = (u) => u && { username: u.username, displayName: u.display_name, bio: u.bio, joined: u.created_at, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null };
 async function currentUser(req, env) {
   const t = readCookie(req, SESSION_COOKIE);
   if (!/^[a-f0-9]{64}$/.test(t)) return null;
@@ -593,11 +594,12 @@ async function auth(req, env, url) {
     const u = await env.DB.prepare("SELECT * FROM users WHERE username = ? AND email_verified = 1").bind(name).first();
     if (!u) return AJ({ error: "Not found" }, 404);
     const songs = (await env.DB.prepare("SELECT id, title, artist, cover_key, created_at FROM songs WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || [];
-    return AJ({ user: pubUser(u), songs });
+    return AJ({ user: pubUser(u), songs, songCount: songs.length });
   }
   if (req.method !== "POST") return AJ({ error: "Method not allowed" }, 405);
   // CSRF: same-origin JSON only.
   if (req.headers.get("origin") !== url.origin) return AJ({ error: "forbidden" }, 403);
+  if (p === "avatar") return avatarUpload(req, env);
   if (!(req.headers.get("content-type") || "").includes("application/json")) return AJ({ error: "Bad request" }, 400);
   const len = Number(req.headers.get("content-length") || 0);
   if (len > 4096) return AJ({ error: "Request too large" }, 413);
@@ -692,6 +694,11 @@ async function auth(req, env, url) {
     const u = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(row.user_id).first();
     return AJ({ user: pubUser(u) }, 200, { "set-cookie": await newSession(env, u.id) });
   }
+  if (p === "avatar-remove") {
+    const u = await currentUser(req, env);
+    if (!u) return AJ({ error: "Please sign in again." }, 401);
+    return avatarRemove(env, u);
+  }
   if (p === "profile") {
     const u = await currentUser(req, env);
     if (!u) return AJ({ error: "Please sign in." }, 401);
@@ -766,4 +773,45 @@ async function mailTo(env, url, to, subject, line, code, title) {
   }
   if (isLocal(url) && env.MAIL_DEV_LOG === "1") { console.log(`DEVMAIL to=${to} subject=${subject} code=${code || "-"}`); return; }
   throw new Error("no mail sender configured");
+}
+
+// ---- Avatars (R2: MEDIA) ----
+const AV_TYPES = { "image/webp": "webp", "image/jpeg": "jpg", "image/png": "png" };
+function sniff(b) {
+  if (b.length >= 12 && b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return "image/webp";
+  if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b.length >= 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 && b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a) return "image/png";
+  return null;
+}
+async function avatarUpload(req, env) {
+  if (!env.MEDIA) return AJ({ error: "Photo uploads are not available right now." }, 503);
+  const u = await currentUser(req, env);
+  if (!u) return AJ({ error: "Please sign in again." }, 401);
+  const ct = (req.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
+  if (!AV_TYPES[ct]) return AJ({ error: "Use a JPG, PNG or WebP image." }, 415);
+  if (Number(req.headers.get("content-length") || 0) > 2 * 1024 * 1024) return AJ({ error: "That image is over 2 MB." }, 413);
+  if (await limited(env, ["av:" + u.id], 10, 36e5)) return AJ({ error: "Too many photo changes. Try again in an hour." }, 429);
+  const buf = new Uint8Array(await req.arrayBuffer());
+  if (!buf.length || buf.length > 2 * 1024 * 1024) return AJ({ error: buf.length ? "That image is over 2 MB." : "Empty upload." }, buf.length ? 413 : 400);
+  if (sniff(buf) !== ct) return AJ({ error: "That file isn't a valid image." }, 415);
+  await note(env, ["av:" + u.id]);
+  const key = `${u.id}-${hex(crypto.getRandomValues(new Uint8Array(8)))}.${AV_TYPES[ct]}`;
+  await env.MEDIA.put("avatars/" + key, buf, { httpMetadata: { contentType: ct, cacheControl: "public, max-age=31536000, immutable" } });
+  await env.DB.prepare("UPDATE users SET avatar_key = ? WHERE id = ?").bind(key, u.id).run();
+  if (u.avatar_key) await env.MEDIA.delete("avatars/" + u.avatar_key).catch(() => {});
+  return AJ({ user: pubUser({ ...u, avatar_key: key }) });
+}
+async function avatarRemove(env, u) {
+  if (u.avatar_key && env.MEDIA) await env.MEDIA.delete("avatars/" + u.avatar_key).catch(() => {});
+  await env.DB.prepare("UPDATE users SET avatar_key = NULL WHERE id = ?").bind(u.id).run();
+  return AJ({ user: pubUser({ ...u, avatar_key: null }) });
+}
+async function media(req, env, url) {
+  if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
+  const key = url.pathname.slice("/media/avatars/".length);
+  if (!env.MEDIA || !/^[A-Za-z0-9_-]{1,64}-[a-f0-9]{16}\.(webp|jpg|png)$/.test(key)) return new Response("Not found", { status: 404 });
+  const o = await env.MEDIA.get("avatars/" + key);
+  if (!o) return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
+  const ct = { webp: "image/webp", jpg: "image/jpeg", png: "image/png" }[key.split(".").pop()];
+  return new Response(req.method === "HEAD" ? null : o.body, { headers: { "content-type": ct, "cache-control": "public, max-age=31536000, immutable", "x-content-type-options": "nosniff", "content-security-policy": "default-src 'none'; img-src 'self'; sandbox", etag: o.httpEtag, "content-length": String(o.size) } });
 }
