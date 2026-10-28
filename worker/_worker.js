@@ -179,7 +179,8 @@ async function chat(req, env, url) {
   // Brute-force lockout (D1, same as admin login): 5 wrong tries per IP and 30 overall per 15 min.
   const looksPass = /^\S{4,40}$/.test(last.trim());
   if (looksPass && env.OWNER_PASSCODE && env.DB) {
-    const pkeys = ["mpc:" + ip, "mpc:all"];
+    const ipk = ip.includes(":") ? (() => { const [a, b = ""] = ip.split("::"); const l = a.split(":").filter(Boolean), r = b.split(":").filter(Boolean); return [...l, ...Array(Math.max(0, 8 - l.length - r.length)).fill("0"), ...r].slice(0, 4).join(":") + "::/64"; })() : ip;
+    const pkeys = ["mpc:" + ipk, "mpc:all"]; // IPv6 grouped by /64
     const blocked = await limited(env, [pkeys[0]], 5, 9e5) || await limited(env, [pkeys[1]], 30, 9e5);
     if (blocked) return out({ reply: /[\u0980-\u09FF]/.test(last) ? "দুঃখিত, এ বিষয়ে সাহায্য করতে পারছি না। একটা গান সাজেস্ট করবো? 🎵" : "Sorry, I can't help with that. Want a song recommendation? 🎵" });
     if (await isPasscode(env, last)) return out({ reply: "স্বাগতম, Masum স্যার! 🙂 আপনাকে চিনতে পেরেছি। বলুন, আজ কীভাবে সাহায্য করতে পারি?", ownerToken: await makeOwnerToken(env) });
