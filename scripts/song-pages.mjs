@@ -108,7 +108,7 @@ body{background:#0e0d0c}
 .sp-cover{display:block;width:min(78vw,300px);aspect-ratio:1;margin:.5rem auto 1.4rem;border-radius:22px;object-fit:cover;box-shadow:0 24px 60px -12px rgba(var(--a),.55),0 0 0 1px rgba(255,255,255,.08)}
 .sp h1{font-size:clamp(1.7rem,7vw,2.3rem);line-height:1.12;margin:0;font-weight:800;letter-spacing:-.01em;text-align:center}
 .sp-artist{margin:.4rem 0 .8rem;text-align:center;color:rgb(var(--a));filter:brightness(1.35);font-weight:600}
-.sp-alink{display:inline-flex;align-items:center;gap:4px;color:#4c9bff;text-decoration:none;font-weight:600;filter:brightness(.75)}.sp-alink:hover{text-decoration:underline}.sp-alink:active{opacity:.55}.vbadge{flex:none;display:block}
+.sp-artist .sp-alink{display:inline-flex;align-items:center;gap:4px;color:#4c9bff!important;text-decoration:none;font-weight:600;filter:brightness(.75)}.sp-alink:hover{text-decoration:underline}.sp-alink:active{opacity:.55}.vbadge{flex:none;display:block}
 .chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin-bottom:1.2rem}
 .chip{font-size:.72rem;padding:.3rem .65rem;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#d6d1ca}
 .card{position:relative;padding:1.1rem 1.1rem 1rem;border-radius:24px;background:linear-gradient(160deg,rgba(var(--a),.22),rgba(255,255,255,.04) 60%);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 40px -20px rgba(0,0,0,.8)}
