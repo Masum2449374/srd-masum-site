@@ -1103,3 +1103,4 @@ html.light .srd-artist-link{color:#0b6cf0 !important}
 .srd-artist-pill{display:inline-flex;max-width:100%;align-items:center;gap:3px;font-weight:500;color:#4c9bff;transition:opacity .15s}
 .srd-artist-pill:active{opacity:.55}
 html.light .srd-artist-pill{color:#0b6cf0}
+.srd-hscroll{scrollbar-width:none;-webkit-overflow-scrolling:touch}.srd-hscroll::-webkit-scrollbar{display:none}

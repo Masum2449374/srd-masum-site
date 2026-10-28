@@ -926,6 +926,15 @@ async function delSong(env, s) {
 async function songsApi(req, env, url) {
   if (!env.DB || !env.MEDIA) return AJ({ error: "Uploads are not available right now." }, 503);
   const p = url.pathname.slice("/api/songs/".length);
+  if (req.method === "GET" && p === "latest") {
+    const cache = caches.default, key = new Request(url.origin + "/api/songs/latest?limit=" + Math.min(24, Math.max(1, Number(url.searchParams.get("limit")) || 12)));
+    const hit0 = await cache.match(key); if (hit0) return hit0;
+    const n = Number(new URL(key.url).searchParams.get("limit"));
+    const rows = (await env.DB.prepare("SELECT s.id, s.title, s.cover_key, s.created_at, u.username, u.display_name, u.verified FROM songs s JOIN users u ON u.id = s.user_id WHERE s.status = 'approved' ORDER BY COALESCE(s.reviewed_at, s.created_at) DESC LIMIT ?").bind(n).all()).results || [];
+    const res = new Response(JSON.stringify({ songs: rows.map((s) => ({ id: s.id, title: s.title, createdAt: s.created_at, audio: `/media/songs/${s.id}/audio`, cover: s.cover_key ? `/media/songs/${s.id}/cover` : null,
+      uploader: { username: s.username, displayName: s.display_name, verified: !!s.verified } })) }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=60, s-maxage=60" } });
+    await cache.put(key, res.clone()); return res;
+  }
   const u = await currentUser(req, env);
   if (req.method === "GET" && p === "mine") {
     if (!u) return AJ({ error: "Please sign in." }, 401);

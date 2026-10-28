@@ -7,6 +7,7 @@ import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
 import PlaylistSection from "./components/PlaylistSection.jsx";
+import CommunityRow from "./components/CommunityRow.jsx";
 import HeroGlow from "./components/HeroGlow.jsx";
 import Sparkles from "./components/Sparkles.jsx";
 import Snow from "./components/Snow.jsx";
@@ -987,6 +988,7 @@ function BasePage() {
       <Nav />
       <main>
         <Hero />
+        <CommunityRow />
         <PlaylistSection />
         <AdSlot type="banner300" desktopOnly />
         <Music />
