@@ -213,8 +213,21 @@ ${lyr ? `<section class="sec"><h2>Lyrics</h2>${lyr}</section>` : ""}
   fs.writeFileSync(path.join(dist, "english", "index.html"), h);
 }
 
+// /copyright/ page: app shell with its own title.
+{
+  const url = `${SITE}/copyright/`, title = "Copyright & DMCA Policy | SRD Masum", desc = "How to report copyright infringement to SRD Masum, and how we handle false claims and counter-notices.";
+  let h = shell.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
+  h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(desc)}" />`);
+  h = setMeta(h, /<meta property="og:title"[^>]*>/, `<meta property="og:title" content="${esc(title)}" />`);
+  h = setMeta(h, /<meta property="og:description"[^>]*>/, `<meta property="og:description" content="${esc(desc)}" />`);
+  h = setMeta(h, /<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${url}" />`);
+  h = setMeta(h, /<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${url}" />`);
+  fs.mkdirSync(path.join(dist, "copyright"), { recursive: true });
+  fs.writeFileSync(path.join(dist, "copyright", "index.html"), h);
+}
+
 // Sitemap with the song pages.
-const urls = [`${SITE}/`, `${SITE}/english/`, ...all.map((t) => `${SITE}/song/${t.id}/`)];
+const urls = [`${SITE}/`, `${SITE}/english/`, `${SITE}/copyright/`, ...all.map((t) => `${SITE}/song/${t.id}/`)];
 fs.writeFileSync(
   path.join(dist, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`

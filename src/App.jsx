@@ -25,6 +25,7 @@ import AdSlot from "./components/AdSlot.jsx";
 import ChatLauncher from "./components/ChatLauncher.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import EnglishPage from "./components/EnglishPage.jsx";
+import CopyrightPage from "./components/CopyrightPage.jsx";
 import { ENGLISH_ALL } from "./data/english-songs.js";
 
 const YEAR = new Date().getFullYear();
@@ -800,6 +801,7 @@ function Footer() {
           </p>
           <p className="max-w-xs text-sm leading-relaxed text-muted">Music made to be played loud, late, and on repeat.</p>
           <p className="text-xs text-faint">© {YEAR} SRD Masum. All rights reserved.</p>
+          <p className="text-xs"><a href="/copyright/" className="text-muted underline-offset-4 transition-colors hover:text-accent hover:underline">Copyright &amp; DMCA Policy</a></p>
         </div>
         <div className="flex items-center gap-2.5">
           {[
@@ -922,11 +924,23 @@ const PAGE = (() => {
   if (typeof window === "undefined") return "home";
   const p = window.location.pathname;
   if (/^\/english(\/|$)/.test(p)) return "english";
+  if (/^\/copyright(\/|$)/.test(p)) return "copyright";
   const id = p.match(/^\/song\/([^/]+)\/?$/)?.[1];
   return id && ENGLISH_ALL.some((t) => t.id === decodeURIComponent(id)) ? "english" : "home";
 })();
 
 export default function App() {
+  if (PAGE === "copyright") return (
+    <PlayerProvider>
+    <div className="min-h-screen pb-24">
+      <BeatField />
+      <Nav page="copyright" />
+      <main><CopyrightPage /></main>
+      <Footer />
+      <ChatLauncher />
+    </div>
+    </PlayerProvider>
+  );
   if (PAGE === "english") return (
     <PlayerProvider>
     <div className="min-h-screen pb-24">
