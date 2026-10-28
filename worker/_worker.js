@@ -131,7 +131,7 @@ async function peek(key) {
 const CHAT_MODELS = ["deepseek-v4.1-flash", "qwen-flash"];
 const RL = new Map(); // per-isolate, per-IP: { t: windowStart, n }
 let CTX = null, CTX_AT = 0;
-// ---- Owner mode: passcode (env.OWNER_PASSCODE, set only in the dashboard) -> signed token, ~1 year.
+// ---- Owner mode: passcode (env.OWNER_PASSCODE, set only in the dashboard) -> signed token, 30 days.
 const TOKEN_DAYS = 30;
 const enc = (t) => new TextEncoder().encode(t);
 const hex = (b) => [...new Uint8Array(b)].map((x) => x.toString(16).padStart(2, "0")).join("");
@@ -176,14 +176,15 @@ async function chat(req, env, url) {
   if (!msgs.length || msgs[msgs.length - 1].role !== "user") return out({ error: "no message" }, 400);
   // Owner passcode / token. The passcode is never forwarded to the model.
   const last = msgs[msgs.length - 1].content;
-  // Brute-force lockout: passcode-like messages (single word, 4-40 chars) that fail count per IP; 8 per hour max.
-  const pk = `pcfail:${ip}:${Math.floor(now / 3600000)}`;
-  const fails = await peek(pk);
+  // Brute-force lockout (D1, same as admin login): 5 wrong tries per IP and 30 overall per 15 min.
   const looksPass = /^\S{4,40}$/.test(last.trim());
-  if (fails < 8 && await isPasscode(env, last)) {
-    return out({ reply: "স্বাগতম, Masum স্যার! 🙂 আপনাকে চিনতে পেরেছি। বলুন, আজ কীভাবে সাহায্য করতে পারি?", ownerToken: await makeOwnerToken(env) });
+  if (looksPass && env.OWNER_PASSCODE && env.DB) {
+    const pkeys = ["mpc:" + ip, "mpc:all"];
+    const blocked = await limited(env, [pkeys[0]], 5, 9e5) || await limited(env, [pkeys[1]], 30, 9e5);
+    if (blocked) return out({ reply: /[\u0980-\u09FF]/.test(last) ? "দুঃখিত, এ বিষয়ে সাহায্য করতে পারছি না। একটা গান সাজেস্ট করবো? 🎵" : "Sorry, I can't help with that. Want a song recommendation? 🎵" });
+    if (await isPasscode(env, last)) return out({ reply: "স্বাগতম, Masum স্যার! 🙂 আপনাকে চিনতে পেরেছি। বলুন, আজ কীভাবে সাহায্য করতে পারি?", ownerToken: await makeOwnerToken(env) });
+    await note(env, pkeys);
   }
-  if (looksPass && env.OWNER_PASSCODE) await hit(pk, 3700);
   for (let i = msgs.length - 2; i >= 0; i--) if (msgs[i].role === "user" && await isPasscode(env, msgs[i].content)) msgs.splice(i, 1);
   let OWNER = await validOwner(env, body?.owner);
   if (OWNER && /^(লগ ?আউট|log ?out)[.!।]?$/i.test(last.trim())) return out({ reply: "ঠিক আছে Masum স্যার, লগআউট করে দিলাম। আবার আসবেন!", logout: true });
