@@ -21,7 +21,7 @@ export default function CommunityRow() {
   if (!tracks.length) return null;
   const scroll = (d) => ref.current?.scrollBy({ left: d * ref.current.clientWidth * 0.85, behavior: "smooth" });
   return (
-    <section id="community" className="px-5 pt-10 sm:px-8" data-testid="community-row">
+    <section id="community" className="px-5 pb-10 pt-2 sm:px-8" data-testid="community-row">
       <div className="mx-auto max-w-3xl lg:max-w-[1240px]">
         <div className="flex items-end justify-between gap-3">
           <div>

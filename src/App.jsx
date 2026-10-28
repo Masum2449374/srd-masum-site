@@ -988,8 +988,8 @@ function BasePage() {
       <Nav />
       <main>
         <Hero />
-        <CommunityRow />
         <PlaylistSection />
+        <CommunityRow />
         <AdSlot type="banner300" desktopOnly />
         <Music />
         <AdSlot type="banner320" />
