@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Sun, Moon, List, X, CaretRight, CaretDown, Disc, Globe, MusicNotes, MusicNote, FilmStrip, Sparkle, Star, Television, PlayCircle, ChatCircleText, Heart, EnvelopeSimple, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, Play } from "@phosphor-icons/react";
+import { createPortal } from "react-dom";
 import SearchOverlay from "./SearchOverlay.jsx";
 import AccountButton from "./AccountButton.jsx";
 import { MagnifyingGlass, ArrowLeft } from "@phosphor-icons/react";
@@ -209,9 +210,9 @@ export default function Nav({ page = "home" }) {
         </div>
       </div>
 
-      {searchOpen && <SearchOverlay onClose={() => setSearchOpen(false)} />}
-      {open && (
-        <div className="srd-menu" data-testid="site-menu-root">
+      {searchOpen && createPortal(<SearchOverlay onClose={() => setSearchOpen(false)} />, document.body)}
+      {open && createPortal(
+        <div className="srd-menu" data-testid="site-menu-root" style={{ zIndex: 2147483000 }}>
           <div className="srd-menu-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
           <div id="site-menu" ref={panelRef} role="dialog" aria-modal="true" aria-label="Site menu" className="srd-menu-sheet">
             <div className="srd-menu-head">
@@ -264,7 +265,7 @@ export default function Nav({ page = "home" }) {
             </div>
           </div>
         </div>
-      )}
+      , document.body)}
     </header>
   );
 }

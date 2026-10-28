@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { UserCircle, User, PencilSimple, SignOut } from "@phosphor-icons/react";
 import { useUser, signOut, openAuth } from "../lib/auth.js";
@@ -39,7 +40,7 @@ export default function AccountButton() {
           <UserCircle size={19} weight="bold" aria-hidden="true" /><span className="srd-signin-label">Sign in</span>
         </button>
       )}
-      {modal && <AuthModal mode={modal} onClose={() => setModal(null)} />}
+      {modal && createPortal(<AuthModal mode={modal} onClose={() => setModal(null)} />, document.body)}
     </>
   );
 }
