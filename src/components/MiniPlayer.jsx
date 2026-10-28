@@ -519,7 +519,7 @@ function NowPlaying({ player, scrub, onClose }) {
       dragListener={true}
       onDragEnd={(_, info) => { if (info.offset.y > 120 || info.velocity.y > 600) onClose(); }}
       className="fixed inset-0 z-[60] flex cursor-default overflow-hidden flex-col bg-canvas text-ink"
-      style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{ height: "100dvh", bottom: "auto", paddingTop: "env(safe-area-inset-top)", paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
     >
       <div className={player.playing ? "" : "np-paused"}><FXBackground src={art} /></div>
       <div className="relative flex items-center justify-between px-4 pt-3">
@@ -549,7 +549,7 @@ function NowPlaying({ player, scrub, onClose }) {
               className={`h-full w-full rounded-full object-cover shadow-2xl ring-4 ring-accent/40 transition-transform duration-500 ${player.playing ? "scale-100" : "scale-95"}`} />
           </FXCover>
         )}
-        <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex items-end justify-between gap-3`}>
+        <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex shrink-0 items-end justify-between gap-3`}>
           <div className="min-w-0 flex-1">
             <p className="truncate text-2xl font-bold text-ink lg:text-4xl">{t.title}</p>
             <p className="mt-1 text-sm text-muted lg:text-base">{t.artist || "SRD Masum"}</p>
@@ -567,7 +567,7 @@ function NowPlaying({ player, scrub, onClose }) {
             <Info size={18} weight="bold" />
           </button>
         </div>
-        <div className="mt-6" onPointerDownCapture={(e) => e.stopPropagation()}>
+        <div className="mt-6 shrink-0" onPointerDownCapture={(e) => e.stopPropagation()}>
           <input
             type="range" min={0} max={max} step={0.1} value={shown}
             onChange={(e) => player.onScrub(Number(e.target.value))}
@@ -580,7 +580,7 @@ function NowPlaying({ player, scrub, onClose }) {
             <span data-testid="np-elapsed">{formatTime(shown)}</span><span>{formatTime(max)}</span>
           </div>
         </div>
-        <div className="mt-6 flex items-center justify-between">
+        <div className="mt-6 flex shrink-0 items-center justify-between">
           <button type="button" onClick={player.toggleShuffle} aria-label="Shuffle" aria-pressed={player.shuffle}
             className={`${ctl} h-11 w-11 ${player.shuffle ? "text-accent" : "text-ink/50"}`}><Shuffle size={22} weight="bold" /></button>
           <button type="button" onClick={player.previous} aria-label="Previous" className={`${ctl} h-14 w-14 text-ink`}><SkipBack size={30} weight="fill" /></button>

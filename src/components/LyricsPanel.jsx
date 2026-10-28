@@ -30,9 +30,10 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
       onPointerDownCapture={(e) => e.stopPropagation()}
       onWheel={() => { userScroll.current = Date.now(); }}
       onTouchMove={() => { userScroll.current = Date.now(); }}
-      className="lyrics-scroll relative min-h-0 flex-1 overflow-y-auto overscroll-contain py-[30vh] text-center"
+      className="lyrics-scroll relative min-h-0 flex-1 overflow-y-auto overscroll-contain text-center"
       style={{ fontFamily: "'Noto Sans Bengali', 'Hind Siliguri', system-ui, sans-serif", maskImage: "linear-gradient(transparent, #000 15%, #000 85%, transparent)", WebkitMaskImage: "linear-gradient(transparent, #000 15%, #000 85%, transparent)" }}
     >
+      <div aria-hidden="true" className="h-[30vh] shrink-0" />
       {!synced ? <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">Lyrics</p> : null}
       {rows.map((r, i) => {
         if (r.kind === "gap") return <div key={i} className="h-4" />;
@@ -66,6 +67,7 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
           <p key={i} data-line={r.idx} className={cls}>{r.text}</p>
         );
       })}
+      <div aria-hidden="true" className="h-[30vh] shrink-0" />
     </div>
   );
 }
