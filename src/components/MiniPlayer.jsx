@@ -557,7 +557,7 @@ function NowPlaying({ player, scrub, onClose, onArtist }) {
             <p data-testid="np-title" title={t.title} className={`np-title font-bold leading-tight text-ink ${lyricsOn ? "text-xl" : "text-2xl"} lg:text-4xl`}>{t.title}</p>
             <a href={artistHref(t)} data-testid="np-artist" onPointerDownCapture={(e) => e.stopPropagation()}
               onClick={(e) => { e.stopPropagation(); if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArtist ? onArtist(artistHref(t)) : navigate(artistHref(t)); }}
-              className="srd-artist-pill mt-1.5 lg:text-lg"><span className="truncate">{t.artist || "SRD Masum"}</span><ArtistCaret size={14} weight="bold" aria-hidden="true" className="shrink-0" /></a>
+              className="srd-artist-pill mt-1 text-[15px] lg:text-lg"><span className="truncate">{t.artist || "SRD Masum"}</span><ArtistCaret size={14} weight="bold" aria-hidden="true" className="shrink-0" /></a>
           </div>
           {hasLyrics ? (
             <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"
