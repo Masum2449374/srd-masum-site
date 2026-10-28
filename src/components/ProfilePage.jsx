@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { MusicNotes, PencilSimple } from "@phosphor-icons/react";
+import { MusicNotes, PencilSimple, UploadSimple } from "@phosphor-icons/react";
+import SongList, { toTrack } from "./SongList.jsx";
+import UploadModal from "./UploadModal.jsx";
 import { useUser, hueOf } from "../lib/auth.js";
 import { dominantColor } from "../lib/image.js";
 import Avatar from "./Avatar.jsx";
@@ -7,10 +9,20 @@ import ProfileEditModal from "./ProfileEditModal.jsx";
 
 export default function ProfilePage({ username, edit = false }) {
   const me = useUser();
-  const [d, setD] = useState(null), [nf, setNf] = useState(false), [rgb, setRgb] = useState(null), [editing, setEditing] = useState(edit), [rev, setRev] = useState(0);
+  const [d, setD] = useState(null), [nf, setNf] = useState(false), [rgb, setRgb] = useState(null), [editing, setEditing] = useState(edit), [rev, setRev] = useState(0), [uploading, setUploading] = useState(false), [mineSongs, setMineSongs] = useState(null), [left, setLeft] = useState(null);
   useEffect(() => {
     fetch(`/api/auth/profile/${encodeURIComponent(username)}`, { cache: "no-store" }).then((r) => r.ok ? r.json() : Promise.reject()).then(setD).catch(() => setNf(true));
   }, [username, me?.bio, me?.displayName, me?.avatar, rev]);
+  const isMine = !!(me && d?.user && me.username === d.user.username);
+  useEffect(() => {
+    if (!isMine) { setMineSongs(null); return; }
+    fetch("/api/songs/mine", { cache: "no-store", credentials: "same-origin" }).then((r) => r.ok ? r.json() : null).then((j) => { if (j) { setMineSongs(j.songs || []); setLeft(j.left); } }).catch(() => {});
+  }, [isMine, rev]);
+  const del = async (t) => {
+    if (!confirm(`Delete "${t.title}"? This can't be undone.`)) return;
+    const r = await fetch("/api/songs/delete", { method: "POST", credentials: "same-origin", headers: { "content-type": "application/json" }, body: JSON.stringify({ id: t.songId }) });
+    if (r.ok) setRev((x) => x + 1); else alert("Couldn't delete the song. Please try again.");
+  };
   useEffect(() => { if (d?.user) document.title = `${d.user.displayName} (@${d.user.username}) · SRD Masum`; }, [d]);
   useEffect(() => { setRgb(null); if (d?.user?.avatar) dominantColor(d.user.avatar).then(setRgb); }, [d?.user?.avatar]);
   // Header blends into the photo-matched band: tint the glass bar with the same colour.
@@ -48,20 +60,31 @@ export default function ProfilePage({ username, edit = false }) {
       </header>
       <div style={{ background: `linear-gradient(180deg, ${ca(0.22)}, transparent 220px)` }}>
         <div className="mx-auto max-w-5xl px-5 pt-6 sm:px-8">
-          {mine && <button type="button" onClick={() => setEditing(true)} className="srd-search-btn pro-btn text-ink"><PencilSimple size={16} weight="bold" />Edit profile</button>}
+          {mine && <div className="flex flex-wrap gap-2">
+            <button type="button" onClick={() => setUploading(true)} className="srd-up-open pro-btn" data-testid="upload-open"><UploadSimple size={16} weight="bold" />Upload song</button>
+            <button type="button" onClick={() => setEditing(true)} className="srd-search-btn pro-btn text-ink"><PencilSimple size={16} weight="bold" />Edit profile</button>
+          </div>}
           {u && (u.bio || mine) && <p className={`mt-6 max-w-2xl whitespace-pre-line text-[15px] leading-relaxed ${u.bio ? "text-ink/85" : "text-faint"}`}>{u.bio || "Add a short bio so listeners know who you are."}</p>}
           <section className="mt-10">
             <h2 className="font-display text-2xl font-bold tracking-display text-ink">Songs</h2>
-            {n ? null : (
+            {(() => {
+              const up = { username: u?.username, displayName: u?.displayName };
+              const list = mine && mineSongs ? mineSongs.map((x) => toTrack({ ...x, uploader: up })) : (d?.songs || []).map((x) => toTrack({ ...x, uploader: x.uploader || up }));
+              const ST = { approved: null, pending: { label: "Pending review", tone: "wait", playable: true }, rejected: { label: "Rejected", tone: "bad", playable: true } };
+              const byId = Object.fromEntries((mine && mineSongs ? mineSongs : []).map((x) => ["u" + x.id, x]));
+              const status = mine ? (t) => { const x = byId[t.id]; const st = x && ST[x.status]; return st ? { ...st, note: x.status === "rejected" && x.reason ? "Reason: " + x.reason : undefined } : { playable: true }; } : undefined;
+              return list.length ? <SongList tracks={list} onDelete={mine ? del : undefined} status={status} /> : (
               <div className="mt-4 flex flex-col items-center rounded-2xl bg-sunk/60 px-6 py-14 text-center ring-1 ring-hairline">
                 <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-raised text-muted shadow-lg ring-1 ring-hairline"><MusicNotes size={28} /></span>
                 <p className="mt-5 text-lg font-bold text-ink">{mine ? "Your songs will live here" : "No songs yet"}</p>
-                <p className="mt-1 max-w-sm text-sm text-muted">{mine ? "Song uploads are coming soon. Your releases will show up on this page for everyone to hear." : `When ${u?.displayName || "this member"} releases songs, they'll appear here.`}</p>
+                <p className="mt-1 max-w-sm text-sm text-muted">{mine ? "Upload your first song. Once it's approved, it shows up here for everyone to hear." : `When ${u?.displayName || "this member"} releases songs, they'll appear here.`}</p>
+                {mine && <button type="button" onClick={() => setUploading(true)} className="srd-up-open pro-btn mt-6"><UploadSimple size={16} weight="bold" />Upload song</button>}
               </div>
-            )}
+            ); })()}
           </section>
         </div>
       </div>
+      {uploading && mine && <UploadModal left={left} onClose={() => { setUploading(false); setRev((r) => r + 1); }} onDone={() => setRev((r) => r + 1)} />}
       {editing && mine && <ProfileEditModal user={me} onClose={() => { setEditing(false); setRev((r) => r + 1); }} />}
     </div>
   );

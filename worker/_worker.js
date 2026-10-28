@@ -52,8 +52,12 @@ const handle = async (req, env) => {
     if (url.pathname === "/api/notify") return notifySignup(req, env, url);
     if (url.pathname.startsWith("/api/auth/")) return auth(req, env, url);
     if (url.pathname.startsWith("/media/avatars/")) return media(req, env, url);
+    if (url.pathname.startsWith("/api/songs/")) return songsApi(req, env, url);
+    if (url.pathname.startsWith("/api/admin/")) return adminApi(req, env, url);
+    if (url.pathname === "/api/users/search") return userSearch(req, env, url);
+    if (url.pathname.startsWith("/media/songs/")) return songMedia(req, env, url);
     // App routes rendered by the SPA (404.html disables the Pages fallback, so serve the shell here).
-    if ((req.method === "GET" || req.method === "HEAD") && /^\/(u\/[a-z0-9_]{1,20}|account)\/?$/i.test(url.pathname)) {
+    if ((req.method === "GET" || req.method === "HEAD") && /^\/(u\/[a-z0-9_]{1,20}|artist\/[a-z0-9-]{1,40}|account|admin\/uploads)\/?$/i.test(url.pathname)) {
       const shell = await env.ASSETS.fetch(new Request(`${url.origin}/`));
       return new Response(req.method === "HEAD" ? null : shell.body, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
@@ -593,7 +597,7 @@ async function auth(req, env, url) {
     if (!USER_RE.test(name)) return AJ({ error: "Not found" }, 404);
     const u = await env.DB.prepare("SELECT * FROM users WHERE username = ? AND email_verified = 1").bind(name).first();
     if (!u) return AJ({ error: "Not found" }, 404);
-    const songs = (await env.DB.prepare("SELECT id, title, artist, cover_key, created_at FROM songs WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || [];
+    const songs = ((await env.DB.prepare("SELECT * FROM songs WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || []).map((s) => pubSong(s, { username: u.username, displayName: u.display_name }));
     return AJ({ user: pubUser(u), songs, songCount: songs.length });
   }
   if (req.method !== "POST") return AJ({ error: "Method not allowed" }, 405);
@@ -814,4 +818,162 @@ async function media(req, env, url) {
   if (!o) return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
   const ct = { webp: "image/webp", jpg: "image/jpeg", png: "image/png" }[key.split(".").pop()];
   return new Response(req.method === "HEAD" ? null : o.body, { headers: { "content-type": ct, "cache-control": "public, max-age=31536000, immutable", "x-content-type-options": "nosniff", "content-security-policy": "default-src 'none'; img-src 'self'; sandbox", etag: o.httpEtag, "content-length": String(o.size) } });
+}
+
+// ---- Phase 2: user song uploads (R2 MEDIA under uploads/<userId>/, D1 songs), owner review, public search.
+const LANGS = ["English", "Bangla", "Hindi", "Other"];
+const AUDIO_MAX = 20 * 1024 * 1024, COVER_MAX = 3 * 1024 * 1024;
+const DECLARATION = "I own this song or have the rights to publish it.";
+function sniffAudio(b) {
+  if (b.length < 12) return null;
+  if (b[0] === 0x49 && b[1] === 0x44 && b[2] === 0x33) return ["audio/mpeg", "mp3"];
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 && b[8] === 0x57 && b[9] === 0x41 && b[10] === 0x56 && b[11] === 0x45) return ["audio/wav", "wav"];
+  if (b[4] === 0x66 && b[5] === 0x74 && b[6] === 0x79 && b[7] === 0x70) return ["audio/mp4", "m4a"];
+  if (b[0] === 0xff && (b[1] & 0xf6) === 0xf0) return ["audio/aac", "aac"];
+  if (b[0] === 0xff && (b[1] & 0xe0) === 0xe0) return ["audio/mpeg", "mp3"];
+  return null;
+}
+const tclean = (s, n) => String(s ?? "").normalize("NFC").replace(/[\u0000-\u0008\u000b-\u001f\u007f<>]/g, "").replace(/\r\n?/g, "\n").trim().slice(0, n);
+const pubSong = (s, user) => ({ id: s.id, title: s.title, language: s.language, lyrics: s.lyrics || "", status: s.status, reason: s.reject_reason || null, createdAt: s.created_at,
+  audio: `/media/songs/${s.id}/audio`, cover: s.cover_key ? `/media/songs/${s.id}/cover` : null, ...(user ? { uploader: user } : {}) });
+const sameOrigin = (req, url) => req.headers.get("origin") === url.origin;
+const ADM_COOKIE = "srd_adm";
+async function isAdmin(req, env) {
+  const t = readCookie(req, ADM_COOKIE);
+  if (!/^[a-f0-9]{64}$/.test(t) || !env.OWNER_PASSCODE) return false;
+  return !!(await env.DB.prepare("SELECT 1 FROM admin_sessions WHERE token_hash = ? AND expires_at > ?").bind(await sha256(t), Date.now()).first());
+}
+async function delSong(env, s) {
+  await env.MEDIA.delete([s.audio_key, s.cover_key].filter(Boolean)).catch(() => {});
+  await env.DB.prepare("DELETE FROM songs WHERE id = ?").bind(s.id).run();
+}
+
+async function songsApi(req, env, url) {
+  if (!env.DB || !env.MEDIA) return AJ({ error: "Uploads are not available right now." }, 503);
+  const p = url.pathname.slice("/api/songs/".length);
+  const u = await currentUser(req, env);
+  if (req.method === "GET" && p === "mine") {
+    if (!u) return AJ({ error: "Please sign in." }, 401);
+    const rows = (await env.DB.prepare("SELECT * FROM songs WHERE user_id = ? ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || [];
+    const today = rows.filter((r) => r.created_at > Date.now() - 864e5).length;
+    return AJ({ songs: rows.map((s) => pubSong(s)), left: Math.max(0, 5 - today) });
+  }
+  if (req.method !== "POST") return AJ({ error: "Method not allowed" }, 405);
+  if (!sameOrigin(req, url)) return AJ({ error: "forbidden" }, 403);
+  if (!u) return AJ({ error: "Please sign in." }, 401);
+  if (p === "delete") {
+    let b; try { b = JSON.parse((await req.text()).slice(0, 512)); } catch { return AJ({ error: "Bad request" }, 400); }
+    const s = await env.DB.prepare("SELECT * FROM songs WHERE id = ? AND user_id = ?").bind(Number(b.id) || 0, u.id).first();
+    if (!s) return AJ({ error: "Song not found." }, 404);
+    await delSong(env, s); return AJ({ ok: true });
+  }
+  if (p !== "upload") return AJ({ error: "Not found" }, 404);
+  if (!u.email_verified) return AJ({ error: "Please verify your email first." }, 403);
+  if (Number(req.headers.get("content-length") || 0) > AUDIO_MAX + COVER_MAX + 200000) return AJ({ error: "Files are too large (audio 20 MB, cover 3 MB)." }, 413);
+  if (!(req.headers.get("content-type") || "").startsWith("multipart/form-data")) return AJ({ error: "Bad request" }, 400);
+  const day = await env.DB.prepare("SELECT COUNT(*) AS n FROM songs WHERE user_id = ? AND created_at > ?").bind(u.id, Date.now() - 864e5).first();
+  if ((day?.n || 0) >= 5 || await limited(env, ["up:" + u.id], 5, 864e5)) return AJ({ error: "You can upload up to 5 songs a day. Please try again tomorrow." }, 429);
+  let f; try { f = await req.formData(); } catch { return AJ({ error: "Bad request" }, 400); }
+  const title = tclean(f.get("title"), 100).replace(/\s+/g, " "), language = LANGS.includes(f.get("language")) ? f.get("language") : null, lyrics = tclean(f.get("lyrics"), 8000);
+  if (!title) return AJ({ error: "Please add a song title." }, 400);
+  if (!language) return AJ({ error: "Please choose a language." }, 400);
+  if (f.get("rights") !== "yes") return AJ({ error: "Please confirm you have the rights to publish this song." }, 400);
+  const audio = f.get("audio"), cover = f.get("cover");
+  if (!audio || typeof audio === "string" || !audio.size) return AJ({ error: "Please choose an audio file." }, 400);
+  if (audio.size > AUDIO_MAX) return AJ({ error: "Audio must be 20 MB or less." }, 413);
+  const ab = new Uint8Array(await audio.arrayBuffer()), at = sniffAudio(ab);
+  if (!at) return AJ({ error: "That file isn't a supported audio file (MP3, M4A, AAC or WAV)." }, 415);
+  let cb = null, ct = null;
+  if (cover && typeof cover !== "string" && cover.size) {
+    if (cover.size > COVER_MAX) return AJ({ error: "Cover image must be 3 MB or less." }, 413);
+    cb = new Uint8Array(await cover.arrayBuffer()); ct = sniff(cb);
+    if (!ct) return AJ({ error: "Cover must be a JPG, PNG or WebP image." }, 415);
+  }
+  await note(env, ["up:" + u.id]);
+  const rnd = hex(crypto.getRandomValues(new Uint8Array(12))), base = `uploads/${u.id}/${rnd}`;
+  const audioKey = `${base}.${at[1]}`, coverKey = cb ? `${base}-cover.${AV_TYPES[ct]}` : null;
+  await env.MEDIA.put(audioKey, ab, { httpMetadata: { contentType: at[0] } });
+  if (cb) await env.MEDIA.put(coverKey, cb, { httpMetadata: { contentType: ct } });
+  const now = Date.now(), ip = req.headers.get("cf-connecting-ip") || "0";
+  const r = await env.DB.prepare("INSERT INTO songs (user_id, title, artist, audio_key, cover_key, status, rights_declared, created_at, language, lyrics, audio_type, audio_size, cover_type, declaration, declared_at, ip_hash) VALUES (?, ?, ?, ?, ?, 'pending', 1, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+    .bind(u.id, title, u.display_name, audioKey, coverKey, now, language, lyrics, at[0], ab.length, ct, DECLARATION, now, await sha256("srd-ip|" + ip)).run();
+  return AJ({ ok: true, song: pubSong({ id: r.meta.last_row_id, title, language, lyrics, status: "pending", created_at: now, cover_key: coverKey }) });
+}
+
+async function adminApi(req, env, url) {
+  if (!env.DB) return AJ({ error: "unavailable" }, 503);
+  const p = url.pathname.slice("/api/admin/".length), ip = req.headers.get("cf-connecting-ip") || "0";
+  if (req.method === "GET" && p === "me") return AJ({ admin: await isAdmin(req, env) });
+  if (req.method === "GET" && p === "uploads") {
+    if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
+    const st = ["pending", "approved", "rejected"].includes(url.searchParams.get("status")) ? url.searchParams.get("status") : "pending";
+    const rows = (await env.DB.prepare("SELECT s.*, u.username, u.display_name, u.email, u.avatar_key FROM songs s JOIN users u ON u.id = s.user_id WHERE s.status = ? ORDER BY s.created_at DESC LIMIT 200").bind(st).all()).results || [];
+    const counts = Object.fromEntries(((await env.DB.prepare("SELECT status, COUNT(*) AS n FROM songs GROUP BY status").all()).results || []).map((r) => [r.status, r.n]));
+    return AJ({ counts, songs: rows.map((s) => ({ ...pubSong(s, { username: s.username, displayName: s.display_name, email: s.email, avatar: s.avatar_key ? "/media/avatars/" + s.avatar_key : null }), declaration: s.declaration, declaredAt: s.declared_at, ipHash: (s.ip_hash || "").slice(0, 12), size: s.audio_size, type: s.audio_type })) });
+  }
+  if (req.method !== "POST") return AJ({ error: "Method not allowed" }, 405);
+  if (!sameOrigin(req, url)) return AJ({ error: "forbidden" }, 403);
+  let b; try { b = JSON.parse((await req.text()).slice(0, 2048)); } catch { return AJ({ error: "Bad request" }, 400); }
+  if (p === "login") {
+    if (!env.OWNER_PASSCODE) return AJ({ error: "Owner sign-in isn't set up." }, 503);
+    if (await limited(env, ["adm:" + ip], 5, 9e5) || await limited(env, ["adm:all"], 30, 9e5)) return AJ({ error: "Too many attempts. Please wait 15 minutes." }, 429);
+    if (!(await isPasscode(env, String(b.passcode || "").slice(0, 200)))) { await note(env, ["adm:" + ip, "adm:all"]); return AJ({ error: "Wrong passcode." }, 401); }
+    const raw = hex(crypto.getRandomValues(new Uint8Array(32))), now = Date.now();
+    await env.DB.batch([env.DB.prepare("INSERT INTO admin_sessions (token_hash, created_at, expires_at) VALUES (?, ?, ?)").bind(await sha256(raw), now, now + 12 * 36e5),
+      env.DB.prepare("DELETE FROM admin_sessions WHERE expires_at < ?").bind(now)]);
+    return AJ({ ok: true }, 200, { "set-cookie": `${ADM_COOKIE}=${raw}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=43200` });
+  }
+  if (p === "logout") {
+    const t = readCookie(req, ADM_COOKIE);
+    if (/^[a-f0-9]{64}$/.test(t)) await env.DB.prepare("DELETE FROM admin_sessions WHERE token_hash = ?").bind(await sha256(t)).run();
+    return AJ({ ok: true }, 200, { "set-cookie": `${ADM_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=0` });
+  }
+  if (p === "review") {
+    if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
+    const s = await env.DB.prepare("SELECT * FROM songs WHERE id = ?").bind(Number(b.id) || 0).first();
+    if (!s) return AJ({ error: "Song not found." }, 404);
+    if (b.action === "delete") { await delSong(env, s); return AJ({ ok: true }); }
+    if (b.action !== "approve" && b.action !== "reject") return AJ({ error: "Bad action" }, 400);
+    await env.DB.prepare("UPDATE songs SET status = ?, reject_reason = ?, reviewed_at = ? WHERE id = ?").bind(b.action === "approve" ? "approved" : "rejected", b.action === "reject" ? tclean(b.reason, 300) || null : null, Date.now(), s.id).run();
+    return AJ({ ok: true });
+  }
+  return AJ({ error: "Not found" }, 404);
+}
+
+async function userSearch(req, env, url) {
+  if (!env.DB) return AJ({ users: [], songs: [] });
+  if (req.method !== "GET") return AJ({ error: "Method not allowed" }, 405);
+  const ip = req.headers.get("cf-connecting-ip") || "0";
+  if ((await hit("us:" + ip, 60)) > 60) return AJ({ error: "Too many searches. Slow down a little." }, 429);
+  const q = String(url.searchParams.get("q") || "").normalize("NFC").replace(/^@/, "").replace(/[%_\\<>\u0000-\u001f]/g, "").trim().slice(0, 40);
+  if (q.length < 2) return AJ({ users: [], songs: [] });
+  const like = `%${q}%`, pre = `${q}%`;
+  const users = (await env.DB.prepare("SELECT username, display_name, avatar_key FROM users WHERE email_verified = 1 AND (username LIKE ? OR display_name LIKE ?) ORDER BY (username LIKE ? OR display_name LIKE ?) DESC, created_at ASC LIMIT 8").bind(like, like, pre, pre).all()).results || [];
+  const songs = (await env.DB.prepare("SELECT s.id, s.title, s.language, s.cover_key, s.created_at, s.status, u.username, u.display_name FROM songs s JOIN users u ON u.id = s.user_id WHERE s.status = 'approved' AND (s.title LIKE ? OR u.display_name LIKE ?) ORDER BY s.created_at DESC LIMIT 8").bind(like, like).all()).results || [];
+  return AJ({ users: users.map((u) => ({ username: u.username, displayName: u.display_name, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null })),
+    songs: songs.map((s) => pubSong(s, { username: s.username, displayName: s.display_name })) });
+}
+
+async function songMedia(req, env, url) {
+  if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405 });
+  const m = /^\/media\/songs\/(\d{1,10})\/(audio|cover)$/.exec(url.pathname);
+  if (!m || !env.MEDIA || !env.DB) return new Response("Not found", { status: 404 });
+  const s = await env.DB.prepare("SELECT * FROM songs WHERE id = ?").bind(Number(m[1])).first();
+  const key = s && (m[2] === "audio" ? s.audio_key : s.cover_key);
+  if (!key) return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
+  const pub = s.status === "approved";
+  if (!pub) { const u = await currentUser(req, env); if (!(u && u.id === s.user_id) && !(await isAdmin(req, env))) return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } }); }
+  const ctype = m[2] === "audio" ? s.audio_type || "audio/mpeg" : s.cover_type || "image/jpeg";
+  const h = new Headers({ "content-type": ctype, "accept-ranges": "bytes", "cache-control": pub ? "public, max-age=3600" : "private, no-store", "x-content-type-options": "nosniff", "content-security-policy": "default-src 'none'; sandbox" });
+  const head = await env.MEDIA.head(key); if (!head) return new Response("Not found", { status: 404 });
+  const size = head.size; h.set("etag", head.httpEtag);
+  const rg = req.headers.get("range"), rm = rg && /bytes=(\d*)-(\d*)/.exec(rg);
+  if (!rm) { h.set("content-length", String(size)); if (req.method === "HEAD") return new Response(null, { headers: h }); const o = await env.MEDIA.get(key); return new Response(o.body, { headers: h }); }
+  const start = rm[1] === "" ? Math.max(0, size - Number(rm[2])) : Number(rm[1]);
+  const end = rm[1] === "" || rm[2] === "" ? size - 1 : Math.min(Number(rm[2]), size - 1);
+  if (start >= size || start > end) { h.set("content-range", `bytes */${size}`); return new Response(null, { status: 416, headers: h }); }
+  h.set("content-range", `bytes ${start}-${end}/${size}`); h.set("content-length", String(end - start + 1));
+  if (req.method === "HEAD") return new Response(null, { status: 206, headers: h });
+  const o = await env.MEDIA.get(key, { range: { offset: start, length: end - start + 1 } });
+  return new Response(o.body, { status: 206, headers: h });
 }

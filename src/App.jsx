@@ -28,6 +28,8 @@ import EnglishPage from "./components/EnglishPage.jsx";
 import CopyrightPage from "./components/CopyrightPage.jsx";
 import ProfilePage from "./components/ProfilePage.jsx";
 import AccountPage from "./components/AccountPage.jsx";
+import ArtistPage from "./components/ArtistPage.jsx";
+import AdminUploads from "./components/AdminUploads.jsx";
 import { ENGLISH_ALL } from "./data/english-songs.js";
 
 const YEAR = new Date().getFullYear();
@@ -929,6 +931,8 @@ const PAGE = (() => {
   if (/^\/copyright(\/|$)/.test(p)) return "copyright";
   if (/^\/u\/[^/]+\/?$/.test(p)) return "profile";
   if (/^\/account\/?$/.test(p)) return "account";
+  if (/^\/artist\/[^/]+\/?$/.test(p)) return "artist";
+  if (/^\/admin\/uploads\/?$/.test(p)) return "admin";
   const id = p.match(/^\/song\/([^/]+)\/?$/)?.[1];
   return id && ENGLISH_ALL.some((t) => t.id === decodeURIComponent(id)) ? "english" : "home";
 })();
@@ -942,6 +946,16 @@ export default function App() {
       <main><CopyrightPage /></main>
       <Footer />
       <ChatLauncher />
+    </div>
+    </PlayerProvider>
+  );
+  if (PAGE === "artist" || PAGE === "admin") return (
+    <PlayerProvider>
+    <div className="min-h-screen pb-24">
+      <BeatField />
+      <Nav page={PAGE} />
+      <main>{PAGE === "artist" ? <ArtistPage slug={decodeURIComponent(window.location.pathname.split("/")[2])} /> : <AdminUploads />}</main>
+      <Footer />
     </div>
     </PlayerProvider>
   );

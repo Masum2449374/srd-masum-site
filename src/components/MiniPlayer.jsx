@@ -1,3 +1,4 @@
+import { artistHref } from "../lib/artists.js";
 import { register as exRegister, claim as exClaim } from "../lib/exclusive.js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Info, Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown, CaretUp, SpeakerHigh, SpeakerLow, SpeakerX } from "@phosphor-icons/react";
@@ -456,7 +457,7 @@ function DeskBar({ player, shown, max, pct, onExpand }) {
         <img src={t.thumb || t.coverSm || t.cover || "/images/avatar.webp"} alt="" aria-hidden="true" className="h-14 w-14 shrink-0 rounded-lg object-cover shadow-lg" />
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold text-ink">{t.title}</p>
-          <p className="truncate text-xs text-muted">{t.artist || "SRD Masum"}</p>
+          <a href={artistHref(t)} onClick={(e) => e.stopPropagation()} className="srd-artist-link block truncate text-xs text-muted">{t.artist || "SRD Masum"}</a>
         </div>
       </div>
       <div className="flex min-w-0 flex-col items-center gap-1">
@@ -552,7 +553,7 @@ function NowPlaying({ player, scrub, onClose }) {
         <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex shrink-0 items-end justify-between gap-3`}>
           <div className="min-w-0 flex-1">
             <p data-testid="np-title" title={t.title} className={`np-title font-bold leading-tight text-ink ${lyricsOn ? "text-xl" : "text-2xl"} lg:text-4xl`}>{t.title}</p>
-            <p className="mt-1 truncate text-[15px] font-medium text-ink/60 lg:text-lg">{t.artist || "SRD Masum"}</p>
+            <a href={artistHref(t)} onClick={(e) => { e.stopPropagation(); }} className="srd-artist-link mt-1 block truncate text-[15px] font-medium text-ink/60 lg:text-lg">{t.artist || "SRD Masum"}</a>
           </div>
           {hasLyrics ? (
             <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"
