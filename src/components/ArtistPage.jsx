@@ -1,4 +1,4 @@
-import VerifiedBadge, { NameWithBadge } from "./VerifiedBadge.jsx";
+import VerifiedBadge from "./VerifiedBadge.jsx";
 import { useEffect, useState } from "react";
 import { Play, Pause } from "@phosphor-icons/react";
 import { dominantColor } from "../lib/image.js";
@@ -32,8 +32,8 @@ export default function ArtistPage({ slug }) {
         <div className="relative z-[1] mx-auto flex max-w-5xl flex-col items-center gap-5 px-5 pb-8 text-center sm:flex-row sm:items-end sm:gap-8 sm:px-8 sm:text-left">
           {a.cover ? <img src={a.cover} alt="" className="h-[168px] w-[168px] shrink-0 rounded-full object-cover shadow-[0_8px_40px_rgba(0,0,0,.5)] sm:h-[232px] sm:w-[232px]" /> : null}
           <div className="min-w-0 flex-1 text-white">
-            <p className="text-sm font-semibold">Artist</p>
-            <h1 data-testid="artist-name" className="mt-1 break-words font-display text-[2.6rem] font-black leading-[1.02] tracking-tight drop-shadow-sm sm:text-7xl lg:text-8xl"><NameWithBadge name={a.name} verified size={22} className="sm:!h-8 sm:!w-8" /></h1>
+            <p className="inline-flex items-center gap-1.5 text-sm font-semibold"><VerifiedBadge size={14} />Verified Artist</p>
+            <h1 data-testid="artist-name" className="mt-1 break-words font-display text-[2.6rem] font-black leading-[1.02] tracking-tight drop-shadow-sm sm:text-7xl lg:text-8xl">{a.name}</h1>
             <p className="mt-3 text-sm font-medium text-white/85">{n} {n === 1 ? "song" : "songs"} on SRD Masum</p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import VerifiedBadge, { NameWithBadge } from "./VerifiedBadge.jsx";
+import VerifiedBadge from "./VerifiedBadge.jsx";
 import { useEffect, useState } from "react";
 import { MusicNotes, PencilSimple, UploadSimple } from "@phosphor-icons/react";
 import SongList, { toTrack } from "./SongList.jsx";
@@ -52,9 +52,9 @@ export default function ProfilePage({ username, edit = false }) {
             {mine && <span className="absolute inset-0 hidden flex-col items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity group-hover:opacity-100 sm:flex"><PencilSimple size={44} /><span className="mt-1 text-sm font-semibold">Choose photo</span></span>}
           </button> : <span className="h-[168px] w-[168px] animate-pulse rounded-full bg-black/20 sm:h-[232px] sm:w-[232px]" />}
           <div className="min-w-0 flex-1 text-white">
-            <p className="text-sm font-semibold">Profile</p>
+            {u?.verified ? <p className="inline-flex items-center gap-1.5 text-sm font-semibold"><VerifiedBadge size={14} />Verified Artist</p> : <p className="text-sm font-semibold">Profile</p>}
             <h1 className="mt-1 break-words font-display text-[2.6rem] font-black leading-[1.02] tracking-tight drop-shadow-sm sm:text-7xl lg:text-8xl">
-              {mine ? <button type="button" onClick={() => setEditing(true)} className="text-left hover:underline"><NameWithBadge name={u.displayName} verified={u.verified} /></button> : u?.displayName ? <NameWithBadge name={u.displayName} verified={u.verified} /> : "\u00a0"}</h1>
+              {mine ? <button type="button" onClick={() => setEditing(true)} className="text-left hover:underline">{u.displayName}</button> : u?.displayName || "\u00a0"}</h1>
             {u && <p className="mt-3 text-sm font-medium text-white/85">@{u.username} <span aria-hidden="true">·</span> Joined {joined} <span aria-hidden="true">·</span> {n} {n === 1 ? "song" : "songs"}</p>}
           </div>
         </div>
