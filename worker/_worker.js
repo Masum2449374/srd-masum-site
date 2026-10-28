@@ -586,11 +586,11 @@ const aclean = (s, n) => String(s ?? "").replace(/[\u0000-\u001f\u007f<>]/g, "")
 async function auth(req, env, url) {
   if (!env.DB) return AJ({ error: "Accounts are not available right now." }, 503);
   const p = url.pathname.slice("/api/auth/".length);
-  if (req.method === "GET" && p === "me") return AJ({ user: pubUser(await currentUser(req, env)) });
+  if (req.method === "GET" && p === "me") return AJ({ user: pubUser(await currentUser(req, env)), mail: mailReady(env, url) });
   if (req.method === "GET" && p.startsWith("profile/")) {
     const name = decodeURIComponent(p.slice(8)).toLowerCase();
     if (!USER_RE.test(name)) return AJ({ error: "Not found" }, 404);
-    const u = await env.DB.prepare("SELECT * FROM users WHERE username = ?").bind(name).first();
+    const u = await env.DB.prepare("SELECT * FROM users WHERE username = ? AND email_verified = 1").bind(name).first();
     if (!u) return AJ({ error: "Not found" }, 404);
     const songs = (await env.DB.prepare("SELECT id, title, artist, cover_key, created_at FROM songs WHERE user_id = ? AND status = 'approved' ORDER BY created_at DESC LIMIT 100").bind(u.id).all()).results || [];
     return AJ({ user: pubUser(u), songs });
@@ -611,31 +611,85 @@ async function auth(req, env, url) {
   if (p === "signup") {
     const email = aclean(b.email, 254).toLowerCase(), username = aclean(b.username, 20).toLowerCase(), pw = String(b.password ?? "");
     const displayName = aclean(b.displayName, 40) || username;
+    if (!mailReady(env, url)) return AJ({ error: NO_MAIL }, 503);
     if (await limited(env, ["su:" + ip], 5, 36e5)) return AJ({ error: "Too many attempts. Please try again later." }, 429);
     if (!EMAIL_RE.test(email)) return AJ({ error: "Please enter a valid email address." }, 400);
     if (!USER_RE.test(username)) return AJ({ error: "Username must be 3–20 characters: a–z, 0–9 or _." }, 400);
     if (RESERVED.has(username)) return AJ({ error: "That username isn't available." }, 409);
     if (pw.length < 8 || pw.length > 128) return AJ({ error: "Password must be 8–128 characters." }, 400);
     await note(env, ["su:" + ip]);
+    // Unverified sign-ups older than 24h don't hold an email/username hostage.
+    await env.DB.prepare("DELETE FROM users WHERE email_verified = 0 AND created_at < ?").bind(Date.now() - 864e5).run();
     const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
     const hash = await pbkdf2(pw, salt, PBKDF2_ITER);
-    const taken = await env.DB.prepare("SELECT email, username FROM users WHERE email = ? OR username = ?").bind(email, username).first();
-    if (taken) return AJ({ error: taken.username.toLowerCase() === username ? "That username isn't available." : "Couldn't create an account with those details. Try signing in instead." }, 409);
-    let r;
-    try { r = await env.DB.prepare("INSERT INTO users (email, username, display_name, pw_hash, pw_salt, pw_iter, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)").bind(email, username, displayName, hash, salt, PBKDF2_ITER, Date.now()).run(); }
-    catch { return AJ({ error: "Couldn't create an account with those details. Try signing in instead." }, 409); }
-    const cookie = await newSession(env, r.meta.last_row_id);
-    const u = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(r.meta.last_row_id).first();
-    return AJ({ user: pubUser(u) }, 201, { "set-cookie": cookie });
+    const byName = await env.DB.prepare("SELECT id, email FROM users WHERE username = ?").bind(username).first();
+    if (byName && byName.email.toLowerCase() !== email) return AJ({ error: "That username isn't available." }, 409);
+    const byEmail = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
+    let uid;
+    if (byEmail?.email_verified) {
+      // Don't reveal that the email is registered: behave as if a code was sent, and tell the owner instead.
+      await mailTo(env, url, email, "Someone tried to sign up with your email", "Someone just tried to create a new SRD Masum account with this email. You already have an account, so nothing changed. If this was you, just sign in. If you forgot your password, use “Forgot password”.").catch(() => {});
+      return issueOtp(env, url, ip, "verify", email, null);
+    }
+    if (byEmail) { uid = byEmail.id; await env.DB.prepare("UPDATE users SET username = ?, display_name = ?, pw_hash = ?, pw_salt = ?, pw_iter = ? WHERE id = ?").bind(username, displayName, hash, salt, PBKDF2_ITER, uid).run(); }
+    else {
+      try { uid = (await env.DB.prepare("INSERT INTO users (email, username, display_name, pw_hash, pw_salt, pw_iter, created_at, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?, 0)").bind(email, username, displayName, hash, salt, PBKDF2_ITER, Date.now()).run()).meta.last_row_id; }
+      catch { return AJ({ error: "That username isn't available." }, 409); }
+    }
+    return issueOtp(env, url, ip, "verify", email, uid);
   }
   if (p === "login") {
     const email = aclean(b.email, 254).toLowerCase(), pw = String(b.password ?? "").slice(0, 128);
     const keys = ["li:" + ip, "le:" + (await sha256(email))];
     if (await limited(env, [keys[0]], 20, 9e5) || await limited(env, [keys[1]], 8, 9e5)) return AJ({ error: "Too many attempts. Please wait 15 minutes and try again." }, 429);
     const u = email ? await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first() : null;
-    // Always run PBKDF2 so response timing doesn't reveal whether the email exists.
     const hash = await pbkdf2(pw, u?.pw_salt || "AAAAAAAAAAAAAAAAAAAAAA==", u?.pw_iter || PBKDF2_ITER);
     if (!u || !(await sameSecret(hash, u.pw_hash))) { await note(env, keys); return AJ({ error: "Incorrect email or password." }, 401); }
+    if (!mailReady(env, url)) return AJ({ error: NO_MAIL }, 503);
+    return issueOtp(env, url, ip, u.email_verified ? "login" : "verify", u.email, u.id);
+  }
+  if (p === "forgot") {
+    const email = aclean(b.email, 254).toLowerCase();
+    if (!mailReady(env, url)) return AJ({ error: NO_MAIL }, 503);
+    if (!EMAIL_RE.test(email)) return AJ({ error: "Please enter a valid email address." }, 400);
+    const u = await env.DB.prepare("SELECT id, email_verified FROM users WHERE email = ?").bind(email).first();
+    return issueOtp(env, url, ip, "reset", email, u?.id ?? null); // same response whether or not the account exists
+  }
+  if (p === "resend") {
+    const t = String(b.ticket || "");
+    if (!/^[a-f0-9]{64}$/.test(t)) return AJ({ error: "This code has expired. Please start again." }, 400);
+    const row = await env.DB.prepare("SELECT * FROM otp_codes WHERE ticket_hash = ?").bind(await sha256(t)).first();
+    if (!row) return AJ({ ok: true, cooldown: OTP_COOLDOWN / 1000 }); // decoy tickets behave like real ones
+    const wait = row.sent_at + OTP_COOLDOWN - Date.now();
+    if (wait > 0) return AJ({ error: `Please wait ${Math.ceil(wait / 1000)}s before requesting a new code.`, cooldown: Math.ceil(wait / 1000) }, 429);
+    return issueOtp(env, url, ip, row.purpose, row.email, row.user_id, t);
+  }
+  if (p === "verify-code") {
+    const t = String(b.ticket || ""), code = String(b.code || "").replace(/\D/g, "");
+    if (await limited(env, ["vc:" + ip], 30, 9e5)) return AJ({ error: "Too many attempts. Please wait 15 minutes and try again." }, 429);
+    if (!/^[a-f0-9]{64}$/.test(t) || code.length !== 6) return AJ({ error: "Enter the 6-digit code from your email." }, 400);
+    const th = await sha256(t);
+    const row = await env.DB.prepare("SELECT * FROM otp_codes WHERE ticket_hash = ?").bind(th).first();
+    await note(env, ["vc:" + ip]);
+    if (!row || row.expires_at < Date.now()) return AJ({ error: "This code has expired. Request a new one." }, 400);
+    if (row.attempts >= OTP_MAX_TRIES) return AJ({ error: "Too many wrong codes. Request a new one." }, 429);
+    const ok = row.code_hash && row.user_id && await sameSecret(await sha256(`${t}:${code}`), row.code_hash);
+    if (!ok) {
+      await env.DB.prepare("UPDATE otp_codes SET attempts = attempts + 1 WHERE ticket_hash = ?").bind(th).run();
+      const left = OTP_MAX_TRIES - row.attempts - 1;
+      return AJ({ error: left > 0 ? `That code isn't right. ${left} attempt${left === 1 ? "" : "s"} left.` : "Too many wrong codes. Request a new one." }, 400);
+    }
+    if (row.purpose === "reset") {
+      const pw = String(b.password ?? "");
+      if (pw.length < 8 || pw.length > 128) return AJ({ error: "Password must be 8–128 characters." }, 400);
+      const salt = b64(crypto.getRandomValues(new Uint8Array(16)));
+      await env.DB.batch([
+        env.DB.prepare("UPDATE users SET pw_hash = ?, pw_salt = ?, pw_iter = ?, email_verified = 1 WHERE id = ?").bind(await pbkdf2(pw, salt, PBKDF2_ITER), salt, PBKDF2_ITER, row.user_id),
+        env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(row.user_id), // sign out everywhere
+      ]);
+    } else if (row.purpose === "verify") await env.DB.prepare("UPDATE users SET email_verified = 1 WHERE id = ?").bind(row.user_id).run();
+    await env.DB.prepare("DELETE FROM otp_codes WHERE ticket_hash = ? OR expires_at < ?").bind(th, Date.now()).run();
+    const u = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(row.user_id).first();
     return AJ({ user: pubUser(u) }, 200, { "set-cookie": await newSession(env, u.id) });
   }
   if (p === "profile") {
@@ -647,4 +701,68 @@ async function auth(req, env, url) {
     return AJ({ user: pubUser({ ...u, display_name: displayName, bio }) });
   }
   return AJ({ error: "Not found" }, 404);
+}
+
+// ---- One-time codes (6 digits, hashed with the ticket, 10-min expiry, 5 tries, 60s resend cooldown).
+const OTP_TTL = 10 * 60e3, OTP_MAX_TRIES = 5, OTP_COOLDOWN = 60e3;
+const NO_MAIL = "Email verification is being set up. Sign-up and sign-in will open very soon.";
+const maskEmail = (e) => e.replace(/^(.)(.*)(@.*)$/, (_, a, m, d) => a + "•".repeat(Math.min(6, Math.max(2, m.length))) + d);
+const otpCode = () => String(crypto.getRandomValues(new Uint32Array(1))[0] % 1e6).padStart(6, "0");
+const PURPOSE = {
+  verify: ["Verify your email", "Welcome to SRD Masum! Use this code to verify your email and finish creating your account."],
+  login: ["Your sign-in code", "Use this code to finish signing in to your SRD Masum account."],
+  reset: ["Reset your password", "Use this code to set a new password for your SRD Masum account."],
+};
+async function issueOtp(env, url, ip, purpose, email, userId, ticket) {
+  const eh = await sha256(email);
+  if (await limited(env, ["os:" + ip], 15, 36e5) || await limited(env, ["oe:" + eh], 6, 36e5)) return AJ({ error: "Too many codes requested. Please try again in an hour." }, 429);
+  await note(env, ["os:" + ip, "oe:" + eh]);
+  const t = ticket || hex(crypto.getRandomValues(new Uint8Array(32))), th = await sha256(t), now = Date.now();
+  const code = userId ? otpCode() : null;
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM otp_codes WHERE (email = ? AND purpose = ?) OR expires_at < ?").bind(email, purpose, now),
+    env.DB.prepare("INSERT INTO otp_codes (ticket_hash, purpose, email, user_id, code_hash, attempts, sent_at, expires_at) VALUES (?, ?, ?, ?, ?, 0, ?, ?)")
+      .bind(th, purpose, email, userId, code ? await sha256(`${t}:${code}`) : null, now, now + OTP_TTL),
+  ]);
+  if (code) {
+    const [title, line] = PURPOSE[purpose];
+    try { await mailTo(env, url, email, `${code} is your SRD Masum code`, line, code, title); }
+    catch (e) { console.log("mail error", String(e).slice(0, 200)); return AJ({ error: "We couldn't send the email right now. Please try again in a minute." }, 502); }
+  }
+  return AJ({ step: purpose, ticket: t, email: maskEmail(email), cooldown: OTP_COOLDOWN / 1000, expiresIn: OTP_TTL / 1000 });
+}
+const isLocal = (url) => url.hostname === "localhost" || url.hostname === "127.0.0.1";
+// Pluggable sender: Brevo (BREVO_API_KEY) or Resend (RESEND_API_KEY), from MAIL_FROM. Local dev only: log to console.
+function mailReady(env, url) { return !!(env.MAIL_FROM && (env.BREVO_API_KEY || env.RESEND_API_KEY)) || (isLocal(url) && env.MAIL_DEV_LOG === "1"); }
+function esc(s) { return String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`); }
+function mailHtml(title, line, code) {
+  const box = code ? `<tr><td style="padding:8px 0 24px"><div style="display:inline-block;padding:16px 28px;border-radius:14px;background:#0f1730;border:1px solid #23305a;font:600 34px/1 'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:10px;color:#ffffff">${code}</div></td></tr>
+<tr><td style="font:14px/1.6 Inter,Segoe UI,Arial,sans-serif;color:#9aa3b8">This code expires in 10 minutes. Never share it with anyone — SRD Masum will never ask for it.</td></tr>` : "";
+  return `<!doctype html><html><body style="margin:0;background:#070a14;padding:32px 16px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#0c1122;border:1px solid #1c2645;border-radius:20px;padding:32px">
+<tr><td style="font:700 20px/1 Sora,Segoe UI,Arial,sans-serif;color:#fff;padding-bottom:28px">SRD <span style="color:#3b82f6">Masum</span></td></tr>
+<tr><td style="font:700 24px/1.3 Sora,Segoe UI,Arial,sans-serif;color:#fff;padding-bottom:10px">${esc(title)}</td></tr>
+<tr><td style="font:15px/1.6 Inter,Segoe UI,Arial,sans-serif;color:#c3c9d8;padding-bottom:20px">${esc(line)}</td></tr>
+${box}
+<tr><td style="font:13px/1.6 Inter,Segoe UI,Arial,sans-serif;color:#6b7490;padding-top:28px;border-top:1px solid #1c2645">If you didn't request this, you can safely ignore this email.<br>SRD Masum · <a href="https://srdmasum.bbroot.com" style="color:#6b9bff;text-decoration:none">srdmasum.bbroot.com</a></td></tr>
+</table></td></tr></table></body></html>`;
+}
+async function mailTo(env, url, to, subject, line, code, title) {
+  const html = mailHtml(title || subject, line, code);
+  const text = `${title || subject}\n\n${line}\n${code ? `\nYour code: ${code}\nIt expires in 10 minutes. Never share it with anyone.\n` : ""}\nIf you didn't request this, ignore this email.\nSRD Masum · https://srdmasum.bbroot.com`;
+  const fromName = "SRD Masum";
+  if (env.BREVO_API_KEY && env.MAIL_FROM) {
+    const r = await fetch("https://api.brevo.com/v3/smtp/email", { method: "POST", headers: { "api-key": env.BREVO_API_KEY, "content-type": "application/json", accept: "application/json" },
+      body: JSON.stringify({ sender: { name: fromName, email: env.MAIL_FROM }, to: [{ email: to }], subject, htmlContent: html, textContent: text }) });
+    if (!r.ok) throw new Error("brevo " + r.status + " " + (await r.text()).slice(0, 120));
+    return;
+  }
+  if (env.RESEND_API_KEY && env.MAIL_FROM) {
+    const r = await fetch("https://api.resend.com/emails", { method: "POST", headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, "content-type": "application/json" },
+      body: JSON.stringify({ from: `${fromName} <${env.MAIL_FROM}>`, to: [to], subject, html, text }) });
+    if (!r.ok) throw new Error("resend " + r.status + " " + (await r.text()).slice(0, 120));
+    return;
+  }
+  if (isLocal(url) && env.MAIL_DEV_LOG === "1") { console.log(`DEVMAIL to=${to} subject=${subject} code=${code || "-"}`); return; }
+  throw new Error("no mail sender configured");
 }

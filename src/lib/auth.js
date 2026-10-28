@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 // Tiny shared auth store: one /api/auth/me fetch per page load, listeners notified on change.
-let state = { user: undefined }; const subs = new Set();
+let state = { user: undefined }; export const authInfo = { mail: true }; const subs = new Set();
 const set = (u) => { state = { user: u }; subs.forEach((f) => f(u)); };
 let loading = null;
 export function loadMe() {
-  if (!loading) loading = fetch("/api/auth/me", { credentials: "same-origin" }).then((r) => r.ok ? r.json() : { user: null }).then((d) => set(d.user || null)).catch(() => set(null));
+  if (!loading) loading = fetch("/api/auth/me", { credentials: "same-origin" }).then((r) => r.ok ? r.json() : { user: null }).then((d) => { authInfo.mail = d.mail !== false; set(d.user || null); }).catch(() => set(null));
   return loading;
 }
 export function useUser() {
