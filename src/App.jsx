@@ -812,8 +812,6 @@ function Footer() {
         <div className="flex items-center gap-2.5">
           {[
             { key: "instagram", label: "Instagram", Icon: InstagramLogo },
-            { key: "facebook", label: "Facebook", Icon: FacebookLogo },
-            { key: "youtube", label: "YouTube", Icon: YoutubeLogo },
             { key: "whatsapp", label: "WhatsApp", Icon: WhatsappLogo },
             { key: "telegram", label: "Telegram", Icon: TelegramLogo },
           ].map(({ key, label, Icon }) => (

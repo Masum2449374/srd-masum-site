@@ -22,7 +22,7 @@ const LINKS = [
 const GROUPS = ["Listen", "Watch & Explore", "Community"];
 // One brand blue for Listen (most items) + one accent each for Watch (amber) and Community (violet).
 const GROUP_TINT = ["59 130 246", "245 158 11", "139 92 246"];
-const SOCIALS = [["instagram", "Instagram", InstagramLogo], ["facebook", "Facebook", FacebookLogo], ["youtube", "YouTube", YoutubeLogo], ["whatsapp", "WhatsApp", WhatsappLogo], ["telegram", "Telegram", TelegramLogo]];
+const SOCIALS = [["instagram", "Instagram", InstagramLogo], ["whatsapp", "WhatsApp", WhatsappLogo], ["telegram", "Telegram", TelegramLogo]];
 
 const THEME_KEY = "srd-theme";
 

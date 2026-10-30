@@ -14,7 +14,7 @@ const line = (t, sec) => {
     (page ? ` | page: ${page}` : "") + (t.spotifyUrl ? ` | Spotify: ${t.spotifyUrl}` : "") +
     (t.youtubeUrl ? ` | YouTube: ${t.youtubeUrl}` : "");
 };
-const socials = Object.entries(V.SOCIAL_LINKS).filter(([, u]) => u && u !== "#").map(([k, u]) => `${k}: ${u}`).join(" | ");
+const socials = Object.entries(V.SOCIAL_LINKS).filter(([k, u]) => u && u !== "#" && k !== "facebook").map(([k, u]) => `${k}: ${u}`).join(" | ");
 const txt = [
   `Site: SRD Masum (${SITE}) — official site of SRD Masum, a music platform / company (label). Founder & CEO: Masum Bellah. SRD Masum is not an individual artist. Visitors can stream songs in the built-in player (Hindi, Bangla and English playlists), watch videos, read fan reviews, leave fan-wall messages and install the site as an app (Android app also available).`,
   `SRD Masum on Spotify: ${V.SPOTIFY_ARTIST_URL}`,
