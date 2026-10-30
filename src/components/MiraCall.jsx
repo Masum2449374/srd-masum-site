@@ -62,7 +62,7 @@ async function fetchRetry(url, opts, ms, tries = 2) {
   return null;
 }
 
-export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
+export default function MiraCall({ lang: startLang = "en-US", onClose }) {
   const [phase, setPhase] = useState("connecting"); // connecting | listening | hearing | thinking | speaking | muted | error
   const [muted, setMuted] = useState(false);
   const [secs, setSecs] = useState(0);
@@ -193,7 +193,7 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
       if (d.ownerToken) { saveOwner(d.ownerToken); hist.current = hist.current.slice(0, -1); }
       if (d.logout) { saveOwner(null); hist.current = []; }
     }
-    if (!reply) reply = lang.current === "bn" ? "দুঃখিত, একটু সমস্যা হচ্ছে। আবার বলো?" : "Sorry, I had a little trouble. Could you say that again?";
+    if (!reply) reply = "Sorry, I had a little trouble. Could you say that again?";
     hist.current = [...hist.current, { role: "assistant", content: reply }].slice(-8);
     if (!alive.current) return;
     const g = gen.current + 1; await speak(reply);
@@ -219,9 +219,7 @@ export default function MiraCall({ lang: startLang = "bn-BD", onClose }) {
           : "No microphone found. Please check your device and try again.");
         go("error"); return;
       }
-      const greet = lang.current === "bn"
-        ? "হ্যালো! আমি মিরা, SRD Masum-এর সহকারী। বলো, আজ তোমাকে কীভাবে সাহায্য করতে পারি?"
-        : "Hello! I'm Mira, SRD Masum's assistant. How can I help you today?";
+      const greet = "Hello! I'm Mira, SRD Masum's assistant. How can I help you today?";
       hist.current = [{ role: "assistant", content: greet }];
       const g = gen.current + 1; await speak(greet);
       if (alive.current && gen.current === g) listen();

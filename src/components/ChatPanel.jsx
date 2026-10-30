@@ -7,7 +7,7 @@ import { X, PaperPlaneRight, Sparkle, Microphone, Phone } from "@phosphor-icons/
 const OWNER_KEY = "srd-mira-owner";
 export const getOwner = () => { try { return localStorage.getItem(OWNER_KEY) || undefined; } catch { return undefined; } };
 export const setOwner = (t) => { try { t ? localStorage.setItem(OWNER_KEY, t) : localStorage.removeItem(OWNER_KEY); } catch {} };
-const GREETING = "Hi, I'm Mira 💙 SRD Masum's assistant. Ask me about the songs, artists, Spotify/YouTube links or the site — in English, Bangla or Hindi.";
+const GREETING = "Hi, I'm Mira 💙 SRD Masum's assistant. Ask me about the songs, artists, Spotify/YouTube links or the site — in any language.";
 const CHIPS = ["Spotify link?", "Who sings Aashiqana?", "What's the newest song?", "How do I contact SRD Masum?"];
 const KEY = "srd-chat";
 
@@ -34,7 +34,7 @@ export default function ChatPanel({ open, onClose }) {
 
   // Voice input (Web Speech API). Hidden where unsupported.
   const SR = typeof window !== "undefined" && (window.SpeechRecognition || window.webkitSpeechRecognition);
-  const [lang, setLang] = useState(() => { try { return localStorage.getItem("srd-mic-lang") || "bn-BD"; } catch { return "bn-BD"; } });
+  const [lang, setLang] = useState(() => { try { return localStorage.getItem("srd-mic-lang") || "en-US"; } catch { return "en-US"; } });
   const [listening, setListening] = useState(false);
   const [toast, setToast] = useState("");
   const [call, setCall] = useState(false);

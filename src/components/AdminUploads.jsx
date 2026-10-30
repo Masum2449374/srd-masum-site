@@ -82,11 +82,11 @@ export default function AdminUploads() {
                   <p className="truncate text-base font-bold text-ink">{s.title}</p>
                   <p className="truncate text-sm text-muted"><a className="srd-artist-link" href={`/u/${s.uploader?.username}`}>{s.uploader?.displayName} · @{s.uploader?.username}</a></p>
                   <p className="truncate text-xs text-faint">{s.uploader?.email} · {s.language} · {s.type} · {(s.size / 1048576).toFixed(1)} MB</p>
-                  <p className="text-xs text-faint">{new Date(s.createdAt).toLocaleString("en-GB")}</p>
+                  <p className="text-xs text-faint">{new Date(s.createdAt).toLocaleString("en-US")}</p>
                 </div>
               </div>
               <audio controls preload="none" src={s.audio} className="mt-3 w-full" />
-              <p className="srd-adm-decl">✓ “{s.declaration || "I own this song or have the rights to publish it."}” · {s.declaredAt ? new Date(s.declaredAt).toLocaleString("en-GB") : ""} · IP #{s.ipHash}</p>
+              <p className="srd-adm-decl">✓ “{s.declaration || "I own this song or have the rights to publish it."}” · {s.declaredAt ? new Date(s.declaredAt).toLocaleString("en-US") : ""} · IP #{s.ipHash}</p>
               {s.reason && <p className="mt-1 text-xs text-[#ff6b6b]">Reason: {s.reason}</p>}
               {s.lyrics && <details className="mt-2 text-sm text-muted"><summary className="cursor-pointer">Lyrics</summary><pre className="mt-2 whitespace-pre-wrap font-sans">{s.lyrics}</pre></details>}
               <div className="mt-3 flex flex-wrap gap-2">

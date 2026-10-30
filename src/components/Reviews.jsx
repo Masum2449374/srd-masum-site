@@ -9,7 +9,7 @@ const MESSAGE_MAX = 300;
 // Sample reviews shown until real fan reviews are added. Replace or delete freely.
 const SEED_REVIEWS = [
   { id: "seed-1", name: "Nabil H.", rating: 5, message: "Laal Dupatta cover is on repeat every single night. Proper late-drive music." },
-  { id: "seed-2", name: "Sadia R.", rating: 5, message: "গানগুলো শুনলে মন ভালো হয়ে যায়। আরো গান আসুক!" },
+  { id: "seed-2", name: "Sadia R.", rating: 5, message: "These songs instantly lift my mood. Can't wait for more!" },
   { id: "seed-3", name: "Tanvir K.", rating: 4, message: "Clean vocals and the videos look great. Would love a full album one day." },
   { id: "seed-4", name: "Mim J.", rating: 5, message: "Found this page through a friend and now I follow every release. Keep going!" },
   { id: "seed-5", name: "Priya S.", rating: 5, message: "The new release countdown is a fun touch. Cannot wait for the next single." },
