@@ -45,6 +45,7 @@ export function frameHooksCount() {
   return frameHooks.size;
 }
 
+export const currentAudio = () => current;
 export function isPlaying() {
   return current !== null;
 }

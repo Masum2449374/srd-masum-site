@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { getBass, getSpectrum } from "../lib/beat.js";
+import { getBass, getSpectrum, currentAudio } from "../lib/beat.js";
+import { ensureDecoded, decodedSpectrum } from "../lib/decodedSpectrum.js";
 
 // Effects for the full-screen Now Playing view: a canvas ring visualizer + glow around the cover,
 // a beat scale pulse on the cover, and a slow blurred colour background. One rAF loop, running only
@@ -89,8 +90,20 @@ export function FXCover({ src, playing, children }) {
         else { silentSince = 0; sim = false; }
         if (sim) live = false;
       }
-      const bass = live ? getBass() : simulate(now);
-      cv.dataset.mode = live ? "live" : "sim";
+      // Live tap silent (tainted/unsupported capture): use the decoded song at audio.currentTime,
+      // which stays in sync with seeks and pauses. Random simulation is only the last resort.
+      let bass, mode = "live";
+      if (live) bass = getBass();
+      else {
+        const el = currentAudio(), src = el?.currentSrc || el?.src;
+        if (src && !window.__srdForceSim) ensureDecoded(src);
+        const db = el && !window.__srdForceSim ? decodedSpectrum(el.currentTime, half) : -1;
+        if (db >= 0) {
+          for (let i = 0; i < BARS; i++) { const q = i % (BARS / 2), k = q < BARS / 4 ? q : BARS / 2 - 1 - q; spec[i] = half[k]; }
+          bass = db; mode = "decoded";
+        } else { bass = simulate(now); mode = "sim"; }
+      }
+      cv.dataset.mode = mode;
       smooth += (bass - smooth) * 0.35;
       g.clearRect(0, 0, w, h);
       // Slim centred equalizer strip under the artwork: mirrored around the centre, soft white bars.
