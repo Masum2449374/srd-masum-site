@@ -40,3 +40,6 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
     reloaded = true; location.reload();
   });
 }
+
+import { installSmartlink } from "./lib/smartlink.js";
+installSmartlink();
