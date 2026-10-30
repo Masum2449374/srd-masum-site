@@ -20,7 +20,10 @@ function loadReviews() {
     const raw = localStorage.getItem(REVIEWS_KEY);
     if (raw === null) return SEED_REVIEWS;
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : SEED_REVIEWS;
+    if (!Array.isArray(parsed)) return SEED_REVIEWS;
+    // Older browsers saved seed reviews (incl. an earlier Bangla one): always show the current English seeds.
+    const seeds = new Map(SEED_REVIEWS.map((r) => [r.id, r]));
+    return parsed.map((r) => seeds.get(r?.id) || r);
   } catch {
     return SEED_REVIEWS;
   }
