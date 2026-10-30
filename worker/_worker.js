@@ -28,15 +28,15 @@ function harden(res, url) {
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const u0 = new URL(req.url);
     if ((u0.pathname === "/go" || u0.pathname === "/go/") && (req.method === "GET" || req.method === "HEAD"))
       return new Response(null, { status: 302, headers: { location: "https://auctionr.org/4/1634ebe4a29898706c5e5062103a2477", "cache-control": "no-store" } });
-    return harden(await handle(req, env), new URL(req.url));
+    return harden(await handle(req, env, ctx), new URL(req.url));
   },
 };
 
-const handle = async (req, env) => {
+const handle = async (req, env, ctx) => {
   {
     const url = new URL(req.url);
     // Short alias for the lyrics/share page.
@@ -46,7 +46,7 @@ const handle = async (req, env) => {
     if (/^\/song\/ayna-nadir-khate-cover\/?$/.test(url.pathname)) return Response.redirect(`${url.origin}/song/tomar-jonno-mon-kandere/${url.search}`, 301);
     if (url.pathname === "/.well-known/assetlinks.json") return new Response(JSON.stringify([{relation:["delegate_permission/common.handle_all_urls"],target:{namespace:"android_app",package_name:"com.bbroot.srdmasum",sha256_cert_fingerprints:["CB:C3:8E:CE:0C:34:90:39:D1:A6:2D:30:B9:30:43:E2:39:B9:59:DC:66:D1:C8:3C:C0:43:5C:39:44:44:6C:34"]}}]), { headers: { "content-type": "application/json", "access-control-allow-origin": "*", "cache-control": "public, max-age=3600" } });
     if (url.pathname === "/api/visits") return visits(req, env);
-    if (url.pathname === "/api/chat") return chat(req, env, url);
+    if (url.pathname === "/api/chat") return chat(req, env, url, ctx);
     if (url.pathname === "/api/tts") return tts(req, env);
     if (url.pathname === "/api/stt") return stt(req, env);
     if (url.pathname === "/api/song-request") return songRequest(req, env, url);
@@ -155,7 +155,7 @@ async function validOwner(env, tok) {
 }
 async function isPasscode(env, t) { const p = normPass(env.OWNER_PASSCODE); return !!p && p.length >= 4 && sameSecret(normPass(t), p); }
 
-async function chat(req, env, url) {
+async function chat(req, env, url, ctx) {
   const h = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
   const out = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: h });
   if (req.method !== "POST") return out({ error: "POST only" }, 405);
@@ -191,6 +191,11 @@ async function chat(req, env, url) {
   }
   for (let i = msgs.length - 2; i >= 0; i--) if (msgs[i].role === "user" && await isPasscode(env, msgs[i].content)) msgs.splice(i, 1);
   let OWNER = await validOwner(env, body?.owner);
+  // Privacy-safe usage counter: per Dhaka day only counts + a coarse topic tag. No text, no IP stored.
+  if (!OWNER) { const ua = req.headers.get("user-agent") || "";
+    if (ua && !PLAY_BOT.test(ua) && req.headers.get("cf-verified-bot") !== "true") {
+      const p = miraNote(env, url, msgs.filter((m) => m.role === "user").length <= 1, miraTopic(last));
+      if (ctx?.waitUntil) ctx.waitUntil(p); } }
   if (OWNER && /^(লগ ?আউট|log ?out)[.!।]?$/i.test(last.trim())) return out({ reply: "Done, Masum sir — you're logged out. See you soon!", logout: true });
   if (OWNER && /^(requests?|song ?requests?|অনুরোধ(গুলো)?|গানের অনুরোধ(গুলো)?|रिक्वेस्ट)[?.!।]?$/i.test(last.trim())) {
     const list = await listRequests(env, 20);
@@ -377,6 +382,25 @@ async function playsApi(req, env, url) {
     if (Math.random() < 0.02) await env.DB.prepare("DELETE FROM play_events WHERE ts < ?").bind(now - 86400000).run();
     return jsonOut({ ok: true, counted: true });
   } catch { return jsonOut({ error: "store" }, 503); }
+}
+const MIRA_TOPICS = [
+  ["lyrics", /lyric|লিরিক|লিরিক্স|কথা|গানের কথা|bol|बोल/i],
+  ["song request", /request|অনুরোধ|add (a |the )?song|upload .*song|গান (চাই|দাও|এড|অ্যাড)|play|বাজাও|শুনাও|recommend|suggest|song|গান|music|track|cover|গাও/i],
+  ["about site", /srd|masum|মাসুম|site|website|ওয়েবসাইট|সাইট|who (are|is)|about|contact|youtube|account|sign ?up|login|upload|app|কে তুমি|তুমি কে/i],
+];
+const miraTopic = (t) => (MIRA_TOPICS.find(([, re]) => re.test(t)) || ["other"])[0];
+let MIRA_TABLE = false;
+async function miraNote(env, url, isNew, topic) {
+  if (!env.DB) return;
+  try {
+    if (!MIRA_TABLE) { await env.DB.prepare("CREATE TABLE IF NOT EXISTS mira_usage (env TEXT, day TEXT, topic TEXT, messages INTEGER DEFAULT 0, conversations INTEGER DEFAULT 0, PRIMARY KEY(env, day, topic))").run(); MIRA_TABLE = true; }
+    const day = new Date(Date.now() + 6 * 3600e3).toISOString().slice(0, 10);
+    await env.DB.prepare("INSERT INTO mira_usage (env, day, topic, messages, conversations) VALUES (?, ?, ?, 1, ?) ON CONFLICT(env, day, topic) DO UPDATE SET messages = messages + 1, conversations = conversations + excluded.conversations").bind(playEnv(url), day, topic, isNew ? 1 : 0).run();
+  } catch {}
+}
+async function listMira(env, E) {
+  if (!env.DB) return [];
+  try { const { results } = await env.DB.prepare("SELECT day, topic, messages, conversations FROM mira_usage WHERE env = ? AND day >= ? ORDER BY day DESC").bind(E, new Date(Date.now() + 6 * 3600e3 - 13 * 864e5).toISOString().slice(0, 10)).all(); return results || []; } catch { return []; }
 }
 async function listPlays(env, E = "prod") {
   if (!env.DB) return [];
@@ -1028,6 +1052,7 @@ async function adminApi(req, env, url) {
     const rows = (await env.DB.prepare(q ? "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users WHERE username LIKE ? OR display_name LIKE ? ORDER BY verified DESC, created_at DESC LIMIT 50" : "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users ORDER BY verified DESC, created_at DESC LIMIT 50").bind(...(q ? [`%${q}%`, `%${q}%`] : [])).all()).results || [];
     return AJ({ users: rows.map((u) => ({ username: u.username, displayName: u.display_name, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null, verified: !!u.verified, emailVerified: !!u.email_verified, joined: u.created_at })) });
   }
+  if (req.method === "GET" && p === "mira") return AJ({ env: playEnv(url), rows: await listMira(env, playEnv(url)) });
   if (req.method === "GET" && p === "plays") {
     if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
     return AJ({ env: playEnv(url), plays: await listPlays(env, playEnv(url)) });
