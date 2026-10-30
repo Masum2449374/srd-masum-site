@@ -15,6 +15,11 @@ export const ENGLISH_ORIGINALS = [
 
 export const ENGLISH_TRACKS = [
   {
+    // AI-made cover by SRD Masum. Original song: "Danza Kuduro" by Don Omar (remix-style arrangement).
+    id: "danza-kuduro-ai-cover", title: "Danza Kuduro (AI Cover)", artist: "SRD Masum", album: "Originally by Don Omar",
+    src: "/audio/english/danza-kuduro-ai-cover.mp3", duration: 260.02, playlist: P, ...c("danza-kuduro-ai-cover"),
+  },
+  {
     id: "housewife", title: "Housewife", artist: "Tate McRae", album: "Housewife",
     src: "/audio/english/housewife.mp3", duration: 209.14, playlist: P, ...c("housewife"),
     spotifyUrl: "https://open.spotify.com/track/2sFepQNyl1WjpROruP8bJ0",
