@@ -3,7 +3,9 @@ import { onBeatChange, getBass, runFrameHooks, setKick, frameHooksCount, isPlayi
 import { isTouchDevice, isLiteDevice } from "../lib/motion.js";
 
 // Phones update --beat at 30fps (every ~33ms); desktop stays at display rate.
-const BEAT_MIN_GAP = isTouchDevice() ? 1000 / 30 : 0;
+// Phones: 12fps and coarser steps — each --beat write restyles the whole page.
+const BEAT_MIN_GAP = isTouchDevice() ? 1000 / 12 : 0;
+const BEAT_STEP = isTouchDevice() ? 0.04 : 0.01;
 
 // The ONE requestAnimationFrame loop on the site. It runs only while there is work to do:
 //  - a song is playing (reads the beat, writes --beat on <html>), or
@@ -29,7 +31,7 @@ export default function BeatField() {
         const fallback = ((Math.sin((now / 545) * Math.PI * 2) + 1) / 2) * 0.45;
         const raw = measured > 0.001 ? measured : fallback;
         level = Math.max(raw, level * 0.85); // quick attack, gentle decay
-        if (Math.abs(level - written) > 0.01) {
+        if (Math.abs(level - written) > BEAT_STEP) {
           root.style.setProperty("--beat", level.toFixed(3));
           written = level;
         }

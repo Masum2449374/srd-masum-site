@@ -1,5 +1,5 @@
 import { COMMUNITY_ROW_ENABLED } from "./lib/flags.js";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import CursorGlow from "./components/CursorGlow.jsx";
 import { fireConfetti } from "./lib/confetti.js";
@@ -27,12 +27,12 @@ import AdSlot from "./components/AdSlot.jsx";
 import ChatLauncher from "./components/ChatLauncher.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import EnglishPage from "./components/EnglishPage.jsx";
-import CopyrightPage from "./components/CopyrightPage.jsx";
-import ProfilePage from "./components/ProfilePage.jsx";
-import AccountPage from "./components/AccountPage.jsx";
+const CopyrightPage = lazy(() => import("./components/CopyrightPage.jsx"));
+const ProfilePage = lazy(() => import("./components/ProfilePage.jsx"));
+const AccountPage = lazy(() => import("./components/AccountPage.jsx"));
 import { usePath, SPA_RE } from "./lib/nav.js";
-import ArtistPage from "./components/ArtistPage.jsx";
-import AdminUploads from "./components/AdminUploads.jsx";
+const ArtistPage = lazy(() => import("./components/ArtistPage.jsx"));
+const AdminUploads = lazy(() => import("./components/AdminUploads.jsx"));
 import { ENGLISH_ALL } from "./data/english-songs.js";
 
 const YEAR = new Date().getFullYear();
@@ -944,7 +944,7 @@ function BasePage() {
     <div className="min-h-screen pb-24">
       <BeatField />
       <Nav page="copyright" />
-      <main><CopyrightPage /></main>
+      <main><Suspense fallback={null}><CopyrightPage /></Suspense></main>
       <Footer />
       <ChatLauncher />
     </div>
@@ -953,7 +953,7 @@ function BasePage() {
     <div className="min-h-screen pb-24">
       <BeatField />
       <Nav page={PAGE} />
-      <main>{PAGE === "artist" ? <ArtistPage slug={decodeURIComponent(window.location.pathname.split("/")[2])} /> : <AdminUploads />}</main>
+      <main><Suspense fallback={null}>{PAGE === "artist" ? <ArtistPage slug={decodeURIComponent(window.location.pathname.split("/")[2])} /> : <AdminUploads />}</Suspense></main>
       <Footer />
     </div>
   );
@@ -961,7 +961,7 @@ function BasePage() {
     <div className="min-h-screen pb-24">
       <BeatField />
       <Nav page={PAGE} />
-      <main>{PAGE === "profile" ? <ProfilePage username={decodeURIComponent(window.location.pathname.split("/")[2])} /> : <AccountPage />}</main>
+      <main><Suspense fallback={null}>{PAGE === "profile" ? <ProfilePage username={decodeURIComponent(window.location.pathname.split("/")[2])} /> : <AccountPage />}</Suspense></main>
       <Footer />
       <ChatLauncher />
     </div>
@@ -1021,7 +1021,7 @@ function SpaPage({ path }) {
     <div className="min-h-screen pb-24">
       <BeatField />
       <Nav page={page} />
-      <main>{page === "artist" ? <ArtistPage key={slug} slug={slug} /> : <ProfilePage key={slug} username={slug} />}</main>
+      <main><Suspense fallback={null}>{page === "artist" ? <ArtistPage key={slug} slug={slug} /> : <ProfilePage key={slug} username={slug} />}</Suspense></main>
       <Footer />
       <ChatLauncher />
     </div>
