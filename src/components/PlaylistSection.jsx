@@ -31,7 +31,8 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
               </span>
               <span className="pl-title min-w-0 flex-1 text-left">
                 <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
-                <span className="flex min-w-0 text-xs text-muted"><span className="truncate">{t.artist || "SRD Masum"}</span>{plays ? <span data-testid="plays" className="shrink-0 whitespace-nowrap tabular-nums">&nbsp;· {fmtPlays(plays[String(t.id).toLowerCase()])}</span> : null}</span>
+                <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
+                {plays ? <span data-testid="plays" className="block truncate text-[11px] tabular-nums text-faint">{fmtPlays(plays[String(t.id).toLowerCase()])}</span> : null}
               </span>
               <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Release")}</span>
               <span className="pl-time font-mono text-[11px] tabular-nums text-muted">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
