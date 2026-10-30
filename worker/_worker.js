@@ -364,10 +364,10 @@ async function playsApi(req, env, url) {
   if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(id) || !(await knownSongIds(env, url)).has(id)) return jsonOut({ error: "unknown song" }, 400);
   const ip = req.headers.get("cf-connecting-ip") || "0", now = Date.now(), salt = env.PLAYS_SALT || "srd-plays-v1";
   const iph = (await sha256(salt + "|ip|" + ip)).slice(0, 32), vh = (await sha256(salt + "|v|" + ip + "|" + ua)).slice(0, 32);
-  const k = (await sha256(`${E}|${iph}|${id}|${Math.floor(now / 1800000)}`)).slice(0, 40);
+  const k = crypto.randomUUID(); // no dedupe: every play counts; only a loose per-IP flood guard below
   try {
     const recent = await env.DB.prepare("SELECT COUNT(*) AS n FROM play_events WHERE iph = ? AND ts > ?").bind(iph, now - 3600000).first();
-    if ((recent?.n || 0) >= 40) return jsonOut({ ok: true, counted: false });
+    if ((recent?.n || 0) >= 300) return jsonOut({ ok: true, counted: false });
     const ins = await env.DB.prepare("INSERT OR IGNORE INTO play_events (k, iph, ts) VALUES (?, ?, ?)").bind(k, iph, now).run();
     if (!ins.meta?.changes) return jsonOut({ ok: true, counted: false });
     await env.DB.batch([
