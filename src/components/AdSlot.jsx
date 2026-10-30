@@ -65,7 +65,7 @@ export default function AdSlot({ type, desktopOnly = false }) {
         <iframe
           ref={frame}
           title="Advertisement"
-          src={`/ads/${ad.file}.html`}
+          src={`/ads/${ad.file}`}
           scrolling="no"
           sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
           referrerPolicy="strict-origin-when-cross-origin"
