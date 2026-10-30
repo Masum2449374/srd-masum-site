@@ -18,6 +18,7 @@ export const SOCIAL_LINKS = {
   facebook: "https://www.facebook.com/share/1DV2oJQcFE/",
   youtube: "https://youtube.com/@srdmasum",
   whatsapp: "#",
+  telegram: "https://t.me/LiamBennett24",
 };
 
 export const SPOTIFY_ARTIST_URL = "https://open.spotify.com/artist/267kT30bpgEoiGFawat8k6";

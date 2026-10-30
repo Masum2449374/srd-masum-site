@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Sun, Moon, List, X, CaretRight, CaretDown, Disc, Globe, MusicNotes, MusicNote, FilmStrip, Sparkle, Star, Television, PlayCircle, ChatCircleText, Heart, EnvelopeSimple, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, Play } from "@phosphor-icons/react";
+import { Sun, Moon, List, X, CaretRight, CaretDown, Disc, Globe, MusicNotes, MusicNote, FilmStrip, Sparkle, Star, Television, PlayCircle, ChatCircleText, Heart, EnvelopeSimple, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, TelegramLogo, Play } from "@phosphor-icons/react";
 import { createPortal } from "react-dom";
 import SearchOverlay from "./SearchOverlay.jsx";
 import AccountButton from "./AccountButton.jsx";
@@ -22,7 +22,7 @@ const LINKS = [
 const GROUPS = ["Listen", "Watch & Explore", "Community"];
 // One brand blue for Listen (most items) + one accent each for Watch (amber) and Community (violet).
 const GROUP_TINT = ["59 130 246", "245 158 11", "139 92 246"];
-const SOCIALS = [["instagram", "Instagram", InstagramLogo], ["facebook", "Facebook", FacebookLogo], ["youtube", "YouTube", YoutubeLogo], ["whatsapp", "WhatsApp", WhatsappLogo]];
+const SOCIALS = [["instagram", "Instagram", InstagramLogo], ["facebook", "Facebook", FacebookLogo], ["youtube", "YouTube", YoutubeLogo], ["whatsapp", "WhatsApp", WhatsappLogo], ["telegram", "Telegram", TelegramLogo]];
 
 const THEME_KEY = "srd-theme";
 

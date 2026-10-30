@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import CursorGlow from "./components/CursorGlow.jsx";
 import { fireConfetti } from "./lib/confetti.js";
-import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, SpotifyLogo } from "@phosphor-icons/react";
+import { ArrowUpRight, EnvelopeSimple, Copy, Check, Disc, InstagramLogo, FacebookLogo, YoutubeLogo, WhatsappLogo, TelegramLogo, SpotifyLogo } from "@phosphor-icons/react";
 import Nav from "./components/Nav.jsx";
 import Reveal, { spring } from "./components/Reveal.jsx";
 import Embed from "./components/Embed.jsx";
@@ -815,6 +815,7 @@ function Footer() {
             { key: "facebook", label: "Facebook", Icon: FacebookLogo },
             { key: "youtube", label: "YouTube", Icon: YoutubeLogo },
             { key: "whatsapp", label: "WhatsApp", Icon: WhatsappLogo },
+            { key: "telegram", label: "Telegram", Icon: TelegramLogo },
           ].map(({ key, label, Icon }) => (
             <a
               key={key}
