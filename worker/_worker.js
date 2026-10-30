@@ -1052,7 +1052,7 @@ async function adminApi(req, env, url) {
     const rows = (await env.DB.prepare(q ? "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users WHERE username LIKE ? OR display_name LIKE ? ORDER BY verified DESC, created_at DESC LIMIT 50" : "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users ORDER BY verified DESC, created_at DESC LIMIT 50").bind(...(q ? [`%${q}%`, `%${q}%`] : [])).all()).results || [];
     return AJ({ users: rows.map((u) => ({ username: u.username, displayName: u.display_name, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null, verified: !!u.verified, emailVerified: !!u.email_verified, joined: u.created_at })) });
   }
-  if (req.method === "GET" && p === "mira") return AJ({ env: playEnv(url), rows: await listMira(env, playEnv(url)) });
+  if (req.method === "GET" && p === "mira") return !(await isAdmin(req, env)) ? AJ({ error: "Please sign in as owner." }, 401) : AJ({ env: playEnv(url), rows: await listMira(env, playEnv(url)) });
   if (req.method === "GET" && p === "plays") {
     if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
     return AJ({ env: playEnv(url), plays: await listPlays(env, playEnv(url)) });
