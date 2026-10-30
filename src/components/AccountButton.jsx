@@ -2,10 +2,16 @@ import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { UserCircle, User, PencilSimple, SignOut } from "@phosphor-icons/react";
 import { useUser, signOut, openAuth } from "../lib/auth.js";
+import { ACCOUNTS_ENABLED } from "../lib/flags.js";
 import AuthModal from "./AuthModal.jsx";
 import Avatar from "./Avatar.jsx";
 
 export default function AccountButton() {
+  if (!ACCOUNTS_ENABLED) return null;
+  return <AccountButtonInner />;
+}
+
+function AccountButtonInner() {
   const user = useUser();
   const [modal, setModal] = useState(null), [menu, setMenu] = useState(false);
   const ref = useRef(null);

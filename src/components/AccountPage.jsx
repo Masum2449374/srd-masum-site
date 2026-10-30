@@ -1,3 +1,4 @@
+import { ACCOUNTS_ENABLED } from "../lib/flags.js";
 import { useEffect } from "react";
 import { useUser, openAuth } from "../lib/auth.js";
 import ProfilePage from "./ProfilePage.jsx";
@@ -10,7 +11,7 @@ export default function AccountPage() {
   if (!user) return (
     <div className="mx-auto max-w-md px-5 pb-24 pt-32 text-center sm:pt-40">
       <h1 className="font-display text-3xl tracking-display text-ink">Sign in to edit your profile</h1>
-      <button type="button" onClick={() => openAuth("signin")} className="pro-btn mt-8 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent">Sign in</button>
+      {ACCOUNTS_ENABLED && <button type="button" onClick={() => openAuth("signin")} className="pro-btn mt-8 rounded-full bg-accent px-6 py-2.5 text-sm font-semibold text-on-accent">Sign in</button>}
     </div>
   );
   return <ProfilePage username={user.username} edit />;

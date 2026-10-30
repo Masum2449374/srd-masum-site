@@ -1,3 +1,4 @@
+import { ACCOUNTS_ENABLED } from "../lib/flags.js";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import { useEffect, useState } from "react";
 import { MusicNotes, PencilSimple, UploadSimple } from "@phosphor-icons/react";
@@ -62,7 +63,7 @@ export default function ProfilePage({ username, edit = false }) {
       <div style={{ background: `linear-gradient(180deg, ${ca(0.22)}, transparent 220px)` }}>
         <div className="mx-auto max-w-5xl px-5 pt-6 sm:px-8">
           {mine && <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => setUploading(true)} className="srd-up-open pro-btn" data-testid="upload-open"><UploadSimple size={16} weight="bold" />Upload song</button>
+            <button type="button" onClick={() => setUploading(true)} hidden={!ACCOUNTS_ENABLED} className="srd-up-open pro-btn" data-testid="upload-open"><UploadSimple size={16} weight="bold" />Upload song</button>
             <button type="button" onClick={() => setEditing(true)} className="srd-search-btn pro-btn text-ink"><PencilSimple size={16} weight="bold" />Edit profile</button>
           </div>}
           {u && (u.bio || mine) && <p className={`mt-6 max-w-2xl whitespace-pre-line text-[15px] leading-relaxed ${u.bio ? "text-ink/85" : "text-faint"}`}>{u.bio || "Add a short bio so listeners know who you are."}</p>}
@@ -79,7 +80,7 @@ export default function ProfilePage({ username, edit = false }) {
                 <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-raised text-muted shadow-lg ring-1 ring-hairline"><MusicNotes size={28} /></span>
                 <p className="mt-5 text-lg font-bold text-ink">{mine ? "Your songs will live here" : "No songs yet"}</p>
                 <p className="mt-1 max-w-sm text-sm text-muted">{mine ? "Upload your first song. Once it's approved, it shows up here for everyone to hear." : `When ${u?.displayName || "this member"} releases songs, they'll appear here.`}</p>
-                {mine && <button type="button" onClick={() => setUploading(true)} className="srd-up-open pro-btn mt-6"><UploadSimple size={16} weight="bold" />Upload song</button>}
+                {mine && ACCOUNTS_ENABLED && <button type="button" onClick={() => setUploading(true)} className="srd-up-open pro-btn mt-6"><UploadSimple size={16} weight="bold" />Upload song</button>}
               </div>
             ); })()}
           </section>
