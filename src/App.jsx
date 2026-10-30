@@ -1,3 +1,4 @@
+import { COMMUNITY_ROW_ENABLED } from "./lib/flags.js";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import CursorGlow from "./components/CursorGlow.jsx";
@@ -988,7 +989,7 @@ function BasePage() {
       <main>
         <Hero />
         <PlaylistSection />
-        <CommunityRow />
+        {COMMUNITY_ROW_ENABLED && <CommunityRow />}
         <AdSlot type="banner300" desktopOnly />
         <Music />
         <AdSlot type="banner320" />
