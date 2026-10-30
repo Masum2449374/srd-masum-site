@@ -1,3 +1,4 @@
+import { gaEvent } from "../lib/ga.js";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { callSupported, unlockAudio } from "./MiraCall.jsx";
@@ -21,6 +22,7 @@ export default function ChatPanel({ open, onClose }) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const list = useRef(null), input = useRef(null), cut = useRef(0);
+  useEffect(() => { if (open) gaEvent("mira_chat_open"); }, [open]);
 
   useEffect(() => { try { sessionStorage.setItem(KEY, JSON.stringify(msgs.slice(-20))); } catch {} }, [msgs]);
   useEffect(() => { list.current?.scrollTo({ top: list.current.scrollHeight, behavior: "smooth" }); }, [msgs, busy]);
@@ -67,6 +69,7 @@ export default function ChatPanel({ open, onClose }) {
     if (!q || busy) return;
     const next = [...msgs, { role: "user", content: q }];
     setMsgs(next); setText(""); setBusy(true);
+    gaEvent("mira_message", { message_number: next.filter((m) => m.role === "user").length });
     try {
       const r = await fetch("/api/chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ messages: next.slice(cut.current).slice(-8), owner: getOwner() }) });
       const d = await r.json().catch(() => ({}));

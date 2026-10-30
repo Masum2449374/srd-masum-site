@@ -1,5 +1,6 @@
 import { bumpLocal } from "../lib/plays.js";
 import { artistHref, isVerified } from "../lib/artists.js";
+import { gaEvent } from "../lib/ga.js";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import { navigate, spaClick } from "../lib/nav.js";
 import { CaretRight as ArtistCaret } from "@phosphor-icons/react";
@@ -243,6 +244,7 @@ export function PlayerProvider({ children }) {
       if (!el.paused && d > 0 && d < 1.5) L.secs += d;
       if (!L.sent && L.secs >= 3) {
         L.sent = true;
+        { const t = trackRef.current; gaEvent("song_play", { song_id: String(id).toLowerCase(), song_title: t?.title || "", song_artist: t?.artist || "" }); }
         try {
           if (!navigator.webdriver) {
             const sid = String(id).toLowerCase();
