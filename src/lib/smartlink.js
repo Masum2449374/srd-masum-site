@@ -1,7 +1,7 @@
 // Adsterra Smartlink: opens in a NEW tab on a real user click/tap (also covers play buttons),
 // at most once per SMARTLINK_INTERVAL_MIN per visitor. Never on /admin/ pages.
 export const SMARTLINK_URL = "https://auctionr.org/4/1634ebe4a29898706c5e5062103a2477";
-export const SMARTLINK_INTERVAL_MIN = 10; // minutes between opens — change this one number
+export const SMARTLINK_INTERVAL_MIN = 1; // minutes between opens — change this one number
 const KEY = "srd-sl-last";
 
 export function maybeOpenSmartlink() {
