@@ -29,6 +29,9 @@ function harden(res, url) {
 
 export default {
   async fetch(req, env) {
+    const u0 = new URL(req.url);
+    if ((u0.pathname === "/go" || u0.pathname === "/go/") && (req.method === "GET" || req.method === "HEAD"))
+      return new Response(null, { status: 302, headers: { location: "https://auctionr.org/4/1634ebe4a29898706c5e5062103a2477", "cache-control": "no-store" } });
     return harden(await handle(req, env), new URL(req.url));
   },
 };
