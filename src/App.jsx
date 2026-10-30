@@ -996,9 +996,7 @@ function BasePage() {
         <AudioSongs />
         <AdSlot type="native" />
         <BanglaSongs />
-        <Videos />
         <NewRelease />
-        <Songs />
         <Reviews />
         <AdSlot type="banner300" />
         <Contact />
