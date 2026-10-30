@@ -9,7 +9,7 @@ const ADS = {
   banner728: { file: "b728", w: 728, h: 90 },
   native: { file: "native", w: "100%", h: 0 },
 };
-const FILL_TIMEOUT_MS = 15000;
+const FILL_TIMEOUT_MS = 45000; // native only; fixed banners never collapse
 
 const deskMq = () => typeof window !== "undefined" && window.matchMedia && window.matchMedia("(min-width: 1024px)").matches;
 
@@ -32,7 +32,7 @@ export default function AdSlot({ type, desktopOnly = false }) {
     if (!("IntersectionObserver" in window)) { setNear(true); return; }
     const io = new IntersectionObserver((es) => {
       if (es.some((e) => e.isIntersecting)) { setNear(true); io.disconnect(); }
-    }, { rootMargin: "400px 0px" });
+    }, { rootMargin: "800px 0px" });
     io.observe(el);
     return () => io.disconnect();
   }, [near]);
@@ -49,17 +49,18 @@ export default function AdSlot({ type, desktopOnly = false }) {
       }
     };
     window.addEventListener("message", onMsg);
-    const t = setTimeout(() => setDead((x) => x || true), FILL_TIMEOUT_MS);
+    const t = typeof ad.w === "number" ? null : setTimeout(() => setDead(true), FILL_TIMEOUT_MS);
     return () => { window.removeEventListener("message", onMsg); clearTimeout(t); };
   }, [near, ad]);
 
   if (!ad || (dead && !filled)) return null;
   const fixed = typeof ad.w === "number";
+  const show = filled || fixed; // fixed banners always reserve their exact size
   return (
     <aside ref={ref} data-ad-slot={type} data-ad-filled={filled ? "1" : "0"} aria-label="Advertisement"
       className={`relative z-0 mx-auto flex w-full max-w-3xl flex-col items-center px-5 ${type === "native" ? "lg:max-w-[1240px]" : ""}`}
-      style={filled ? { margin: "2rem auto" } : { height: 1, overflow: "hidden" }}>
-      {filled && <span className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Advertisement</span>}
+      style={show ? { margin: "2rem auto", minHeight: fixed ? ad.h + 18 : undefined } : { height: 1, overflow: "hidden" }}>
+      {show && <span className="mb-1 font-mono text-[10px] uppercase tracking-[0.2em] text-faint">Advertisement</span>}
       {near && (
         <iframe
           ref={frame}
@@ -69,7 +70,7 @@ export default function AdSlot({ type, desktopOnly = false }) {
           sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
           referrerPolicy="strict-origin-when-cross-origin"
           style={{
-            width: fixed ? ad.w : "100%", maxWidth: "100%", height: filled ? h : 1,
+            width: fixed ? ad.w : "100%", maxWidth: "100%", height: fixed ? ad.h : (filled ? h : 1),
             border: 0, display: "block", background: "transparent", colorScheme: "normal",
           }}
         />

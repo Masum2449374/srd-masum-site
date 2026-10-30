@@ -4,7 +4,7 @@
 <script src="https://bauval.org/22/4a74b43fa7a24e86b20a5ead213139c7"></script>
 <script data-slot="b728">
 (function(){var slot=document.currentScript.dataset.slot,last="";
-function filled(){var els=document.querySelectorAll("iframe,img,a,video,canvas");for(var i=0;i<els.length;i++){var r=els[i].getBoundingClientRect();if(r.width>20&&r.height>20)return true}return false}
+function filled(){var c=document.querySelector("[id^=container-]");if(c&&c.offsetHeight>20)return true;var els=document.querySelectorAll("iframe,img,a,video,canvas");for(var i=0;i<els.length;i++){var r=els[i].getBoundingClientRect();if(r.width>20&&r.height>20)return true}return false}
 function send(){var f=filled(),h=f?Math.ceil(document.body.scrollHeight):0,k=f+":"+h;if(k===last)return;last=k;try{parent.postMessage({srdAd:slot,filled:f,h:h},location.origin)}catch(e){}}
 setInterval(send,500);window.addEventListener("load",send)})();
 </script></body></html>
