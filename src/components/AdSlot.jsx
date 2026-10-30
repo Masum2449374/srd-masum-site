@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 const ADS = {
   banner320: { file: "b320", w: 320, h: 50 },
   banner300: { file: "b300", w: 300, h: 250 },
+  banner728: { file: "b728", w: 728, h: 90 },
   native: { file: "native", w: "100%", h: 0 },
 };
 const FILL_TIMEOUT_MS = 15000;
@@ -14,7 +15,10 @@ const deskMq = () => typeof window !== "undefined" && window.matchMedia && windo
 
 export default function AdSlot({ type, desktopOnly = false }) {
   const [isDesk] = useState(deskMq);
-  const ad = desktopOnly && !isDesk ? null : ADS[type];
+  // "leader" = 728x90 on desktop/tablet widths, 320x50 on phones.
+  const [wide] = useState(() => typeof window !== "undefined" && window.matchMedia && window.matchMedia("(min-width: 768px)").matches);
+  const key = type === "leader" ? (wide ? "banner728" : "banner320") : type;
+  const ad = desktopOnly && !isDesk ? null : ADS[key];
   const ref = useRef(null);
   const frame = useRef(null);
   const [near, setNear] = useState(false);

@@ -990,9 +990,8 @@ function BasePage() {
         <Hero />
         <PlaylistSection />
         {COMMUNITY_ROW_ENABLED && <CommunityRow />}
-        <AdSlot type="banner300" desktopOnly />
+        <AdSlot type="leader" />
         <Music />
-        <AdSlot type="banner320" />
         <AudioSongs />
         <AdSlot type="native" />
         <BanglaSongs />

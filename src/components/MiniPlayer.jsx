@@ -364,7 +364,7 @@ function MiniBar({ player, scrub }) {
       aria-label="Now playing"
       data-testid="minibar"
       onClick={(e) => { if (!e.target.closest("button,input,a")) setOpen(true); }}
-      className="fixed inset-x-0 bottom-0 z-50 cursor-pointer border-t border-hairline bg-sunk px-3 pb-[env(safe-area-inset-bottom)] pt-2"
+      className="srd-mini-player fixed inset-x-0 bottom-0 z-50 cursor-pointer border-t border-hairline bg-sunk px-3 pb-[env(safe-area-inset-bottom)] pt-2"
     >
       <input
         type="range"

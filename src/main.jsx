@@ -43,3 +43,6 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
 
 import { installSmartlink } from "./lib/smartlink.js";
 installSmartlink();
+
+import { installSocialBar } from "./lib/socialbar.js";
+installSocialBar();
