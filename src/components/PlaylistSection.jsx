@@ -3,6 +3,7 @@ import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
 import { ENGLISH_ALL } from "../data/english-songs.js";
+import { usePlays, fmtPlays } from "../lib/plays.js";
 
 // The whole site as one serial playlist: English hits first, then SRD Masum's own songs.
 // `playlist` on the first item makes the player keep to this list and play it in order.
@@ -11,7 +12,7 @@ export const ALL_PLAYLIST = [...ENGLISH_ALL, ...AUDIO_TRACKS, ...BANGLA_TRACKS].
 const Bars = ({ on }) => (<span aria-hidden="true" className={`en-bars ${on ? "" : "en-bars-off"}`}><i /><i /><i /><i /></span>);
 
 export function TrackList({ tracks, onInfo, testid = "playlist" }) {
-  const player = usePlayer();
+  const player = usePlayer(), plays = usePlays();
   const list = tracks[0]?.playlist ? tracks : tracks.map((t, i) => (i === 0 ? { ...t, playlist: "list" } : t));
   return (
     <ol data-testid={testid} className="pl-list">
@@ -30,7 +31,7 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
               </span>
               <span className="pl-title min-w-0 flex-1 text-left">
                 <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
-                <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
+                <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}{plays ? <span data-testid="plays"> · {fmtPlays(plays[String(t.id).toLowerCase()])}</span> : null}</span>
               </span>
               <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Release")}</span>
               <span className="pl-time font-mono text-[11px] tabular-nums text-muted">{formatTime(active && player.duration ? player.duration : t.duration)}</span>

@@ -46,6 +46,7 @@ export default function AdminUploads() {
   const c = data?.counts || {};
   return (
     <div className="mx-auto max-w-4xl px-4 pb-24 pt-24 sm:px-8 sm:pt-28" data-testid="admin-page">
+      <PlaysTable />
       {note && <p role="status" data-testid="admin-note" className="mb-4 rounded-xl bg-sunk/70 px-4 py-3 text-sm text-ink ring-1 ring-hairline">{note}</p>}
       {dlg && (
         <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="rj-title" onClick={() => setDlg(null)}>
@@ -139,5 +140,21 @@ function UsersPanel({ onUnauth }) {
         </ul>
       )}
     </div>
+  );
+}
+
+function PlaysTable() {
+  const [rows, setRows] = useState(null);
+  useEffect(() => { fetch("/api/admin/plays", { credentials: "same-origin", cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).then((j) => setRows(j?.plays || [])).catch(() => setRows([])); }, []);
+  if (!rows) return null;
+  return (
+    <section className="mb-8" data-testid="admin-plays">
+      <h2 className="font-display text-xl font-bold text-ink">Song plays</h2>
+      <p className="mt-1 text-xs text-muted">Counted after 30s of real listening (or half a short song); one per listener per song per 30 min; bots ignored.</p>
+      {rows.length ? (
+        <table className="mt-3 w-full text-sm"><thead><tr className="text-left text-muted"><th className="py-1">Song</th><th className="py-1 text-right">Plays</th><th className="py-1 text-right">Unique listeners</th></tr></thead>
+          <tbody>{rows.map((r) => <tr key={r.slug} className="border-t border-hairline"><td className="py-1.5 text-ink">{r.slug}</td><td className="py-1.5 text-right tabular-nums">{r.n}</td><td className="py-1.5 text-right tabular-nums">{r.listeners}</td></tr>)}</tbody></table>
+      ) : <p className="mt-3 text-sm text-muted">No plays counted yet.</p>}
+    </section>
   );
 }

@@ -1,3 +1,4 @@
+import { bumpLocal } from "../lib/plays.js";
 import { artistHref, isVerified } from "../lib/artists.js";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import { navigate, spaClick } from "../lib/nav.js";
@@ -55,7 +56,7 @@ export function formatTime(sec) {
 export function PlayerProvider({ children }) {
   const audioRef = useRef(null);
   const trackRef = useRef(null);
-  const playedRef = useRef(null);
+  const listenRef = useRef({ id: null, secs: 0, last: 0, sent: false });
   const queueRef = useRef([]);
   const scrubRef = useRef(null);
   const scrubTimer = useRef(0);
@@ -210,15 +211,6 @@ export function PlayerProvider({ children }) {
     beatPlay(e.currentTarget);
     setMediaSessionState("playing");
     setMediaSessionPosition(e.currentTarget);
-    const id = trackRef.current?.id;
-    if (id && playedRef.current !== id) {
-      playedRef.current = id; // count once per track start, not per pause/resume
-      try {
-        const k = "srd-play-" + id, last = Number(localStorage.getItem(k)) || 0;
-        if (Date.now() - last < 1800000) return; // same song within 30 min counts once per browser
-        localStorage.setItem(k, String(Date.now()));
-        fetch("/api/play", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ slug: String(id).toLowerCase() }), keepalive: true }).catch(() => {}); } catch {}
-    }
   };
   const onPause = (e) => {
     setPlaying(false);
@@ -226,7 +218,7 @@ export function PlayerProvider({ children }) {
     setMediaSessionState("paused");
   };
   const onEnded = (e) => {
-    playedRef.current = null;
+    listenRef.current.id = null;
     setPlaying(false);
     beatStop(e.currentTarget);
     // Repeat one: replay. Otherwise auto-advance; at the end of the queue wrap only on repeat-all.
@@ -241,6 +233,26 @@ export function PlayerProvider({ children }) {
     }
   };
   const onTimeUpdate = (e) => {
+    // Real-listening play counter: accumulate actual playback time (seeks/jumps ignored);
+    // count once after 30s, or half the track if it is shorter than a minute.
+    const el = e.currentTarget, id = trackRef.current?.id, L = listenRef.current;
+    if (id && !String(id).startsWith("u")) {
+      if (L.id !== id) Object.assign(L, { id, secs: 0, last: el.currentTime, sent: false });
+      const d = el.currentTime - L.last; L.last = el.currentTime;
+      if (!el.paused && d > 0 && d < 1.5) L.secs += d;
+      const dur = Number.isFinite(el.duration) && el.duration > 0 ? el.duration : 0;
+      if (!L.sent && L.secs >= Math.min(30, dur ? dur * 0.5 : 30)) {
+        L.sent = true;
+        try {
+          if (navigator.webdriver) return;
+          const k = "srd-play-" + id, last = Number(localStorage.getItem(k)) || 0;
+          if (Date.now() - last >= 1800000) {
+            localStorage.setItem(k, String(Date.now()));
+            fetch("/api/plays/" + encodeURIComponent(String(id).toLowerCase()), { method: "POST", keepalive: true }).then((r) => r.json()).then((j) => { if (j?.counted) bumpLocal(String(id).toLowerCase()); }).catch(() => {});
+          }
+        } catch {}
+      }
+    }
     if (scrubRef.current === null) setCurrent(e.currentTarget.currentTime);
     setMediaSessionPosition(e.currentTarget);
   };

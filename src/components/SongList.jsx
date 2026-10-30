@@ -3,12 +3,13 @@ import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { artistHref, artistOf, isVerified } from "../lib/artists.js";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import { spaClick } from "../lib/nav.js";
+import { usePlays, fmtPlays } from "../lib/plays.js";
 
 // Spotify-style numbered track list. Works for catalog tracks and user uploads (mapped via toTrack).
 export const toTrack = (s) => ({ id: "u" + s.id, songId: s.id, title: s.title, artist: s.uploader?.displayName, uploader: s.uploader, src: s.audio, cover: s.cover, thumb: s.cover, lyrics: s.lyrics || undefined, playlist: true, uploaded: true });
 
 export default function SongList({ tracks, onDelete, status }) {
-  const player = usePlayer();
+  const player = usePlayer(), plays = usePlays();
   return (
     <ol className="srd-tl mt-4" data-testid="song-list">
       {tracks.map((t, i) => {
@@ -30,6 +31,7 @@ export default function SongList({ tracks, onDelete, status }) {
               </span>
               {st?.note && <span className="mt-0.5 block truncate text-xs text-faint">{st.note}</span>}
             </span>
+            {plays && !t.uploaded ? <span data-testid="plays" className="shrink-0 text-xs tabular-nums text-muted">{fmtPlays(plays[String(t.id).toLowerCase()])}</span> : null}
             {t.duration ? <span className="hidden shrink-0 font-mono text-xs tabular-nums text-muted sm:inline"><Clock size={12} className="mr-1 inline" aria-hidden="true" />{formatTime(t.duration)}</span> : null}
             {onDelete && <button type="button" onClick={() => onDelete(t)} aria-label={`Delete ${t.title}`} className="srd-tl-del"><Trash size={17} /></button>}
           </li>

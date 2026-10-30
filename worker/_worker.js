@@ -51,7 +51,7 @@ const handle = async (req, env) => {
     if (url.pathname === "/api/stt") return stt(req, env);
     if (url.pathname === "/api/song-request") return songRequest(req, env, url);
     if (url.pathname === "/api/song-requests") return songRequests(req, env, url);
-    if (url.pathname === "/api/play") return playHit(req, env, url);
+    if (url.pathname === "/api/play" || url.pathname === "/api/plays" || url.pathname.startsWith("/api/plays/")) return playsApi(req, env, url);
     if (url.pathname === "/api/notify") return notifySignup(req, env, url);
     if (url.pathname.startsWith("/api/auth/")) return auth(req, env, url);
     if (url.pathname.startsWith("/media/avatars/")) return media(req, env, url);
@@ -198,7 +198,7 @@ async function chat(req, env, url) {
   }
   if (OWNER && /^(plays?|play ?counts?|প্লে|প্লে ?কাউন্ট|কতবার বাজল)[?.!।]?$/i.test(last.trim())) {
     const list = await listPlays(env);
-    return out({ reply: list.length ? "Play counts (most to least), Masum sir:\n" + list.slice(0, 30).map((r, i) => `${i + 1}. ${r.slug} — ${r.n} plays`).join("\n") : "No plays recorded yet, Masum sir 🙂" });
+    return out({ reply: list.length ? "Play counts (most to least), Masum sir:\n" + list.slice(0, 30).map((r, i) => `${i + 1}. ${r.slug} — ${r.n} plays, ${r.listeners} listeners`).join("\n") : "No plays recorded yet, Masum sir 🙂" });
   }
   if (OWNER && /^(signups?|subscribers?|সাইন ?আপ(গুলো)?|সাবস্ক্রাইবার)[?.!।]?$/i.test(last.trim())) {
     const list = await listSignups(env, 50);
@@ -333,27 +333,55 @@ async function songRequests(req, env, url) {
 // ---- Play counter: KV "play:<slug>" = count. One count per IP+song per 30 min, 20k counts/day overall.
 const jsonOut = (o, s = 200) => new Response(JSON.stringify(o), { status: s, headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" } });
 async function bump(env, key, ttl) { const n = Number(await env.VISITS.get(key)) || 0; await env.VISITS.put(key, String(n + 1), ttl ? { expirationTtl: ttl } : undefined); return n + 1; }
-async function playHit(req, env, url) {
+// ---- Song plays (D1). A play is counted only after real listening (client: >=30s or 50% of playback),
+// once per browser per song per 30 min (localStorage) AND once per hashed IP+song per 30 min (server).
+// Bots/headless are ignored, song ids must exist in /song-ids.json, raw IPs are never stored.
+// Preview hosts write to env='preview' rows so tests never touch real production counts.
+const PLAY_BOT = /bot|crawl|spider|slurp|headless|lighthouse|playwright|puppeteer|selenium|phantom|curl|wget|python|node-fetch|axios|go-http|java\/|okhttp|preview|facebookexternalhit|whatsapp/i;
+const playEnv = (url) => (url.hostname === "srdmasum.bbroot.com" ? "prod" : "preview");
+let songIdsCache = null, songIdsAt = 0;
+async function knownSongIds(env, url) {
+  if (songIdsCache && Date.now() - songIdsAt < 600000) return songIdsCache;
+  try { const r = await env.ASSETS.fetch(new Request(url.origin + "/song-ids.json")); if (r.ok) { songIdsCache = new Set(await r.json()); songIdsAt = Date.now(); } } catch {}
+  return songIdsCache || new Set();
+}
+async function playsApi(req, env, url) {
+  if (!env.DB) return jsonOut({ error: "unavailable" }, 503);
+  const E = playEnv(url);
+  if (req.method === "GET" && url.pathname === "/api/plays") {
+    const { results } = await env.DB.prepare("SELECT song_id, plays FROM song_plays WHERE env = ?").bind(E).all();
+    const o = {}; for (const r of results || []) o[r.song_id] = r.plays;
+    return new Response(JSON.stringify({ plays: o }), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=30" } });
+  }
   if (req.method !== "POST") return jsonOut({ error: "POST only" }, 405);
   if (req.headers.get("origin") !== url.origin) return jsonOut({ error: "forbidden" }, 403);
-  if (!env.VISITS) return jsonOut({ error: "unavailable" }, 503);
-  let b; try { b = JSON.parse((await req.text()).slice(0, 500)); } catch { return jsonOut({ error: "bad json" }, 400); }
-  const slug = String(b?.slug || "").toLowerCase();
-  if (!/^[a-z0-9][a-z0-9-]{0,63}$/.test(slug)) return jsonOut({ error: "bad slug" }, 400);
-  const ip = req.headers.get("cf-connecting-ip") || "0";
-  const ik = `playrl:${ip}:${slug}:${Math.floor(Date.now() / 1800000)}`, dk = `playrld:${Math.floor(Date.now() / 864e5)}`;
+  const ua = req.headers.get("user-agent") || "";
+  if (!ua || PLAY_BOT.test(ua) || req.headers.get("cf-verified-bot") === "true") return jsonOut({ ok: true, counted: false });
+  let id = "";
+  if (url.pathname.startsWith("/api/plays/")) id = decodeURIComponent(url.pathname.slice(11));
+  else { try { id = String(JSON.parse((await req.text()).slice(0, 500))?.slug || ""); } catch {} }
+  id = id.toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]{0,79}$/.test(id) || !(await knownSongIds(env, url)).has(id)) return jsonOut({ error: "unknown song" }, 400);
+  const ip = req.headers.get("cf-connecting-ip") || "0", now = Date.now(), salt = env.PLAYS_SALT || "srd-plays-v1";
+  const iph = (await sha256(salt + "|ip|" + ip)).slice(0, 32), vh = (await sha256(salt + "|v|" + ip + "|" + ua)).slice(0, 32);
+  const k = (await sha256(`${E}|${iph}|${id}|${Math.floor(now / 1800000)}`)).slice(0, 40);
   try {
-    const [seen, d] = await Promise.all([env.VISITS.get(ik), env.VISITS.get(dk)]);
-    if (seen || (Number(d) || 0) >= 20000) return jsonOut({ ok: true, counted: false });
-    await Promise.all([env.VISITS.put(ik, "1", { expirationTtl: 1900 }), bump(env, dk, 90000)]);
-    return jsonOut({ ok: true, counted: true, n: await bump(env, `play:${slug}`) });
+    const recent = await env.DB.prepare("SELECT COUNT(*) AS n FROM play_events WHERE iph = ? AND ts > ?").bind(iph, now - 3600000).first();
+    if ((recent?.n || 0) >= 40) return jsonOut({ ok: true, counted: false });
+    const ins = await env.DB.prepare("INSERT OR IGNORE INTO play_events (k, iph, ts) VALUES (?, ?, ?)").bind(k, iph, now).run();
+    if (!ins.meta?.changes) return jsonOut({ ok: true, counted: false });
+    await env.DB.batch([
+      env.DB.prepare("INSERT INTO song_plays (env, song_id, plays, updated_at) VALUES (?, ?, 1, ?) ON CONFLICT(env, song_id) DO UPDATE SET plays = plays + 1, updated_at = excluded.updated_at").bind(E, id, now),
+      env.DB.prepare("INSERT OR IGNORE INTO song_listeners (env, song_id, vh, first_ts) VALUES (?, ?, ?, ?)").bind(E, id, vh, now),
+    ]);
+    if (Math.random() < 0.02) await env.DB.prepare("DELETE FROM play_events WHERE ts < ?").bind(now - 86400000).run();
+    return jsonOut({ ok: true, counted: true });
   } catch { return jsonOut({ error: "store" }, 503); }
 }
-async function listPlays(env) {
-  if (!env.VISITS) return [];
-  const l = await env.VISITS.list({ prefix: "play:", limit: 200 });
-  const rows = await Promise.all(l.keys.map(async (k) => ({ slug: k.name.slice(5), n: Number(await env.VISITS.get(k.name)) || 0 })));
-  return rows.sort((a, b) => b.n - a.n);
+async function listPlays(env, E = "prod") {
+  if (!env.DB) return [];
+  const { results } = await env.DB.prepare("SELECT p.song_id AS slug, p.plays AS n, (SELECT COUNT(*) FROM song_listeners l WHERE l.env = p.env AND l.song_id = p.song_id) AS listeners FROM song_plays p WHERE p.env = ? ORDER BY p.plays DESC").bind(E).all();
+  return results || [];
 }
 // ---- "Notify me" signups: KV "sub:<email>" = {email,t}. Email only, 3 per IP/hour, 200/day. Nothing is ever sent from here.
 async function notifySignup(req, env, url) {
@@ -999,6 +1027,10 @@ async function adminApi(req, env, url) {
     const q = String(url.searchParams.get("q") || "").replace(/^@/, "").replace(/[%_\\]/g, "").trim().slice(0, 40);
     const rows = (await env.DB.prepare(q ? "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users WHERE username LIKE ? OR display_name LIKE ? ORDER BY verified DESC, created_at DESC LIMIT 50" : "SELECT username, display_name, avatar_key, verified, email_verified, created_at FROM users ORDER BY verified DESC, created_at DESC LIMIT 50").bind(...(q ? [`%${q}%`, `%${q}%`] : [])).all()).results || [];
     return AJ({ users: rows.map((u) => ({ username: u.username, displayName: u.display_name, avatar: u.avatar_key ? "/media/avatars/" + u.avatar_key : null, verified: !!u.verified, emailVerified: !!u.email_verified, joined: u.created_at })) });
+  }
+  if (req.method === "GET" && p === "plays") {
+    if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
+    return AJ({ env: playEnv(url), plays: await listPlays(env, playEnv(url)) });
   }
   if (req.method === "GET" && p === "uploads") {
     if (!(await isAdmin(req, env))) return AJ({ error: "Please sign in as owner." }, 401);
