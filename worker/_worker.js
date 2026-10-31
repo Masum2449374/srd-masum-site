@@ -3,12 +3,12 @@
 // ---- Security headers applied to every response (CSP, framing, HSTS, permissions, CORS scope).
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.googletagmanager.com https:",
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.googletagmanager.com https://abscloud.org https:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
   "media-src 'self' blob: data: https://cdn.jsdelivr.net",
-  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https:",
+  "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com https://abscloud.org https:",
   "frame-src 'self' https:",
   "worker-src 'self'", "manifest-src 'self'", "object-src 'none'", "base-uri 'self'",
   "frame-ancestors 'none'", "upgrade-insecure-requests",
