@@ -1,3 +1,4 @@
+import * as billieJeanLyrics from "./lyrics/billie-jean.js";
 // "Top English Hits" page (/english/). Plays through the shared mini-player; the queue stays inside
 // this page's playlist (playlist: "english").
 // To add a song: put the mp3 in public/audio/english/<id>.mp3 and covers in public/covers/english/
@@ -102,6 +103,7 @@ export const ENGLISH_TRACKS = [
     src: "/audio/english/billie-jean.mp3", duration: 295.85, playlist: P, ...c("billie-jean"),
     spotifyUrl: "https://open.spotify.com/track/7J1uxwnxfQLu4APicE5Rnj",
     youtubeUrl: "https://www.youtube.com/watch?v=Zi_XLOBDo_Y", // michaeljacksonVEVO, "Billie Jean (Official Video)"
+    lyrics: billieJeanLyrics.text, lyricTimes: billieJeanLyrics.times, lyricEnds: billieJeanLyrics.ends,
   },
   {
     id: "the-cure", title: "the cure", artist: "Olivia Rodrigo", album: "the cure", explicit: true,
