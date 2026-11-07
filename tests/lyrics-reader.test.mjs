@@ -24,7 +24,7 @@ test('Manual reading pauses auto-follow; resume and timed-line taps retain exact
  const viewport={scrollTop:0,clientHeight:400,scrollHeight:1200,getBoundingClientRect:()=>({top:100}),querySelector:()=>({clientHeight:50,getBoundingClientRect:()=>({top:400})}),scrollTo:(v)=>calls.push(v)};
  let view;
  act(()=>{view=create(React.createElement(Lyrics,{track,current:10,onSeek:t=>seeks.push(t)}),{createNodeMock:e=>e.props['data-testid']==='np-lyrics-panel'?viewport:null});});
- assert.equal(calls.at(-1).behavior,'smooth');
+ assert.equal(calls.at(-1).behavior,'auto');
  assert.equal(view.root.findAllByProps({className:'lyrics-reader-footer'}).length,0,'No persistent footer branding in the classic reader');
  act(()=>view.root.findByProps({'data-testid':'np-lyrics-panel'}).props.onWheel());
  const before=calls.length;
@@ -92,5 +92,108 @@ test('Sajan has exactly the 34 supplied lines, real bounded timings, repeats, ga
  let view;act(()=>{view=create(React.createElement(Lyrics,{track:t,current:42,onSeek:()=>{}}));});
  assert.equal(view.root.findByProps({'data-testid':'np-lyrics-panel'}).props.lang,'hi-Latn');
  assert.equal(view.root.findByProps({'data-line':1}).props['aria-current'],'true');
+ act(()=>view.unmount());
+});
+
+test('Laal Dupatta at 95s is a real configured break; its start/end and completion use exact half-open intervals',async()=>{
+ const {AUDIO_TRACKS}=await import('../src/data/songs.js');
+ const {parseLyrics,activeLine}=await import('../src/lib/lyrics.js');
+ const t=AUDIO_TRACKS.find(t=>t.id==='laal-dupatta');
+ const rows=parseLyrics(t.lyrics,t.lyricTimes,t.lyricEnds,t.duration);
+ const rowAt=time=>rows.find(r=>r.seq===activeLine(rows,time));
+ assert.deepEqual([rowAt(95).t,rowAt(95).until],[89.5,117.4]);
+ assert.equal(rowAt(89.499).kind,'line');
+ for(const time of [89.5,95,117.249,117.399])assert.equal(rowAt(time).kind,'inst',String(time));
+ assert.equal(rowAt(117.4).idx,22);
+ for(const gap of rows.filter(r=>r.kind==='inst')){
+  assert.equal(rowAt(gap.t)?.seq,gap.seq);
+  assert.equal(rowAt(gap.until-.0001)?.seq,gap.seq);
+  assert.notEqual(rowAt(gap.until)?.seq,gap.seq);
+ }
+ for(const time of [-1,NaN,Infinity,t.duration,t.duration+1])assert.equal(activeLine(rows,time),-1);
+});
+
+test('No instrumental gaps are manufactured from text length or invalid vocal ends',async()=>{
+ const {parseLyrics,activeLine}=await import('../src/lib/lyrics.js');
+ const plain=parseLyrics('Short\nAnother line',[2,30],undefined,60);
+ assert.equal(plain.filter(r=>r.kind==='inst').length,0);
+ assert.equal(plain.find(r=>r.seq===activeLine(plain,20))?.idx,0);
+ assert.equal(activeLine(plain,60),-1);
+ const invalid=parseLyrics('Short\nAnother line',[2,30],[-1,200],60);
+ assert.equal(invalid.filter(r=>r.kind==='inst').length,0);
+ const known=parseLyrics('Short\nAnother line',[2,30],[5,null],60);
+ assert.deepEqual(known.filter(r=>r.kind==='inst').map(r=>[r.t,r.until]),[[5,30]]);
+});
+
+test('Only the currently timed break cue renders; headings and inactive gap markers stay absent through repeated seeks and track switches',async()=>{
+ const {AUDIO_TRACKS}=await import('../src/data/songs.js');
+ const {parseLyrics,activeLine}=await import('../src/lib/lyrics.js');
+ const t=AUDIO_TRACKS.find(t=>t.id==='laal-dupatta');
+ const rows=parseLyrics(t.lyrics,t.lyricTimes,t.lyricEnds,t.duration);
+ const seeks=[];let view;
+ act(()=>{view=create(React.createElement(Lyrics,{track:t,current:95,onSeek:x=>seeks.push(x)}));});
+ for(const current of [95,88,117.249,117.4,95,202,27.69,27.7,t.duration,95]){
+  act(()=>view.update(React.createElement(Lyrics,{track:t,current,onSeek:x=>seeks.push(x)})));
+  const active=rows.find(r=>r.seq===activeLine(rows,current));
+  assert.equal(view.root.findAllByProps({'data-inst':'1'}).length,active?.kind==='inst'?1:0,String(current));
+  assert.equal(view.root.findAllByProps({className:'lyrics-section-label'}).length,0);
+  assert.equal(view.root.findAllByProps({className:'lyrics-interlude-bars'}).length,0);
+  assert.equal(view.root.findAllByType('button').filter(b=>b.props['aria-current']==='true').length,active?1:0);
+ }
+ act(()=>view.root.findByProps({'data-line':22}).props.onClick());
+ assert.deepEqual(seeks,[117.4]);
+ const sajan=AUDIO_TRACKS.find(t=>t.id==='sajan-tumse-pyar');
+ act(()=>view.update(React.createElement(Lyrics,{track:sajan,current:42,onSeek:x=>seeks.push(x)})));
+ assert.equal(view.root.findAllByProps({'data-inst':'1'}).length,0);
+ assert.equal(view.root.findByProps({'data-line':1}).props['aria-current'],'true');
+ assert.equal(view.root.findAllByProps({className:'lyrics-section-label'}).length,0);
+ act(()=>view.unmount());
+});
+
+test('Opening and seeks land directly at the right row, continuous transitions scroll smoothly, manual reading remains respected',async()=>{
+ const {AUDIO_TRACKS}=await import('../src/data/songs.js');
+ const t=AUDIO_TRACKS.find(t=>t.id==='laal-dupatta');
+ const calls=[],queries=[];
+ const viewport={scrollTop:0,clientHeight:500,scrollHeight:3000,getBoundingClientRect:()=>({top:100}),querySelector:q=>{queries.push(q);return {clientHeight:50,getBoundingClientRect:()=>({top:500})}},scrollTo:v=>calls.push(v)};
+ let view;
+ const props=current=>({track:t,current,onSeek:()=>{}});
+ act(()=>{view=create(React.createElement(Lyrics,props(95)),{createNodeMock:e=>e.props['data-testid']==='np-lyrics-panel'?viewport:null});});
+ assert.equal(calls.at(-1).behavior,'auto');
+ const initial=calls.length;
+ act(()=>view.update(React.createElement(Lyrics,props(95.25))));
+ assert.equal(calls.length,initial,'No continuous scroll jitter inside one break');
+ act(()=>view.update(React.createElement(Lyrics,props(117.35))));
+ assert.equal(calls.at(-1).behavior,'auto');
+ const gapQuery=queries.at(-1);
+ act(()=>view.update(React.createElement(Lyrics,props(117.4))));
+ assert.equal(calls.at(-1).behavior,'smooth');
+ assert.notEqual(queries.at(-1),gapQuery);
+ act(()=>view.update(React.createElement(Lyrics,props(95))));
+ assert.equal(calls.at(-1).behavior,'auto');
+ assert.equal(queries.at(-1),gapQuery);
+ act(()=>view.root.findByProps({'data-testid':'np-lyrics-panel'}).props.onWheel());
+ const manual=calls.length;
+ act(()=>view.update(React.createElement(Lyrics,props(118))));
+ assert.equal(calls.length,manual);
+ act(()=>view.root.findByProps({'data-line':22}).props.onClick());
+ assert.ok(calls.length>manual);
+ act(()=>view.unmount());
+});
+
+test('Inactive song details never pretend their intro is playing; activating the same recording enables its correct cue and seek',async()=>{
+ const {AUDIO_TRACKS}=await import('../src/data/songs.js');
+ const t=AUDIO_TRACKS.find(t=>t.id==='laal-dupatta');
+ let view;
+ act(()=>{view=create(React.createElement(Lyrics,{track:t,current:0}));});
+ assert.equal(view.root.findAllByProps({'data-inst':'1'}).length,0);
+ assert.equal(view.root.findAllByType('button').filter(b=>b.props['aria-current']==='true').length,0);
+ act(()=>view.root.findByProps({'data-testid':'np-lyrics-panel'}).props.onWheel());
+ assert.equal(view.root.findAllByProps({className:'lyrics-reader-footer'}).length,0);
+ act(()=>view.update(React.createElement(Lyrics,{track:t,current:95,onSeek:()=>{}})));
+ assert.equal(view.root.findAllByProps({'data-inst':'1'}).length,1);
+ assert.equal(view.root.findByProps({'data-inst':'1'}).props['aria-label'],'Instrumental break');
+ act(()=>view.update(React.createElement(Lyrics,{track:t,current:0})));
+ assert.equal(view.root.findAllByProps({'data-inst':'1'}).length,0);
+ assert.equal(view.root.findAllByType('button').filter(b=>b.props['aria-current']==='true').length,0);
  act(()=>view.unmount());
 });

@@ -9,15 +9,18 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
     [track.lyrics, track.lyricTimes, track.lyricEnds, duration, track.duration]
   );
   const synced = Boolean(track.lyricTimes?.length);
-  const active = synced ? activeLine(rows, current) : -1;
+  const canFollow = typeof onSeek === "function";
+  const active = synced && canFollow ? activeLine(rows, current) : -1;
   const box = useRef(null);
   const resumeTimer = useRef(null);
+  const lastPosition = useRef(null);
   const [following, setFollowing] = useState(true);
   const resume = () => {
     clearTimeout(resumeTimer.current);
     setFollowing(true);
   };
   const readManually = () => {
+    if (!canFollow) return;
     clearTimeout(resumeTimer.current);
     setFollowing(false);
     resumeTimer.current = setTimeout(() => setFollowing(true), 5000);
@@ -27,18 +30,28 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
     setFollowing(true);
     box.current?.scrollTo({ top: 0, behavior: "auto" });
     return () => clearTimeout(resumeTimer.current);
-  }, [track.id]);
+  }, [track.id, canFollow]);
   useEffect(() => {
-    if (!synced || !following || active < 0 || !box.current) return;
+    const previous = lastPosition.current;
+    const changedTrack = previous?.trackId !== track.id;
+    const becameActive = canFollow && !previous?.canFollow;
+    const seekJump = previous && !changedTrack && Math.abs(current - previous.current) > 2;
+    const changedLine = previous?.active !== active;
+    const resumed = following && previous && !previous.following;
+    lastPosition.current = { trackId: track.id, current, active, following: changedTrack || becameActive ? true : following, canFollow };
+    if (!synced || !canFollow || (!following && !changedTrack && !becameActive) || active < 0 || !box.current) return;
+    if (!changedTrack && !becameActive && !changedLine && !resumed && !seekJump) return;
     const viewport = box.current;
     const line = viewport.querySelector(`[data-seq="${active}"]`);
     if (!line) return;
     viewport.scrollTo({
       top: lyricScrollTarget(viewport, line),
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      // Opening/track changes and explicit jumps should land at the right moment,
+      // not sweep through every inactive chorus/section on the way there.
+      behavior: changedTrack || becameActive || seekJump || window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
-  }, [active, synced, following, track.id]);
-  const seek = (time) => { resume(); onSeek?.(time); };
+  }, [active, synced, following, track.id, current, canFollow]);
+  const seek = (time) => { if (!canFollow) return; resume(); onSeek(time); };
   const lang = track.lyricsLang || (/[\u0980-\u09ff]/.test(track.lyrics || "") ? "bn" : /[\u0400-\u04ff]/.test(track.lyrics || "") ? "ru" : /[\u0900-\u097f]/.test(track.lyrics || "") ? "hi" : "en");
   return (
     <div className="lyrics-reader">
@@ -51,26 +64,25 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
         <div aria-hidden="true" className="lyrics-leading-space" />
         {rows.map((r, i) => {
           if (r.kind === "gap") return <div key={i} className="lyrics-stanza-space" />;
-          if (r.kind === "label") return <p key={i} className="lyrics-section-label">{r.text}</p>;
-          if (r.kind === "inst") return (
-            <button key={i} type="button" data-seq={r.seq} data-inst="1" disabled={!onSeek}
-              aria-label="Instrumental" aria-current={r.seq === active ? "true" : undefined}
+          if (r.kind === "label") return null; // Headings are not timed lyrics.
+          if (r.kind === "inst") return r.seq === active ? (
+            <button key={i} type="button" data-seq={r.seq} data-inst="1" disabled={!canFollow}
+              aria-label="Instrumental break" aria-current="true"
               onClick={() => seek(r.t)} className="lyrics-interlude">
-              <span className="lyrics-interlude-bars" aria-hidden="true"><i /><i /><i /></span>
-              <span>Instrumental</span>
+              <span className="lyrics-interlude-notes" aria-hidden="true">♪ · ♪</span>
             </button>
-          );
+          ) : null;
           const on = r.seq != null && r.seq === active;
           const past = synced && active >= 0 && r.seq != null && r.seq < active;
           const cls = `lyrics-line ${past ? "is-past" : ""}`;
           return synced && r.t != null ? (
-            <button key={i} type="button" data-line={r.idx} data-seq={r.seq} disabled={!onSeek}
+            <button key={i} type="button" data-line={r.idx} data-seq={r.seq} disabled={!canFollow}
               aria-current={on ? "true" : undefined} onClick={() => seek(r.t)} className={cls}>{r.text}</button>
           ) : <p key={i} data-line={r.idx} className={cls}>{r.text}</p>;
         })}
         <div aria-hidden="true" className="lyrics-trailing-space" />
       </div>
-      {synced && !following && (
+      {synced && canFollow && !following && (
         <div className="lyrics-reader-footer">
           <button type="button" onClick={resume}>Resume sync <span aria-hidden="true">↗</span></button>
         </div>
