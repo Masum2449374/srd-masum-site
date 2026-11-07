@@ -1372,3 +1372,12 @@
 .artist-credit { display:inline-flex; align-items:center; gap:4px; min-width:0; max-width:100%; vertical-align:middle; }
 .artist-credit-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
 .artist-credit > .srd-verified { flex:none; }
+
+/* Artist-title seal: fixed 13px, raised gently, attached to the name ending. */
+.verified-name-tail { white-space:nowrap; }
+.verified-name-raised {
+  width:13px; height:13px; min-width:13px; max-width:13px;
+  min-height:13px; max-height:13px; margin-left:4px;
+  vertical-align:super; position:relative; top:-1px; flex-shrink:0;
+}
+.studio-artist-hero > div:last-child { min-width:0; }
