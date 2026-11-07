@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Play, Pause, ArrowLeft, Info, Article } from "@phosphor-icons/react";
+import { Play, Pause, ArrowLeft, Info } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { ALL_PLAYLIST } from "./PlaylistSection.jsx";
 import { CoverArt } from "./MusicCard.jsx";
@@ -85,10 +85,6 @@ export default function SongDetail({ id }) {
         <section className="studio-section">
           <div className="studio-section-head">
             <div>
-              <p className="studio-kicker">
-                <Article size={13} />
-                Word for word
-              </p>
               <h2>Lyrics</h2>
             </div>
             <span className="studio-interior-badge">{track.lyricTimes?.length ? "Synced lyrics" : "Lyrics"}</span>

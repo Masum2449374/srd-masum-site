@@ -70,10 +70,11 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
         })}
         <div aria-hidden="true" className="lyrics-trailing-space" />
       </div>
-      <div className="lyrics-reader-footer">
-        <span>{synced && onSeek ? "Tap a line to seek" : "Read along"}</span>
-        {synced && (!following ? <button type="button" onClick={resume}>Resume sync <span aria-hidden="true">↗</span></button> : <span className="lyrics-follow-state">Following the music</span>)}
-      </div>
+      {synced && !following && (
+        <div className="lyrics-reader-footer">
+          <button type="button" onClick={resume}>Resume sync <span aria-hidden="true">↗</span></button>
+        </div>
+      )}
     </div>
   );
 }

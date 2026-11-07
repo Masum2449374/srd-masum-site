@@ -15,7 +15,7 @@ const track={id:'reader-test',title:'Reader test',lyrics:'First line\nSecond lin
 test('Lyrics scrolling uses reader-relative geometry and clamps intro/outro without viewport-sized empty space',()=>{
  const viewport={scrollTop:200,clientHeight:500,scrollHeight:2000,getBoundingClientRect:()=>({top:550})};
  const line={clientHeight:50,getBoundingClientRect:()=>({top:900})};
- assert.equal(lyricScrollTarget(viewport,line),385);
+ assert.equal(lyricScrollTarget(viewport,line),325);
  assert.equal(lyricScrollTarget({...viewport,scrollTop:0},{...line,getBoundingClientRect:()=>({top:550})}),0);
  assert.equal(lyricScrollTarget({...viewport,scrollTop:1490},line),1500);
 });
@@ -25,6 +25,7 @@ test('Manual reading pauses auto-follow; resume and timed-line taps retain exact
  let view;
  act(()=>{view=create(React.createElement(Lyrics,{track,current:10,onSeek:t=>seeks.push(t)}),{createNodeMock:e=>e.props['data-testid']==='np-lyrics-panel'?viewport:null});});
  assert.equal(calls.at(-1).behavior,'smooth');
+ assert.equal(view.root.findAllByProps({className:'lyrics-reader-footer'}).length,0,'No persistent footer branding in the classic reader');
  act(()=>view.root.findByProps({'data-testid':'np-lyrics-panel'}).props.onWheel());
  const before=calls.length;
  act(()=>view.update(React.createElement(Lyrics,{track,current:20,onSeek:t=>seeks.push(t)})));
