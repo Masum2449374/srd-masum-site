@@ -35,6 +35,7 @@ async function card(file, big, small, coverPath, artist = "SRD Masum") {
 }
 
 const SITE = "https://srdmasum.bbroot.com";
+const PREVIEW_SITE = "https://design-premium-studio-202611.srd-masum.pages.dev";
 const dist = path.resolve("dist");
 const shell = fs.readFileSync(path.join(dist, "index.html"), "utf8").replace(/\s*<meta property="og:image:(secure_url|type|width|height|alt)"[^>]*>/g, "").replace(/\s*<meta name="twitter:image:alt"[^>]*>/g, "");
 const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -43,7 +44,8 @@ const setMeta = (html, re, tag) => (re.test(html) ? html.replace(re, tag) : html
 const all = [...AUDIO_TRACKS, ...BANGLA_TRACKS, ...ENGLISH_ALL];
 fs.mkdirSync(path.join(dist, "og"), { recursive: true });
 for (const t of all) {
-  const url = `${SITE}/song/${t.id}/`;
+  const songSite = t.previewOnly ? PREVIEW_SITE : SITE;
+  const url = `${songSite}/song/${t.id}/`;
   const title = !t.artist || t.artist === "SRD Masum" ? `${t.title} | SRD Masum` : `${t.title} — ${t.artist} | SRD Masum`;
   const desc = !t.artist || t.artist === "SRD Masum" ? `Listen to "${t.title}", released by SRD Masum` : `Listen to "${t.title}" by ${t.artist}`;
   let h = shell;
@@ -55,13 +57,13 @@ for (const t of all) {
   h = setMeta(h, /<meta property="og:url"[^>]*>/, `<meta property="og:url" content="${url}" />`);
   h = setMeta(h, /<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${url}" />`);
   await card(path.join(dist, "og", `${t.id}.png`), t.title, "NOW PLAYING · LISTEN", t.cover, t.artist || "SRD Masum");
-  const img = `${SITE}/og/${t.id}.png`;
+  const img = `${songSite}/og/${t.id}.png`;
   h = setMeta(h, /<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${img}" />\n    <meta property="og:image:width" content="1200" />\n    <meta property="og:image:height" content="630" />\n    <meta property="og:image:alt" content="${esc(title)}" />`);
   h = setMeta(h, /<meta name="twitter:card"[^>]*>/, `<meta name="twitter:card" content="summary_large_image" />`);
   h = setMeta(h, /<meta name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${esc(title)}" />`);
   h = setMeta(h, /<meta name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${esc(desc)}" />`);
   h = setMeta(h, /<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${img}" />`);
-  h = h.replace("</head>", `    <meta property="og:audio" content="${esc(t.src)}" />\n  </head>`);
+  h = h.replace("</head>", `    <meta property="og:audio" content="${esc(t.previewOnly ? songSite + t.src : t.src)}" />\n  </head>`);
   // The shell's homepage JSON-LD graph (incl. its MusicRecording) does not belong on song pages.
   h = h.replace(/\s*<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "");
   // Retain the app bundle: direct deep links join the same persistent audio shell.
@@ -87,8 +89,8 @@ for (const t of all) {
   let acc = "11,108,240";
   if (cover) { try { const { dominant: d } = await sharp(path.resolve("public" + cover)).stats(); const m = Math.max(d.r, d.g, d.b, 1), k = Math.max(1, 170 / m); acc = [d.r, d.g, d.b].map((v) => Math.min(255, Math.round(v * k))).join(","); } catch {} }
   const langName = languageLabel(t);
-  const chips = [t.released ? `Released ${xesc(t.released)}` : "", langName, t.duration ? `${Math.floor(t.duration / 60)}:${String(Math.round(t.duration % 60)).padStart(2, "0")}` : "", isOriginal ? "SRD Masum Original" : ""].filter(Boolean).map((c) => `<span class="chip">${c}</span>`).join("");
-  const credRows = [["Album", t.album], ["Writers", t.writers], ["Label", t.label]].filter(([, v]) => v).map(([k, v]) => `<div><dt>${k}</dt><dd>${xesc(v)}</dd></div>`).join("");
+  const chips = [t.version ? xesc(t.version) : "", t.released ? `Released ${xesc(t.released)}` : "", langName, t.duration ? `${Math.floor(t.duration / 60)}:${String(Math.round(t.duration % 60)).padStart(2, "0")}` : "", isOriginal ? "SRD Masum Original" : ""].filter(Boolean).map((c) => `<span class="chip">${c}</span>`).join("");
+  const credRows = [["Album", t.album], ["Music", t.composer], ["Writers", t.writers], ["Label", t.label], ["Recording note", t.versionNote]].filter(([, v]) => v).map(([k, v]) => `<div><dt>${k}</dt><dd>${xesc(v)}</dd></div>`).join("");
   const I = {
     play: '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><path fill="currentColor" d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11.04-6.86a1 1 0 0 0 0-1.72L9.5 4.28A1 1 0 0 0 8 5.14z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.2" fill="currentColor"/></svg>',
@@ -103,7 +105,7 @@ for (const t of all) {
 .sp{max-width:1100px;margin:auto;padding:28px 28px 70px;color:#f5f3ef;font-family:'Inter Variable',system-ui,sans-serif;background:#0f1014}.sp a{color:inherit}.sp-top{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:38px;padding-bottom:23px;border-bottom:1px solid #ffffff14}.sp-brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-family:'Sora Variable',sans-serif;font-size:19px;font-weight:600;letter-spacing:-.7px}.sp-brandmark{display:grid;place-items:center;width:39px;height:39px;border:1px solid #b6a0ff33;border-radius:12px;background:#b6a0ff14;color:#b6a0ff}.sp-brand small{display:block;margin-top:4px;font-family:'Inter Variable',sans-serif;letter-spacing:1.9px;font-size:6px;font-weight:500;color:#9294a2}.sp-back{font-size:11px;text-decoration:none;color:#adaebb!important;line-height:1.6}.sp-listening{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:60px;align-items:center}.sp-cover{width:100%;max-width:440px;aspect-ratio:1;border-radius:15px;object-fit:cover;box-shadow:0 25px 70px -30px #0008}.sp h1{font-family:'Sora Variable',sans-serif;font-size:clamp(30px,4vw,48px);line-height:1.15;letter-spacing:-.05em;font-weight:550;margin:15px 0}.sp-eyebrow{font-size:9px;letter-spacing:2px;color:#b6a0ff;text-transform:uppercase}.sp-artist{font-size:13px;color:#b6a0ff;line-height:1.7}.sp-alink{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.sp .vbadge{width:14px;height:14px}.sp .chips{display:flex;flex-wrap:wrap;gap:7px;margin:20px 0}.sp .chip{padding:6px 9px;border:1px solid #ffffff12;border-radius:6px;color:#adaebb;font-size:10px}.sp .card{padding:18px;border-radius:13px;border:1px solid #2f303a;background:#17181e}.sp .grid2{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}.sp .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 12px;border-radius:9px;text-decoration:none;font-size:11px;background:#17181e;border:1px solid #2f303a}.sp .btn svg{width:18px;height:18px;flex:none}.sp .btn:hover,.sp a:focus-visible{outline:1px solid #b6a0ff;outline-offset:3px}.sp .sec{padding:26px;margin-top:25px;border:1px solid #2f303a;border-radius:14px;background:#17181e}.sp .sec h2{font-size:10px;letter-spacing:1.8px;color:#b6a0ff;text-transform:uppercase;margin:0 0 20px}.sp .sec dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.sp .sec dt{font-size:10px;color:#9294a2}.sp .sec dd{font-size:12px;line-height:1.7;margin:6px 0 0}.sp .ly{font-size:20px;line-height:1.9;color:#adaebb}.sp .sp-lyrics{padding:30px 38px}
 @media(max-width:700px){.sp{padding:20px 20px 50px;max-width:520px}.sp-top{margin-bottom:28px;gap:14px}.sp-brand{font-size:16px}.sp-brandmark{width:34px;height:34px;border-radius:10px}.sp-back{font-size:9px;max-width:120px;text-align:right}.sp-listening{grid-template-columns:1fr;gap:27px}.sp-cover{max-width:300px;margin:auto}.sp h1{font-size:31px}.sp .sec dl{grid-template-columns:1fr;gap:15px}.sp .sp-lyrics{padding:25px 23px}.sp .ly{font-size:18px}}
 </style>`;
-  const share = `${SITE}/song/${encodeURIComponent(t.id)}/`;
+  const share = `${songSite}/song/${encodeURIComponent(t.id)}/`;
   // Accessible no-JavaScript fallback only; React replaces it before its audio engine mounts.
   const player = audioSrc ? `<div class="card" role="region" aria-label="Player"><audio controls preload="none" src="${esc(audioSrc)}" style="width:100%"></audio><p style="font-size:11px;color:#adaebb;margin:12px 0 0">Open the app player for synced lyrics and your listening queue.</p></div>` : "";
   const links = `<div class="grid2">${t.spotifyUrl ? `<a class="btn b-sp" href="${esc(t.spotifyUrl)}" rel="noopener" target="_blank" aria-label="Listen on Spotify (opens in a new tab)">${I.spotify}Spotify</a>` : ""}${t.youtubeUrl ? `<a class="btn b-yt" href="${esc(t.youtubeUrl)}" rel="noopener" target="_blank" aria-label="Watch on YouTube (opens in a new tab)">${I.youtube}YouTube</a>` : ""}</div>
@@ -126,7 +128,7 @@ ${lyr ? `<section class="sec sp-lyrics"><h2>Synced lyrics · Follow the feeling<
   });
   h = h.replace("</head>", `<style>${fallbackStyles.toString()}</style>\n</head>`);
   if (isOriginal) {
-    const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, ...(!t.artist || t.artist === "SRD Masum" ? {} : { byArtist: { "@type": "MusicGroup", name: t.artist } }), recordLabel: { "@type": "Organization", "@id": `${SITE}/#org`, name: "SRD Masum" }, ...(codes.length ? { inLanguage: codes } : {}), ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
+    const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, ...(!t.artist || t.artist === "SRD Masum" ? {} : { byArtist: { "@type": "MusicGroup", name: t.artist } }), recordLabel: { "@type": "Organization", "@id": `${songSite}/#org`, name: "SRD Masum" }, ...(codes.length ? { inLanguage: codes } : {}), ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
     h = h.replace("</head>", `    <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n  </head>`);
   }
   if (t.lyrics) {
@@ -190,7 +192,7 @@ for (const p of languagePages) {
 }
 
 // Sitemap with the song pages.
-const urls = [...languagePages.map(p=>SITE+p.href), `${SITE}/`, `${SITE}/english/`, `${SITE}/copyright/`, ...all.map((t) => `${SITE}/song/${t.id}/`)];
+const urls = [...languagePages.map(p=>SITE+p.href), `${SITE}/`, `${SITE}/english/`, `${SITE}/copyright/`, ...all.map((t) => `${t.previewOnly ? PREVIEW_SITE : SITE}/song/${t.id}/`)];
 fs.writeFileSync(
   path.join(dist, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`

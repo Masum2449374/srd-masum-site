@@ -5,7 +5,11 @@ import { ENGLISH_ALL } from "../data/english-songs.js";
 export const SITE_URL = "https://srdmasum.bbroot.com";
 
 // Canonical share link: a static page with its own link preview (built by scripts/song-pages.mjs).
-export const songUrl = (track) => `${SITE_URL}/song/${encodeURIComponent(track.id)}/`;
+export const songUrl = (track) => {
+  const here = typeof window !== "undefined" ? window.location : null;
+  const base = track.previewOnly && here?.hostname?.endsWith(".srd-masum.pages.dev") ? here.origin : SITE_URL;
+  return `${base}/song/${encodeURIComponent(track.id)}/`;
+};
 
 // Finds the song a shared link points to: /song/<id>/, ?song=<id> or #song-<id>.
 export function songFromUrl() {

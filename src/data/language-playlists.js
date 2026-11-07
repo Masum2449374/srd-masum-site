@@ -17,6 +17,7 @@ export const TRACK_LANGUAGES = {
   "koto-din-bhebechhi-cover": ["bn"],
   "tomar-jonno-mon-kandere": ["bn"],
   "laal-dupatta": ["hi"],
+  "sajan-tumse-pyar": ["hi"],
   "sladkaya-myata": ["ru"],
   "dekha-tenu-pehli-pehli": ["hi", "pa"],
   aashiqana: [],

@@ -49,6 +49,7 @@ export default function SongDetail({ id }) {
               {formatTime(track.duration)}
               {plays && <> · {fmtPlays(plays[String(id).toLowerCase()])}</>}
             </p>
+            {track.version && <p className="studio-muted">{track.version}</p>}
             <div className="studio-song-actions">
               <button
                 type="button"

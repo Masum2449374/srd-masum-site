@@ -11,15 +11,15 @@ import {
 import { internalDestination } from "../src/lib/navigation-core.js";
 const read = (p) =>
   fs.readFileSync(new URL("../" + p, import.meta.url), "utf8");
-test("All 23 existing recordings have one reviewed language bucket; no missing, duplicate or invented songs", () => {
-  assert.equal(CATALOGUE.length, 23);
+test("All 24 recordings have one reviewed language bucket; no missing, duplicate or invented songs", () => {
+  assert.equal(CATALOGUE.length, 24);
   assert.deepEqual(
     Object.keys(TRACK_LANGUAGES).sort(),
     CATALOGUE.map((t) => t.id).sort(),
   );
   const grouped = LANGUAGE_PLAYLISTS.flatMap((p) => p.tracks);
   assert.equal(grouped.length, CATALOGUE.length);
-  assert.equal(new Set(grouped.map((t) => t.id)).size, 23);
+  assert.equal(new Set(grouped.map((t) => t.id)).size, 24);
   assert.deepEqual(
     grouped.map((t) => t.id).sort(),
     CATALOGUE.map((t) => t.id).sort(),
@@ -38,7 +38,7 @@ test("All 23 existing recordings have one reviewed language bucket; no missing, 
     {
       bangla: 2,
       english: 16,
-      hindi: 1,
+      hindi: 2,
       russian: 1,
       multilingual: 2,
       unclassified: 1,

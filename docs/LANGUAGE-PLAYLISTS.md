@@ -2,13 +2,13 @@
 
 ## Catalogue review
 
-No recording was added, removed, re-uploaded or renamed in this iteration. The 23 existing track objects and their media/cover sources remain the source of truth. `src/data/language-playlists.js` adds a separately reviewed, explicit ID-to-language mapping, not a rule based on folders or legacy collection names. Each recording belongs to exactly one playlist:
+The original language-playlist iteration grouped 23 existing recordings without changing them. The subsequent user-requested Sajan Tumse Pyar addition brings the catalogue to 24; see SAJAN-TUMSE-PYAR.md for provenance and preview-only storage. `src/data/language-playlists.js` adds a separately reviewed, explicit ID-to-language mapping, not a rule based on folders or legacy collection names. Each recording belongs to exactly one playlist:
 
 | Playlist | Count | Evidence / handling |
 | --- | ---: | --- |
 | Bangla | 2 | Koto Din Bhebechhi: existing Bengali lyrics. Tomar Jonno Mon Kandere: Bengali title and existing SRD Music Bangla release metadata. |
 | English | 16 | Named recordings/artist metadata cross-checked with locally inspected vocal samples; Billie Jean also has existing English lyrics. |
-| Hindi | 1 | Laal Dupatta: existing Devanagari Hindi lyrics and matching soundtrack metadata. |
+| Hindi | 2 | Added Sajan Tumse Pyar: verified Hindi soundtrack recording with user-provided audio. Laal Dupatta: existing Devanagari Hindi lyrics and matching soundtrack metadata. |
 | Russian | 1 | Sladkaya Myata: existing Russian lyrics and matching embedded title/artist metadata. It is not classified as Hindi. |
 | Multilingual | 2 | Danza Kuduro cover: Spanish + Portuguese; Dekha Tenu Pehli Pehli / Suraj Hua Maddham mashup: Hindi + Punjabi. Kept once each, rather than duplicated across single-language lists. |
 | Language to confirm | 1 | Aashiqana by Radivyne: embedded tags do not identify language; local model checks were inconsistent/low-confidence, and public search results confused it with unrelated same-title recordings. It is deliberately NOT guessed as Hindi, Bangla, Japanese or Telugu. |
@@ -33,7 +33,7 @@ Offline language checks used public speech-model weights on existing local files
 
 ## Standalone-header follow-up
 
-The user's screenshot showed the first preview's old standalone transport. The previous interior iteration had already replaced that independent 10-second-skip controller with the persistent React shell (plus a native no-JavaScript fallback). However, the static fallback header still used the old avatar. This iteration newly replaces that residual avatar header with a restrained violet music-note brandmark, SRD Masum wordmark and THE MUSIC SPACE subtitle on all 23 generated song entries. Its fallback style is now fully scoped and consistent with the premium identity.
+The user's screenshot showed the first preview's old standalone transport. The previous interior iteration had already replaced that independent 10-second-skip controller with the persistent React shell (plus a native no-JavaScript fallback). However, the static fallback header still used the old avatar. This iteration newly replaces that residual avatar header with a restrained violet music-note brandmark, SRD Masum wordmark and THE MUSIC SPACE subtitle on all generated song entries. Its fallback style is now fully scoped and consistent with the premium identity.
 
 ## Safeguards / validation
 

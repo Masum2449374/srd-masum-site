@@ -33,7 +33,10 @@ export default function CreditsPanel({ t, onClose, onPlay }) {
     ? [
         [own ? "Released by" : "Artist", t.artist || "SRD Masum"],
         ["Release", t.album],
+        ["Music", t.composer],
         ["Songwriting", t.writers],
+        ["Audio version", t.version],
+        ["Recording note", t.versionNote],
         ["Production", t.producer],
         [
           "Release date",

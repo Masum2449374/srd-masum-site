@@ -8,7 +8,7 @@ const read = (p) =>
   fs.readFileSync(new URL(`../${p}`, import.meta.url), "utf8");
 const tracks = [...ENGLISH_ALL, ...AUDIO_TRACKS, ...BANGLA_TRACKS];
 test("Catalogue contains unique real tracks with existing cover assets", () => {
-  assert.equal(tracks.length, 23);
+  assert.equal(tracks.length, 24);
   assert.equal(new Set(tracks.map((t) => t.id)).size, tracks.length);
   for (const t of tracks) {
     assert.ok(t.src && t.title && t.duration > 0);
@@ -60,7 +60,7 @@ test("Local review cannot install ad listeners or call production APIs", () => {
   assert.match(config, /command === "serve"/);
   assert.match(config, /path\.startsWith\("\/api\/"\)/);
 });
-test("Build includes untouched Pages worker and all shareable song pages", () => {
+test("Build packages the current Pages worker and all shareable song pages", () => {
   assert.equal(read("dist/_worker.js"), read("worker/_worker.js"));
   for (const t of tracks) {
     const page = read(`dist/song/${t.id}/index.html`);

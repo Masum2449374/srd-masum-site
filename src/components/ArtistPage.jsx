@@ -50,7 +50,7 @@ export default function ArtistPage({ slug }) {
           </div>
           <div>
             <p className="studio-kicker">
-              <VerifiedBadge size={14} />
+              {artist.name === "SRD Masum" && <VerifiedBadge size={14} />}
               Artist collection
             </p>
             <h1 data-testid="artist-name">{artist.name}</h1>
