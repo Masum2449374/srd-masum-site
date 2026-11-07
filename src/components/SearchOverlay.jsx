@@ -1,3 +1,5 @@
+import { useDialogFocus } from "../lib/useDialogFocus.js";
+import { isVerified } from "../lib/artists.js";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MagnifyingGlass, X, CaretRight } from "@phosphor-icons/react";
@@ -5,7 +7,7 @@ import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
 import { ENGLISH_ALL } from "../data/english-songs.js";
 import Avatar from "./Avatar.jsx";
-import { spaClick } from "../lib/nav.js";
+import { spaClick, navigate } from "../lib/nav.js";
 
 const ALL = (() => {
   const seen = new Set();
@@ -15,7 +17,8 @@ const norm = (s) => String(s || "").normalize("NFC").toLowerCase();
 
 export default function SearchOverlay({ onClose }) {
   const [q, setQ] = useState("");
-  const inputRef = useRef(null);
+  const inputRef = useRef(null), dialogRef = useRef(null);
+  useDialogFocus(dialogRef);
   useEffect(() => {
     inputRef.current?.focus();
     const onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); onClose(); } };
@@ -55,13 +58,13 @@ export default function SearchOverlay({ onClose }) {
   const users = remote.q === q.trim() ? remote.users : [], upSongs = remote.q === q.trim() ? remote.songs : [];
   const total = results.length + upSongs.length;
   return (
-    <div className="srd-search" role="dialog" aria-modal="true" aria-label="Search songs and profiles">
+    <div ref={dialogRef} className="srd-search" role="dialog" aria-modal="true" aria-label="Search songs and profiles">
       <div className="srd-search-backdrop" onClick={onClose} aria-hidden="true" />
       <div className="srd-search-sheet">
         <div className="srd-search-bar">
           <MagnifyingGlass size={20} weight="bold" aria-hidden="true" className="shrink-0 text-muted" />
           <input ref={inputRef} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search songs, artists or people…" aria-label="Search songs, artists or people" autoComplete="off" enterKeyHint="search"
-            onKeyDown={(e) => { if (e.key === "Enter" && results[0]) location.href = `/song/${results[0].id}/`; }} />
+            onKeyDown={(e) => { if (e.key === "Enter" && results[0]) { navigate(`/song/${results[0].id}/`); onClose(); } }} />
           <button type="button" onClick={onClose} aria-label="Close search" className="srd-menu-close"><X size={18} weight="bold" aria-hidden="true" /></button>
         </div>
         {users.length > 0 && <>
@@ -81,7 +84,7 @@ export default function SearchOverlay({ onClose }) {
             ))}
           </ul>
         </>}
-        {q.trim() ? (total > 0 ? <p className="srd-search-count">{users.length > 0 ? "Songs · " : ""}{`${total} result${total === 1 ? "" : "s"}`}</p> : null) : <p className="srd-search-hint" style={{textAlign:"center",padding:"28px 16px",fontSize:"14px",opacity:.6}}>Type a song or artist name</p>}
+        {q.trim() ? (total > 0 ? <p className="srd-search-count">{users.length > 0 ? "Songs · " : ""}{`${total} result${total === 1 ? "" : "s"}`}</p> : null) : <><div className="studio-search-intro"><p className="studio-kicker">Find your next favorite</p><h2>What sounds good?</h2><p>Search the collection by song, artist or profile.</p></div><div className="studio-search-suggestions">{["SRD Masum", "Danza Kuduro", "Billie Jean", "Koto Din"].map((term) => <button type="button" key={term} onClick={() => { setQ(term); inputRef.current?.focus(); }}>{term}</button>)}</div></>}
         <ul className="srd-search-list">
           {results.map((t) => (
             <li key={t.id}>
@@ -89,7 +92,7 @@ export default function SearchOverlay({ onClose }) {
                 <img src={t.thumb || t.cover || "/images/avatar.webp"} alt="" width="44" height="44" loading="lazy" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px] font-semibold text-ink">{t.title}</span>
-                  <span className="flex min-w-0 items-center gap-1 text-xs text-muted"><span className="truncate">{t.artist || "SRD Masum"}</span>{t.verified !== false && <VerifiedBadge size={12} />}</span>
+                  <span className="flex min-w-0 items-center gap-1 text-xs text-muted"><span className="truncate">{t.artist || "SRD Masum"}</span>{isVerified(t) && <VerifiedBadge size={12} />}</span>
                 </span>
                 <CaretRight size={16} weight="bold" aria-hidden="true" className="text-muted" />
               </a>

@@ -6,27 +6,12 @@ const REVIEWS_KEY = "srd-reviews";
 const NAME_MAX = 40;
 const MESSAGE_MAX = 300;
 
-// Sample reviews shown until real fan reviews are added. Replace or delete freely.
-const SEED_REVIEWS = [
-  { id: "seed-1", name: "Nabil H.", rating: 5, message: "Laal Dupatta cover is on repeat every single night. Proper late-drive music." },
-  { id: "seed-2", name: "Sadia R.", rating: 5, message: "These songs instantly lift my mood. Can't wait for more!" },
-  { id: "seed-3", name: "Tanvir K.", rating: 4, message: "Clean vocals and the videos look great. Would love a full album one day." },
-  { id: "seed-4", name: "Mim J.", rating: 5, message: "Found this page through a friend and now I follow every release. Keep going!" },
-  { id: "seed-5", name: "Priya S.", rating: 5, message: "The new release countdown is a fun touch. Cannot wait for the next single." },
-];
-
+// Reviews are local to this browser, not fabricated public testimonials.
 function loadReviews() {
   try {
-    const raw = localStorage.getItem(REVIEWS_KEY);
-    if (raw === null) return SEED_REVIEWS;
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return SEED_REVIEWS;
-    // Older browsers saved seed reviews (incl. an earlier Bangla one): always show the current English seeds.
-    const seeds = new Map(SEED_REVIEWS.map((r) => [r.id, r]));
-    return parsed.map((r) => seeds.get(r?.id) || r);
-  } catch {
-    return SEED_REVIEWS;
-  }
+    const parsed = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed.filter((r) => r && !String(r.id).startsWith("seed-") && typeof r.message === "string") : [];
+  } catch { return []; }
 }
 
 function saveReviews(list) {
@@ -188,9 +173,9 @@ function ReviewForm({ onAdd }) {
           className="glow-hover beat-pop inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 text-sm font-medium text-on-accent transition-transform duration-200 hover:scale-[1.03] active:scale-[0.97]"
         >
           <ChatCircleText size={18} aria-hidden="true" />
-          Post review
+          Save review
         </button>
-        <p role="status" className="text-sm text-muted">{sent ? "Thanks! Your review is on the train." : ""}</p>
+        <p role="status" className="text-sm text-muted">{sent ? "Saved in this browser. Thank you!" : ""}</p>
       </div>
     </form>
   );
@@ -210,13 +195,13 @@ export default function Reviews() {
       <div className="mx-auto max-w-6xl">
         <Reveal>
           <div className="mb-8 sm:mb-10">
-            <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Fan reviews</p>
+            <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Listening notes</p>
             <h2 className="mt-3 font-display text-3xl tracking-display sm:text-5xl">Reviews</h2>
-            <p className="mt-4 max-w-xl text-muted">What fans are saying. Hover the train on desktop to pause it.</p>
+            <p className="mt-4 max-w-xl text-muted">Your listening notes, saved privately in this browser.</p>
           </div>
         </Reveal>
         <Reveal delay={0.08}>
-          <ReviewMarquee reviews={reviews} />
+          {reviews.length > 0 && <ReviewMarquee reviews={reviews} />}
         </Reveal>
         <Reveal delay={0.12} className="mt-12 sm:mt-16">
           <div className="mb-6 flex items-center gap-2 text-sm text-muted">

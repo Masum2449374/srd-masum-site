@@ -59,6 +59,7 @@ const handle = async (req, env, ctx) => {
     if (url.pathname.startsWith("/api/admin/")) return adminApi(req, env, url);
     if (url.pathname === "/api/users/search") return userSearch(req, env, url);
     if (url.pathname.startsWith("/media/songs/")) return songMedia(req, env, url);
+    if (url.pathname.startsWith("/audio/preview/") || url.pathname.startsWith("/audio/releases/")) return catalogAudio(req, env, url);
     // App routes rendered by the SPA (404.html disables the Pages fallback, so serve the shell here).
     if ((req.method === "GET" || req.method === "HEAD") && /^\/(u\/[a-z0-9_]{1,20}|artist\/[a-z0-9-]{1,40}|account|admin\/uploads)\/?$/i.test(url.pathname)) {
       const shell = await env.ASSETS.fetch(new Request(`${url.origin}/`));
@@ -95,6 +96,46 @@ const handle = async (req, env, ctx) => {
     return new Response(buf.slice(start, end + 1), { status: 206, headers: h });
   }
 };
+
+// Explicit published-audio allowlist. Public release approved by the owner; legacy preview route stays preview-only.
+// Never expose arbitrary/private MEDIA keys or mutate the catalogue DB.
+const PREVIEW_AUDIO = {
+  "/audio/preview/sajan-tumse-pyar-8e0e606fb673.mp3": "preview-assets/20261107/sajan-tumse-pyar-8e0e606fb673-6555353ff48c.mp3",
+};
+const RELEASE_AUDIO = {
+  "/audio/releases/sajan-tumse-pyar-8e0e606fb673.mp3": "preview-assets/20261107/sajan-tumse-pyar-8e0e606fb673-6555353ff48c.mp3",
+};
+async function catalogAudio(req, env, url) {
+  const previewHost = url.hostname.endsWith(".srd-masum.pages.dev");
+  const legacyPreview = url.pathname.startsWith("/audio/preview/");
+  const allowedHost = previewHost || (!legacyPreview && ["srdmasum.bbroot.com", "srd-masum.pages.dev"].includes(url.hostname));
+  const key = (legacyPreview ? PREVIEW_AUDIO : RELEASE_AUDIO)[url.pathname];
+  if (!allowedHost || !key) return new Response("Not found", { status: 404 });
+  if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD" } });
+  if (!env.MEDIA) return new Response("Audio unavailable", { status: 503 });
+  const meta = await env.MEDIA.head(key);
+  if (!meta) return new Response("Not found", { status: 404 });
+  const size = meta.size;
+  const headers = new Headers({ "content-type": "audio/mpeg", "content-language": "hi", "accept-ranges": "bytes", "access-control-allow-origin": "*", "cache-control": "public, max-age=31536000, immutable", etag: meta.httpEtag });
+  if (req.headers.get("if-none-match") === meta.httpEtag) return new Response(null, { status: 304, headers });
+  let range = req.headers.get("range"), offset = 0, length = size, status = 200;
+  if (req.headers.get("if-range") && req.headers.get("if-range") !== meta.httpEtag) range = null;
+  if (range) {
+    const m = /^bytes=(\d*)-(\d*)$/.exec(range);
+    const invalid = () => { headers.set("content-range", `bytes */${size}`); return new Response(null, { status: 416, headers }); };
+    if (!m || (!m[1] && !m[2])) return invalid();
+    const a = Number(m[1]), b = Number(m[2]);
+    if ((!Number.isSafeInteger(a)) || (!Number.isSafeInteger(b))) return invalid();
+    if (!m[1]) { if (b <= 0) return invalid(); offset = Math.max(0, size - b); length = size - offset; }
+    else { offset = a; const end = m[2] ? Math.min(b, size - 1) : size - 1; if (offset >= size || offset > end) return invalid(); length = end - offset + 1; }
+    status = 206;
+    headers.set("content-range", `bytes ${offset}-${offset + length - 1}/${size}`);
+  }
+  headers.set("content-length", String(length));
+  if (req.method === "HEAD") return new Response(null, { status, headers });
+  const object = await env.MEDIA.get(key, status === 206 ? { range: { offset, length } } : undefined);
+  return object ? new Response(object.body, { status, headers }) : new Response("Not found", { status: 404 });
+}
 
 // Real visitor counter backed by KV (binding VISITS, key "count").
 // POST counts at most once per browser per day (cookie srdv=<date>; the client also keeps a localStorage mark).

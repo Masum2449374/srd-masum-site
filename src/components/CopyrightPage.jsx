@@ -22,7 +22,7 @@ const Li = ({ children }) => <li className="pl-1 marker:text-accent">{children}<
 export default function CopyrightPage() {
   const mail = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Copyright Notice – SRD Masum")}`;
   return (
-    <div className="mx-auto max-w-3xl px-5 pb-20 pt-28 sm:px-8 sm:pt-36">
+    <div className="studio-legal-page mx-auto max-w-3xl px-5 pb-20 pt-28 sm:px-8 sm:pt-36">
       <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">Legal</p>
       <h1 className="mt-3 font-display text-4xl leading-[1.05] tracking-display text-ink sm:text-6xl">Copyright &amp; DMCA Policy</h1>
       <p className="mt-4 text-sm text-faint">Last updated: {UPDATED}</p>

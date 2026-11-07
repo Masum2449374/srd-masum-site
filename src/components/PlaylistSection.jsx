@@ -1,3 +1,4 @@
+import ArtistCredit from "./ArtistCredit.jsx";
 import { Play, Pause, Info, ListNumbers } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { AUDIO_TRACKS } from "../data/songs.js";
@@ -11,7 +12,7 @@ export const ALL_PLAYLIST = [...ENGLISH_ALL, ...AUDIO_TRACKS, ...BANGLA_TRACKS].
 
 const Bars = ({ on }) => (<span aria-hidden="true" className={`en-bars ${on ? "" : "en-bars-off"}`}><i /><i /><i /><i /></span>);
 
-export function TrackList({ tracks, onInfo, testid = "playlist" }) {
+export function TrackList({ tracks, onInfo, testid = "playlist", languageLabels }) {
   const player = usePlayer(), plays = usePlays();
   const list = tracks[0]?.playlist ? tracks : tracks.map((t, i) => (i === 0 ? { ...t, playlist: "list" } : t));
   return (
@@ -31,10 +32,11 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
               </span>
               <span className="pl-title min-w-0 flex-1 text-left">
                 <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
-                <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
+                <span className="block truncate text-xs text-muted"><ArtistCredit track={t} /></span>
+                {languageLabels && <small className="language-track-mobile">{languageLabels(t)}</small>}
                 {plays ? <span data-testid="plays" className="block truncate text-[11px] tabular-nums text-faint">{fmtPlays(plays[String(t.id).toLowerCase()])}</span> : null}
               </span>
-              <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Release")}</span>
+              <span className="pl-album">{t.album || t.label || (t.artist && t.artist !== "SRD Masum" ? "Single" : "SRD Masum · Release")}{languageLabels && <small className="language-track-label">{languageLabels(t)}</small>}</span>
               <span className="pl-time font-mono text-[11px] tabular-nums text-muted">{formatTime(active && player.duration ? player.duration : t.duration)}</span>
             </button>
             <a href={`/song/${encodeURIComponent(t.id)}/`} aria-label={`Details: ${t.title}`} className="shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-semibold text-muted ring-1 ring-hairline hover:text-accent" >Details</a>
@@ -48,16 +50,16 @@ export function TrackList({ tracks, onInfo, testid = "playlist" }) {
 
 export default function PlaylistSection() {
   const player = usePlayer();
-  const inList = player?.track && ALL_PLAYLIST.some((x) => x.id === player.track.id);
+  const inList = player?.track && ALL_PLAYLIST.some((x) => x.id === player.track.id) && player.queue?.length === ALL_PLAYLIST.length && player.queue.every((t, i) => t.id === ALL_PLAYLIST[i].id);
   return (
     <section id="playlist" className="scroll-mt-20 px-5 py-10 sm:px-8">
       <div className="mx-auto max-w-3xl lg:max-w-[1240px]">
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-accent"><ListNumbers size={14} weight="bold" />Playlist · {ALL_PLAYLIST.length} songs</p>
-            <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">Play everything</h2>
+            <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">The complete collection</h2>
           </div>
-          <button type="button" data-testid="pl-playall" onClick={() => (inList ? player.toggle(player.track, null) : player.toggle(ALL_PLAYLIST[0], ALL_PLAYLIST))}
+          <button type="button" data-testid="pl-playall" onClick={() => (inList ? player.toggle(player.track, null) : player.startPlaylist(ALL_PLAYLIST))}
             className="flex shrink-0 items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent shadow-lg shadow-accent/30 active:scale-95">
             {inList && player.playing ? <Pause size={16} weight="fill" /> : <Play size={16} weight="fill" />}{inList && player.playing ? "Pause" : inList ? "Resume" : "Play all"}
           </button>

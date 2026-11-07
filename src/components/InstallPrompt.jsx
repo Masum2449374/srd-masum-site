@@ -19,7 +19,7 @@ export default function InstallPrompt() {
   if (!evt) return null;
   const dismiss = () => { try { localStorage.setItem(KEY, String(Date.now())); } catch {} setEvt(null); };
   return (
-    <div className="fixed bottom-24 left-3 z-40 flex items-center rounded-full bg-sunk/90 py-0.5 pl-2 pr-0.5 text-[10px] backdrop-blur text-ink shadow-lg ring-1 ring-hairline">
+    <div className="studio-install-prompt fixed bottom-24 left-3 z-40 flex items-center rounded-full bg-sunk/90 py-0.5 pl-2 pr-0.5 text-[10px] backdrop-blur text-ink shadow-lg ring-1 ring-hairline">
       <button type="button" aria-label="Install app" className="flex items-center gap-1 font-semibold hover:text-accent"
         onClick={async () => { evt.prompt(); try { await evt.userChoice; } catch {} setEvt(null); }}>
         <DownloadSimple size={11} weight="bold" /> Install

@@ -9,9 +9,16 @@ export function artistBySlug(slug) {
   const tracks = CATALOG.filter((t) => slugify(artistOf(t)) === slug);
   if (!tracks.length) return null;
   const sorted = [...tracks].sort((a, b) => String(b.released || "").localeCompare(String(a.released || "")));
-  return { name: artistOf(tracks[0]), slug, tracks: sorted, cover: sorted.find((t) => t.cover)?.cover || null };
+  return { name: artistOf(tracks[0]), slug, tracks: sorted, verified: tracks.some(isVerified), cover: sorted.find((t) => t.cover)?.cover || null };
 }
 // Where an artist name should link: uploaded songs -> uploader profile; catalog songs -> /artist/<slug>/.
 export const artistHref = (t) => (t?.uploader?.username ? `/u/${t.uploader.username}` : `/artist/${slugify(artistOf(t))}/`);
-// Built-in catalog artists are verified (set verified:false on a track to opt out); uploads use the owner-set account flag.
-export const isVerified = (t) => (t?.uploader ? !!t.uploader.verified : t?.verified !== false);
+// Preserve existing owner-curated catalog badge status, not external-platform endorsement.
+// Unknown new records do not silently become verified; explicit false/account flags always win.
+export const isVerified = (t) => {
+  if (!t) return false;
+  if (t.uploader) return !!t.uploader.verified;
+  if (typeof t.verified === "boolean") return t.verified;
+  const known = CATALOG.find(x => x.id === t.id && artistOf(x) === artistOf(t));
+  return !!known && known.verified !== false;
+};
