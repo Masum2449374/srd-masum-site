@@ -18,16 +18,16 @@ async function card(file, big, small, coverPath, artist = "SRD Masum") {
   const imgB64 = coverPath ? (await sharp(path.resolve("public" + coverPath)).resize(300, 300).jpeg({ quality: 85 }).toBuffer()).toString("base64") : avatarB64;
   const size = big.length > 22 ? 60 : big.length > 14 ? 76 : 92;
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="630">
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b0f1a"/><stop offset=".6" stop-color="#0a2a66"/><stop offset="1" stop-color="#0b6cf0"/></linearGradient>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f1014"/><stop offset=".6" stop-color="#252131"/><stop offset="1" stop-color="#554178"/></linearGradient>
   <clipPath id="c"><circle cx="230" cy="315" r="150"/></clipPath></defs>
   <rect width="1200" height="630" fill="url(#g)"/>
-  <circle cx="230" cy="315" r="162" fill="none" stroke="#5aa2ff" stroke-width="6" opacity=".8"/>
+  <circle cx="230" cy="315" r="162" fill="none" stroke="#b6a0ff" stroke-width="6" opacity=".8"/>
   <image href="data:image/jpeg;base64,${imgB64}" x="80" y="165" width="300" height="300" preserveAspectRatio="xMidYMid slice" clip-path="url(#c)"/>
-  <text x="440" y="250" font-family="Noto Sans, DejaVu Sans, sans-serif" font-size="30" font-weight="600" fill="#9cc4ff" letter-spacing="4">${xesc(small)}</text>
+  <text x="440" y="250" font-family="Noto Sans, DejaVu Sans, sans-serif" font-size="30" font-weight="600" fill="#b6a0ff" letter-spacing="4">${xesc(small)}</text>
   <text x="440" y="${250 + size + 20}" font-family="Noto Sans, DejaVu Sans, sans-serif" font-size="${size}" font-weight="800" fill="#ffffff">${xesc(big)}</text>
-  <rect x="440" y="${290 + size + 20}" width="120" height="8" rx="4" fill="#0b6cf0"/>
+  <rect x="440" y="${290 + size + 20}" width="120" height="8" rx="4" fill="#b6a0ff"/>
   <text x="440" y="${360 + size + 30}" font-family="Noto Sans, DejaVu Sans, sans-serif" font-size="40" font-weight="800" fill="#ffffff">${xesc(artist)}</text>
-  <text x="1150" y="600" text-anchor="end" font-family="Noto Sans, DejaVu Sans, sans-serif" font-size="24" fill="#c9dcff">srdmasum.bbroot.com</text>
+  <text x="1150" y="600" text-anchor="end" font-family="Noto Sans, DejaVu Sans, sans-serif" font-size="24" fill="#ada9b8">srdmasum.bbroot.com</text>
 </svg>`;
   await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(file);
 }
@@ -144,6 +144,9 @@ body{background:#0e0d0c}
 .ly.on{color:#fff;font-weight:700;transform:scale(1.03)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#f4f1ea;color:#0e0d0c;padding:.6rem 1rem;border-radius:999px;font-weight:600;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.sp *{animation:none!important;transition:none!important}}
+/* The Music Space — immersive release detail. */
+body{background:#0f1014}.sp{max-width:1080px;padding:28px 28px 70px;color:#f5f3ef;font-family:'Inter Variable','Noto Sans Bengali',system-ui,sans-serif}.sp-bg{background:radial-gradient(ellipse at 75% 10%,rgba(var(--a),.1),transparent 65%),#0f1014}.sp-top{margin-bottom:35px;padding-bottom:22px;border-bottom:1px solid #ffffff12}.sp-brand{font-family:'Sora Variable',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.6px;gap:10px}.sp-brand img{width:32px;height:32px}.sp-back{font-size:11px;color:#adaebb!important;text-decoration:none}.sp-listening{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:65px;align-items:center}.sp-cover{width:100%;max-width:440px;aspect-ratio:1;border-radius:15px;margin:0;box-shadow:0 25px 70px -30px #0008}.sp h1{font-family:'Sora Variable',sans-serif;font-size:clamp(30px,4vw,48px);line-height:1.15;font-weight:600;letter-spacing:-.05em;text-align:left}.sp-detail>.sp-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b6a0ff;margin-bottom:14px}.sp-artist{text-align:left;margin:14px 0 18px;filter:none;font-size:13px}.sp-artist .sp-alink{color:#c0adef!important;filter:none;font-weight:500}.chips{justify-content:flex-start;gap:6px;margin-bottom:25px}.chip{font-size:9px;padding:5px 9px;border-radius:5px;border-color:#ffffff12;background:#ffffff06;color:#adaebb}.card{padding:20px 22px;border-radius:14px;background:#17181e;border-color:#2f303a;backdrop-filter:none;box-shadow:none}.pp{background:#b6a0ff;color:#211930;box-shadow:none;width:60px;height:60px}.pp.on{animation:none}.bar .fl{background:#b6a0ff}.bar .th{box-shadow:0 0 0 3px #b6a0ff33}.bar .tr{height:3px}.bar .th{width:11px;height:11px;margin-left:-5px}.times{font-family:inherit;font-size:10px;color:#9294a2}.ctl{gap:27px;margin-top:13px}.ib{height:41px;width:41px;background:transparent}.btn{min-height:44px;border-radius:9px;font-size:11px;font-weight:550;gap:8px}.btn svg{height:18px;width:18px}.b-sp,.b-yt{background:#17181e;border-color:#2f303a}.b-out{border-width:1px;border-color:#2f303a;color:#b5b3c1}.sec{border-radius:14px;background:#17181e;border-color:#2f303a;padding:25px;margin-top:25px}.sec h2{font-family:inherit;font-size:9px;letter-spacing:1.8px;margin-bottom:19px;color:#b6a0ff}.sec dl{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.sec dt{font-size:9px;color:#9395a3;margin-bottom:6px}.sec dd{font-size:12px;color:#d1cfda}.ly{font-size:20px;letter-spacing:-.025em;line-height:1.9;color:#9294a2}.ly.on{color:#e0d5ff;transform:none}.sp-lyrics{padding:30px 40px}.toast{font-family:inherit;font-size:11px;background:#e0d5ff;color:#211930}
+@media(max-width:700px){.sp{max-width:520px;padding:20px 20px 50px}.sp-top{margin-bottom:28px;padding-bottom:17px}.sp-listening{grid-template-columns:1fr;gap:27px}.sp-cover{max-width:300px;width:85%;margin:auto}.sp h1{font-size:29px;line-height:1.2}.sp-detail>.sp-eyebrow{font-size:8px;margin-bottom:9px}.sp-artist{margin:10px 0 15px}.chips{margin-bottom:20px}.sec dl{grid-template-columns:1fr;gap:14px}.sp-lyrics{padding:25px 23px}.ly{font-size:18px}.sp-brand{font-size:16px}.sp-back{font-size:10px}}
 </style>`;
   const share = `${SITE}/song/${encodeURIComponent(t.id)}/`;
   const player = audioSrc ? `<div class="card" role="region" aria-label="Player"><audio id="sa" preload="none" src="${esc(audioSrc)}"></audio>
@@ -152,7 +155,7 @@ body{background:#0e0d0c}
 <div class="ctl"><button class="ib" id="rw" type="button" aria-label="Back 10 seconds">${I.back}</button><button class="pp" id="pb" type="button" aria-label="Play ${esc(t.title)}">${I.play}</button><button class="ib" id="ff" type="button" aria-label="Forward 10 seconds">${I.fwd}</button></div></div>` : "";
   const links = `<div class="grid2">${t.spotifyUrl ? `<a class="btn b-sp" href="${esc(t.spotifyUrl)}" rel="noopener" target="_blank" aria-label="Listen on Spotify (opens in a new tab)">${I.spotify}Spotify</a>` : ""}${t.youtubeUrl ? `<a class="btn b-yt" href="${esc(t.youtubeUrl)}" rel="noopener" target="_blank" aria-label="Watch on YouTube (opens in a new tab)">${I.youtube}YouTube</a>` : ""}</div>
 <div class="grid2"><a class="btn b-out" href="/?from=song&song=${encodeURIComponent(t.id)}">${I.home}Full site</a><button class="btn b-out" id="sh" type="button" aria-label="Share this song">${I.share}Share</button></div>`;
-  const script = `<script>(function(){var $=function(i){return document.getElementById(i)};var a=$("sa"),b=$("pb"),id=${JSON.stringify(t.id)},sent=0,drag=0,PL=${JSON.stringify(I.play)},PA=${JSON.stringify(I.pause)};
+  const script = `<script>(function(){var $=function(i){return document.getElementById(i)};var a=$("sa"),b=$("pb"),id=${JSON.stringify(t.id)},sent=0,secs=0,last=0,drag=0,PL=${JSON.stringify(I.play)},PA=${JSON.stringify(I.pause)};
 function rip(e){var el=e.currentTarget,r=el.getBoundingClientRect(),s=Math.max(r.width,r.height),d=document.createElement("span");d.className="rp";d.style.width=d.style.height=s+"px";d.style.left=(e.clientX-r.left-s/2)+"px";d.style.top=(e.clientY-r.top-s/2)+"px";el.appendChild(d);setTimeout(function(){d.remove()},600)}
 [].forEach.call(document.querySelectorAll(".btn"),function(x){x.addEventListener("pointerdown",rip)});
 function toast(m){var t=$("toast");t.textContent=m;t.style.opacity=1;setTimeout(function(){t.style.opacity=0},1800)}
@@ -164,11 +167,11 @@ function paint(x){var p=Math.max(0,Math.min(1,x/D()))*100;fl.style.width=p+"%";t
 b.onclick=function(){if(a.paused){b.classList.add("ld");var p=a.play();if(p&&p.catch)p.catch(function(){b.classList.remove("ld")});}else a.pause()};
 $("rw").onclick=function(){a.currentTime=Math.max(0,a.currentTime-10);paint(a.currentTime)};$("ff").onclick=function(){a.currentTime=Math.min(D(),a.currentTime+10);paint(a.currentTime)};
 a.onplaying=function(){b.classList.remove("ld")};
-a.onplay=function(){b.innerHTML=PA;b.classList.add("on");b.setAttribute("aria-label","Pause");if(!sent){sent=1;try{var K="srd-play-"+id,n=Date.now(),l=+localStorage.getItem(K)||0;if(n-l>18e5){localStorage.setItem(K,n);fetch("/api/play",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({id:id}),keepalive:true}).catch(function(){})}}catch(e){}}};
+a.onplay=function(){b.innerHTML=PA;b.classList.add("on");b.setAttribute("aria-label","Pause");sent=0;secs=0;last=a.currentTime;};
 a.onpause=a.onended=function(){b.innerHTML=PL;b.classList.remove("on","ld");b.setAttribute("aria-label","Play")};
 a.onloadedmetadata=function(){dd.textContent=f(D());bar.setAttribute("aria-valuemax",Math.round(D()))};
 a.onprogress=function(){try{if(a.buffered.length)bf.style.width=(a.buffered.end(a.buffered.length-1)/D()*100)+"%"}catch(e){}};
-a.ontimeupdate=function(){var x=a.currentTime;if(!drag)paint(x);if(L.length){var i=-1;for(var j=0;j<L.length;j++){if(+L[j].dataset.t<=x)i=j;else break}if(i!==cur){if(cur>=0)L[cur].classList.remove("on");cur=i;if(i>=0){L[i].classList.add("on");L[i].scrollIntoView({block:"center",behavior:"smooth"})}}}};
+a.ontimeupdate=function(){var x=a.currentTime;if(!a.paused&&!sent){var delta=x-last;if(delta>0&&delta<2)secs+=delta;if(secs>=3){sent=1;fetch("/api/plays/"+encodeURIComponent(id.toLowerCase()),{method:"POST",keepalive:true}).catch(function(){})}}last=x;if(!drag)paint(x);if(L.length){var i=-1;for(var j=0;j<L.length;j++){if(+L[j].dataset.t<=x)i=j;else break}if(i!==cur){if(cur>=0)L[cur].classList.remove("on");cur=i;if(i>=0){L[i].classList.add("on");L[i].scrollIntoView({block:"center",behavior:"smooth"})}}}};
 function pos(e){var r=bar.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*D()}
 bar.addEventListener("pointerdown",function(e){drag=1;bar.setPointerCapture(e.pointerId);paint(pos(e))});
 bar.addEventListener("pointermove",function(e){if(drag)paint(pos(e))});
@@ -176,12 +179,12 @@ bar.addEventListener("pointerup",function(e){if(!drag)return;drag=0;a.currentTim
 bar.addEventListener("keydown",function(e){var k=e.key;if(k==="ArrowRight"||k==="ArrowLeft"){a.currentTime=Math.max(0,Math.min(D(),a.currentTime+(k==="ArrowRight"?5:-5)));paint(a.currentTime);e.preventDefault()}});
 L.forEach(function(p){p.style.cursor="pointer";p.onclick=function(){a.currentTime=+p.dataset.t;if(a.paused)a.play()}});})();</script>`;
   h = h.replace(/<div id="root"><\/div>/, `<div id="root"><div class="sp-bg"></div><article class="sp" lang="${lang}">
-<div class="sp-top"><a class="sp-brand" href="/?from=song"><img src="/images/avatar.webp" alt="" width="28" height="28">SRD Masum</a></div>
+<div class="sp-top"><a class="sp-brand" href="/?from=song"><img src="/images/avatar.webp" alt="" width="28" height="28">SRD Masum</a><a class="sp-back" href="/?from=song">Explore the collection ↗</a></div><div class="sp-listening">
 ${cover ? `<img class="sp-cover" src="${esc(cover)}" alt="${esc(t.title)} cover" width="300" height="300">` : ""}
-<h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by " : ""}<a class="sp-alink" href="${esc(artistHref(t))}">${xesc(artistOf(t))}${isVerified(t) ? BADGE : ""}</a></p><div class="chips">${chips}</div>
-${player}${links}
+<div class="sp-detail"><p class="sp-eyebrow">The music space · Now listening</p><h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by " : ""}<a class="sp-alink" href="${esc(artistHref(t))}">${xesc(artistOf(t))}${isVerified(t) ? BADGE : ""}</a></p><div class="chips">${chips}</div>
+${player}${links}</div></div>
 ${credRows ? `<section class="sec"><h2>Credits</h2><dl>${credRows}</dl></section>` : ""}
-${lyr ? `<section class="sec"><h2>Lyrics</h2>${lyr}</section>` : ""}
+${lyr ? `<section class="sec sp-lyrics"><h2>Synced lyrics · Follow the feeling</h2>${lyr}</section>` : ""}
 </article><div class="toast" id="toast" role="status"></div></div>${script}`);
   h = h.replace("</head>", css + "\n</head>");
   if (isOriginal) {

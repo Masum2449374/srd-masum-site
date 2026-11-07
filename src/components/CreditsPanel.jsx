@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useDialogFocus } from "../lib/useDialogFocus.js";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Article, SpotifyLogo, YoutubeLogo } from "@phosphor-icons/react";
 
@@ -12,6 +13,8 @@ function Cover({ t, className = "" }) {
 }
 
 export default function CreditsPanel({ t, onClose, onPlay }) {
+  const dialogRef = useRef(null);
+  useDialogFocus(dialogRef, Boolean(t));
   useEffect(() => {
     if (!t) return;
     const k = (e) => { if (e.key === "Escape") { e.stopImmediatePropagation(); onClose(); } };
@@ -23,7 +26,7 @@ export default function CreditsPanel({ t, onClose, onPlay }) {
     <AnimatePresence>
       {t && (
         <motion.div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
-          <motion.div role="dialog" aria-modal="true" aria-label={`Credits: ${t.title}`} data-testid="en-credits"
+          <motion.div ref={dialogRef} role="dialog" aria-modal="true" aria-label={`Credits: ${t.title}`} data-testid="en-credits"
             initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }} transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
             className="w-full max-w-md rounded-t-3xl bg-sunk p-6 ring-1 ring-hairline sm:rounded-3xl">

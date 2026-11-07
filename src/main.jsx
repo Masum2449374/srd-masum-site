@@ -1,3 +1,4 @@
+import { DESIGN_SANDBOX } from "./lib/designSandbox.js";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "@fontsource-variable/sora/wght.css";
@@ -6,6 +7,7 @@ import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/500.css";
 import App from "./App.jsx";
 import "./index.css";
+import "./studio.css";
 
 // Arriving from a static song page (/?from=song): skip the first-visit intro/curtain.
 try {
@@ -42,7 +44,7 @@ if (import.meta.env.PROD && "serviceWorker" in navigator) {
 }
 
 import { installSmartlink } from "./lib/smartlink.js";
-installSmartlink();
+if (!DESIGN_SANDBOX) installSmartlink();
 
 import { installSocialBar } from "./lib/socialbar.js";
-installSocialBar();
+if (!DESIGN_SANDBOX) installSocialBar();

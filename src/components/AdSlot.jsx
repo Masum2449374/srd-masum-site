@@ -1,3 +1,4 @@
+import { DESIGN_SANDBOX } from "../lib/designSandbox.js";
 import { useEffect, useRef, useState } from "react";
 
 // Adsterra slots. Each ad is its own same-site page under /ads/ in a sandboxed iframe, so the
@@ -54,6 +55,7 @@ export default function AdSlot({ type, desktopOnly = false }) {
   }, [near, ad]);
 
   if (!ad || (dead && !filled)) return null;
+  if (DESIGN_SANDBOX) return <aside data-ad-slot={type} aria-label="Advertisement placeholder" className="studio-ad-placeholder mx-auto my-8 max-w-3xl" style={{ minHeight: ad.h || 70, width: typeof ad.w === "number" ? `min(${ad.w}px, calc(100% - 40px))` : "calc(100% - 40px)" }}>Advertisement · local preview</aside>;
   const fixed = typeof ad.w === "number";
   const show = filled || fixed; // fixed banners always reserve their exact size
   return (

@@ -1,3 +1,4 @@
+import { useDialogFocus } from "../lib/useDialogFocus.js";
 import { bumpLocal } from "../lib/plays.js";
 import { artistHref, isVerified } from "../lib/artists.js";
 import { gaEvent } from "../lib/ga.js";
@@ -391,7 +392,7 @@ function MiniBar({ player, scrub }) {
         onBlur={player.endScrub}
         aria-label={`Seek ${player.track.title}`}
         className="seek w-full lg:hidden"
-        style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, #2c2a27 ${pct}%)` }}
+        style={{ background: `linear-gradient(to right, var(--studio-accent) ${pct}%, #2c2a27 ${pct}%)` }}
       />
       <DeskBar player={player} shown={shown} max={max} pct={pct} onExpand={() => setOpen(true)} />
       <div className="mx-auto flex max-w-6xl items-center gap-3 py-2 lg:hidden">
@@ -454,6 +455,7 @@ function MiniBar({ player, scrub }) {
         >
           {player.repeat === "one" ? <RepeatOnce size={16} weight="bold" /> : <Repeat size={16} weight="bold" />}
         </button>
+        <button type="button" onClick={() => setOpen(true)} aria-label="Open Now Playing" className="studio-mini-expand"><CaretUp size={18} weight="bold" /></button>
       </div>
       <AnimatePresence>{open ? <NowPlaying player={player} scrub={scrub} onClose={close} onArtist={(href) => { const np = !!history.state?.srdNowPlaying; setOpen(false); navigate(href, { replace: np }); }} /> : null}</AnimatePresence>
     </div>
@@ -492,14 +494,14 @@ function DeskBar({ player, shown, max, pct, onExpand }) {
           <input type="range" min={0} max={max} step={0.1} value={shown}
             onChange={(e) => player.onScrub(Number(e.target.value))} onPointerUp={player.endScrub} onKeyUp={player.endScrub} onBlur={player.endScrub}
             aria-label={`Seek ${t.title}`} className="seek flex-1"
-            style={{ background: `linear-gradient(to right, #0b6cf0 ${pct}%, rgb(var(--hairline)) ${pct}%)` }} />
+            style={{ background: `linear-gradient(to right, var(--studio-accent) ${pct}%, rgb(var(--hairline)) ${pct}%)` }} />
           <span className="w-10">{formatTime(max)}</span>
         </div>
       </div>
       <div className="flex items-center justify-end gap-3">
         <button type="button" onClick={player.toggleMute} aria-label={player.muted ? "Unmute" : "Mute"} aria-pressed={player.muted} className={`${btn} h-8 w-8 text-ink/70 hover:text-ink`}><VolIcon size={19} weight="fill" /></button>
         <input type="range" min={0} max={1} step={0.01} value={vol} onChange={(e) => player.setVolume(Number(e.target.value))} aria-label="Volume"
-          className="seek w-28" style={{ background: `linear-gradient(to right, #0b6cf0 ${vol * 100}%, rgb(var(--hairline)) ${vol * 100}%)` }} />
+          className="seek w-28" style={{ background: `linear-gradient(to right, var(--studio-accent) ${vol * 100}%, rgb(var(--hairline)) ${vol * 100}%)` }} />
         <button type="button" onClick={onExpand} aria-label="Open Now Playing" className={`${btn} h-9 w-9 text-ink/70 ring-1 ring-hairline hover:text-accent`}><CaretUp size={18} weight="bold" /></button>
       </div>
     </div>
@@ -514,6 +516,13 @@ function NowPlaying({ player, scrub, onClose, onArtist }) {
   const art = t.art || t.cover || "/images/avatar.webp";
   const ctl = "flex shrink-0 items-center justify-center rounded-full";
   const hasLyrics = Boolean(t.lyrics);
+  const dialogRef = useRef(null);
+  useDialogFocus(dialogRef);
+  useEffect(() => {
+    const key = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [onClose]);
   const desktop = useIsDesktop();
   const [showLyrics, setShowLyrics] = useState(() => desktop);
   const lyricsOn = hasLyrics && showLyrics;
@@ -522,6 +531,7 @@ function NowPlaying({ player, scrub, onClose, onArtist }) {
     <motion.div
       role="dialog"
       aria-modal="true"
+      ref={dialogRef}
       aria-label="Now Playing"
       data-testid="nowplaying"
       onClick={(e) => e.stopPropagation()}
@@ -534,7 +544,7 @@ function NowPlaying({ player, scrub, onClose, onArtist }) {
       dragElastic={{ top: 0, bottom: 0.6 }}
       dragListener={true}
       onDragEnd={(_, info) => { if (info.offset.y > 120 || info.velocity.y > 600) onClose(); }}
-      className="fixed inset-0 z-[60] flex cursor-default overflow-hidden flex-col bg-canvas text-ink"
+      className="studio-now-playing fixed inset-0 z-[60] flex cursor-default overflow-hidden flex-col bg-canvas text-ink"
       style={{ height: "100dvh", bottom: "auto", paddingTop: "env(safe-area-inset-top)", paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
     >
       <div className={player.playing ? "" : "np-paused"}><FXBackground src={art} /></div>

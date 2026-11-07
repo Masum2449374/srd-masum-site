@@ -55,7 +55,7 @@ export default function PlaylistSection() {
         <div className="flex items-end justify-between gap-3">
           <div>
             <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.25em] text-accent"><ListNumbers size={14} weight="bold" />Playlist · {ALL_PLAYLIST.length} songs</p>
-            <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">Play everything</h2>
+            <h2 className="mt-2 font-display text-3xl text-ink sm:text-4xl">The complete collection</h2>
           </div>
           <button type="button" data-testid="pl-playall" onClick={() => (inList ? player.toggle(player.track, null) : player.toggle(ALL_PLAYLIST[0], ALL_PLAYLIST))}
             className="flex shrink-0 items-center gap-2 rounded-full bg-accent px-5 py-2.5 text-sm font-semibold text-on-accent shadow-lg shadow-accent/30 active:scale-95">
