@@ -1,4 +1,4 @@
-import { useDialogFocus } from "../lib/useDialogFocus.js";
+import StudioNowPlaying from "./StudioNowPlaying.jsx";
 import { bumpLocal } from "../lib/plays.js";
 import { artistHref, isVerified } from "../lib/artists.js";
 import { gaEvent } from "../lib/ga.js";
@@ -7,7 +7,7 @@ import { navigate, spaClick } from "../lib/nav.js";
 import { CaretRight as ArtistCaret } from "@phosphor-icons/react";
 import { register as exRegister, claim as exClaim } from "../lib/exclusive.js";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Info, Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretDown, CaretUp, SpeakerHigh, SpeakerLow, SpeakerX } from "@phosphor-icons/react";
+import { Play, Pause, Disc, SkipBack, SkipForward, Shuffle, Repeat, RepeatOnce, CaretUp, SpeakerHigh, SpeakerLow, SpeakerX } from "@phosphor-icons/react";
 
 // True on desktop-width screens (>=1024px). Mobile layout is untouched below that.
 export function useIsDesktop() {
@@ -16,8 +16,7 @@ export function useIsDesktop() {
   useEffect(() => { const m = window.matchMedia(q); const f = () => setOn(m.matches); m.addEventListener("change", f); return () => m.removeEventListener("change", f); }, []);
   return on;
 }
-import { AnimatePresence, motion } from "framer-motion";
-import { FXBackground, FXCover } from "./NowPlayingFX.jsx";
+import { AnimatePresence } from "framer-motion";
 import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
 
@@ -31,8 +30,6 @@ const fullQueue = (list) => {
 const readPref = (k, d) => { try { return localStorage.getItem(k) ?? d; } catch { return d; } };
 const writePref = (k, v) => { try { localStorage.setItem(k, String(v)); } catch { /* ignore */ } };
 import ShareButton from "./ShareButton.jsx";
-import LyricsPanel from "./LyricsPanel.jsx";
-import CreditsPanel from "./CreditsPanel.jsx";
 import { songFromUrl } from "../lib/share.js";
 import { beatPlay, beatStop } from "../lib/beat.js";
 import {
@@ -272,7 +269,7 @@ export function PlayerProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ track, playing, toggle, step, previous, current, duration, onScrub, endScrub, seekTo, highlight, shuffle, repeat, toggleShuffle, cycleRepeat, volume, muted, setVolume, toggleMute }),
+    () => ({ track, playing, toggle, step, previous, queue: queueRef.current, current, duration, onScrub, endScrub, seekTo, highlight, shuffle, repeat, toggleShuffle, cycleRepeat, volume, muted, setVolume, toggleMute }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [track, playing, toggle, step, previous, current, duration, scrub, highlight, shuffle, repeat, volume, muted]
   );
@@ -508,123 +505,6 @@ function DeskBar({ player, shown, max, pct, onExpand }) {
   );
 }
 
-function NowPlaying({ player, scrub, onClose, onArtist }) {
-  const shown = scrub ?? player.current;
-  const max = player.duration || 0;
-  const pct = max ? Math.min(100, (shown / max) * 100) : 0;
-  const t = player.track;
-  const art = t.art || t.cover || "/images/avatar.webp";
-  const ctl = "flex shrink-0 items-center justify-center rounded-full";
-  const hasLyrics = Boolean(t.lyrics);
-  const dialogRef = useRef(null);
-  useDialogFocus(dialogRef);
-  useEffect(() => {
-    const key = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", key);
-    return () => window.removeEventListener("keydown", key);
-  }, [onClose]);
-  const desktop = useIsDesktop();
-  const [showLyrics, setShowLyrics] = useState(() => desktop);
-  const lyricsOn = hasLyrics && showLyrics;
-  const [info, setInfo] = useState(null);
-  return (
-    <motion.div
-      role="dialog"
-      aria-modal="true"
-      ref={dialogRef}
-      aria-label="Now Playing"
-      data-testid="nowplaying"
-      onClick={(e) => e.stopPropagation()}
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
-      exit={{ y: "100%" }}
-      transition={{ type: "spring", damping: 32, stiffness: 300 }}
-      drag="y"
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={{ top: 0, bottom: 0.6 }}
-      dragListener={true}
-      onDragEnd={(_, info) => { if (info.offset.y > 120 || info.velocity.y > 600) onClose(); }}
-      className="studio-now-playing fixed inset-0 z-[60] flex cursor-default overflow-hidden flex-col bg-canvas text-ink"
-      style={{ height: "100dvh", bottom: "auto", paddingTop: "env(safe-area-inset-top)", paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
-    >
-      <div className={player.playing ? "" : "np-paused"}><FXBackground src={art} /></div>
-      <div className="relative flex items-center justify-between px-4 pt-3">
-        <button type="button" onClick={onClose} aria-label="Close" data-testid="np-close" className={`${ctl} h-11 w-11 text-ink/80 hover:text-accent`}>
-          <CaretDown size={26} weight="bold" />
-        </button>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-ink/60">Now Playing</p>
-        <ShareButton track={t} />
-      </div>
-      <div className={desktop ? `relative mx-auto grid min-h-0 w-full flex-1 items-center gap-16 px-12 pb-8 ${lyricsOn ? "max-w-[1280px] grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]" : "max-w-[640px] grid-cols-1"}` : `relative mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col px-6 ${lyricsOn ? "pt-2" : "justify-center"}`}>
-        {desktop && lyricsOn ? (
-          <div data-testid="np-lyrics-desk" className="np-desk-lyrics order-2 flex h-full max-h-[calc(100svh-120px)] min-h-0 flex-col rounded-3xl bg-sunk/40 px-8 ring-1 ring-hairline backdrop-blur-md">
-            <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
-          </div>
-        ) : null}
-        <div className={desktop ? "order-1 flex min-w-0 flex-col justify-center" : "contents"}>
-        {desktop ? (
-          <div className="pb-16 pt-8"><FXCover src={art} playing={player.playing}>
-            <img src={art} alt="" draggable={false}
-              className="h-full w-full object-cover" />
-          </FXCover></div>
-        ) : lyricsOn ? (
-          <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} />
-        ) : (
-          <FXCover src={art} playing={player.playing}>
-            <img src={art} alt="" draggable={false}
-              className="h-full w-full object-cover" />
-          </FXCover>
-        )}
-        <div className={`${lyricsOn ? "mt-4" : "mt-8"} flex shrink-0 items-end justify-between gap-3`}>
-          <div className="min-w-0 flex-1">
-            <p data-testid="np-title" title={t.title} className={`np-title font-bold leading-tight text-ink ${lyricsOn ? "text-xl" : "text-2xl"} lg:text-4xl`}>{t.title}</p>
-            <a href={artistHref(t)} data-testid="np-artist" onPointerDownCapture={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); if (e.button !== 0 || e.metaKey || e.ctrlKey) return; e.preventDefault(); onArtist ? onArtist(artistHref(t)) : navigate(artistHref(t)); }}
-              className="srd-artist-pill mt-1 text-[15px] lg:text-lg"><span className="truncate">{t.artist || "SRD Masum"}</span>{isVerified(t) && <VerifiedBadge size={14} />}<ArtistCaret size={14} weight="bold" aria-hidden="true" className="shrink-0" /></a>
-          </div>
-          {hasLyrics ? (
-            <button type="button" onClick={() => setShowLyrics((v) => !v)} aria-pressed={lyricsOn} data-testid="np-lyrics"
-              onPointerDownCapture={(e) => e.stopPropagation()}
-              className={`shrink-0 rounded-full px-3.5 py-2 text-[11px] font-semibold uppercase tracking-[0.16em] backdrop-blur-md transition-colors ${lyricsOn ? "bg-ink text-canvas" : "bg-white/10 text-ink/85 ring-1 ring-white/15 hover:bg-white/20"}`}>
-              Lyrics
-            </button>
-          ) : null}
-          <button type="button" onClick={() => setInfo(t)} aria-label={`Credits for ${t.title}`} data-testid="np-info"
-            onPointerDownCapture={(e) => e.stopPropagation()}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10 text-ink/85 ring-1 ring-white/15 backdrop-blur-md hover:bg-white/20">
-            <Info size={18} weight="bold" />
-          </button>
-        </div>
-        <div className="mt-6 shrink-0" onPointerDownCapture={(e) => e.stopPropagation()}>
-          <input
-            type="range" min={0} max={max} step={0.1} value={shown}
-            onChange={(e) => player.onScrub(Number(e.target.value))}
-            onPointerUp={player.endScrub} onTouchEnd={player.endScrub} onKeyUp={player.endScrub} onBlur={player.endScrub}
-            aria-label={`Seek ${t.title}`} data-testid="np-seek"
-            className="seek np-seek w-full"
-            style={{ background: `linear-gradient(to right, rgb(var(--ink) / .92) ${pct}%, rgb(var(--ink) / .18) ${pct}%)` }}
-          />
-          <div className="mt-1.5 flex justify-between text-[11px] font-medium tabular-nums text-ink/55">
-            <span data-testid="np-elapsed">{formatTime(shown)}</span><span>{formatTime(max)}</span>
-          </div>
-        </div>
-        <div className="mt-5 flex shrink-0 items-center justify-between">
-          <button type="button" onClick={player.toggleShuffle} aria-label="Shuffle" aria-pressed={player.shuffle}
-            className={`${ctl} h-11 w-11 ${player.shuffle ? "text-accent" : "text-ink/50"}`}><Shuffle size={22} weight="bold" /></button>
-          <button type="button" onClick={player.previous} aria-label="Previous" className={`${ctl} h-14 w-14 text-ink`}><SkipBack size={30} weight="fill" /></button>
-          <button type="button" onClick={() => player.toggle(t)} aria-label={player.playing ? "Pause" : "Play"} data-testid="np-play"
-            className={`${ctl} h-[72px] w-[72px] bg-ink text-canvas shadow-[0_10px_30px_-8px_rgba(0,0,0,.6)] transition-transform hover:scale-105 active:scale-95`}>
-            {player.playing ? <Pause size={34} weight="fill" /> : <Play size={34} weight="fill" className="translate-x-[2px]" />}
-          </button>
-          <button type="button" onClick={() => player.step(1, true)} aria-label="Next" data-testid="np-next" className={`${ctl} h-14 w-14 text-ink`}><SkipForward size={30} weight="fill" /></button>
-          <button type="button" onClick={player.cycleRepeat} aria-label={`Repeat: ${player.repeat}`}
-            className={`${ctl} h-11 w-11 ${player.repeat !== "off" ? "text-accent" : "text-ink/50"}`}>
-            {player.repeat === "one" ? <RepeatOnce size={22} weight="bold" /> : <Repeat size={22} weight="bold" />}
-          </button>
-        </div>
-        </div>
-      </div>
-      <div onPointerDownCapture={(e) => e.stopPropagation()}><CreditsPanel t={info} onClose={() => setInfo(null)} /></div>
-    </motion.div>
-  );
+function NowPlaying(props) {
+  return <StudioNowPlaying {...props} />;
 }

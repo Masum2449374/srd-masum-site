@@ -84,7 +84,7 @@ export default function ChatPanel({ open, onClose }) {
   if (!open) return null;
   return (
     <section id="srd-chat" role="dialog" aria-label="Mira, SRD Masum assistant" data-testid="chat-panel"
-      className="chat-panel fixed inset-x-3 bottom-[9.5rem] z-50 flex max-h-[min(560px,calc(100svh-11rem))] flex-col overflow-hidden rounded-2xl bg-raised shadow-2xl ring-1 ring-hairline sm:left-auto sm:right-4 sm:w-[380px] lg:bottom-44 lg:right-6">
+      className="studio-mira-shell chat-panel fixed inset-x-3 bottom-[9.5rem] z-50 flex max-h-[min(560px,calc(100svh-11rem))] flex-col overflow-hidden rounded-2xl bg-raised shadow-2xl ring-1 ring-hairline sm:left-auto sm:right-4 sm:w-[380px] lg:bottom-44 lg:right-6">
       <header className="flex items-center gap-3 border-b border-hairline bg-gradient-to-r from-accent/15 via-raised to-fuchsia-500/10 px-3.5 py-2.5">
         <span className="relative shrink-0">
           <img src="/images/mira-v3-256.webp" alt="Mira" className="h-10 w-10 rounded-full object-cover ring-2 ring-accent/40" onError={(e) => { e.currentTarget.style.display = "none"; }} />

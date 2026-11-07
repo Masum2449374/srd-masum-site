@@ -19,14 +19,14 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
     const el = box.current.querySelector(`[data-seq="${active}"]`);
     if (!el) return;
     const c = box.current;
-    c.scrollTo({ top: el.offsetTop - c.clientHeight / 2 + el.clientHeight / 2, behavior: "smooth" });
+    c.scrollTo({ top: el.offsetTop - c.clientHeight / 2 + el.clientHeight / 2, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }, [active, synced]);
 
   return (
     <div
       ref={box}
       data-testid="np-lyrics-panel"
-      lang="bn"
+      lang={/[\u0980-\u09ff]/.test(track.lyrics || "") ? "bn" : /[\u0400-\u04ff]/.test(track.lyrics || "") ? "ru" : "en"}
       onPointerDownCapture={(e) => e.stopPropagation()}
       onWheel={() => { userScroll.current = Date.now(); }}
       onTouchMove={() => { userScroll.current = Date.now(); }}
@@ -43,7 +43,7 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
           const on = r.seq === active;
           const prog = on ? Math.min(1, Math.max(0, (current - r.t) / Math.max(0.1, r.until - r.t))) : 0;
           return (
-            <button key={i} type="button" data-seq={r.seq} data-inst="1" aria-label="Instrumental" aria-current={on ? "true" : undefined}
+            <button key={i} type="button" data-seq={r.seq} data-inst="1" disabled={!onSeek} aria-label="Instrumental" aria-current={on ? "true" : undefined}
               onClick={() => { userScroll.current = 0; onSeek?.(r.t); }}
               className={`mx-auto my-2 flex items-center justify-center gap-2 py-1.5 text-[22px] transition-all duration-300 ${on ? "scale-110 text-ink" : "text-ink/35"}`}>
               {[0, 1, 2].map((d) => (
@@ -59,7 +59,7 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
           on ? "scale-[1.04] text-ink" : synced ? (past ? "text-ink/40" : "text-ink/55") : "text-ink/85"
         }`;
         return synced && r.t != null ? (
-          <button key={i} type="button" data-line={r.idx} data-seq={r.seq} aria-current={on ? "true" : undefined}
+          <button key={i} type="button" data-line={r.idx} data-seq={r.seq} disabled={!onSeek} aria-current={on ? "true" : undefined}
             onClick={() => { userScroll.current = 0; onSeek?.(r.t); }} className={`${cls} hover:text-accent`}>
             {r.text}
           </button>

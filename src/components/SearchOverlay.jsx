@@ -6,7 +6,7 @@ import { AUDIO_TRACKS } from "../data/songs.js";
 import { BANGLA_TRACKS } from "../data/bangla-songs.js";
 import { ENGLISH_ALL } from "../data/english-songs.js";
 import Avatar from "./Avatar.jsx";
-import { spaClick } from "../lib/nav.js";
+import { spaClick, navigate } from "../lib/nav.js";
 
 const ALL = (() => {
   const seen = new Set();
@@ -63,7 +63,7 @@ export default function SearchOverlay({ onClose }) {
         <div className="srd-search-bar">
           <MagnifyingGlass size={20} weight="bold" aria-hidden="true" className="shrink-0 text-muted" />
           <input ref={inputRef} type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search songs, artists or people…" aria-label="Search songs, artists or people" autoComplete="off" enterKeyHint="search"
-            onKeyDown={(e) => { if (e.key === "Enter" && results[0]) location.href = `/song/${results[0].id}/`; }} />
+            onKeyDown={(e) => { if (e.key === "Enter" && results[0]) { navigate(`/song/${results[0].id}/`); onClose(); } }} />
           <button type="button" onClick={onClose} aria-label="Close search" className="srd-menu-close"><X size={18} weight="bold" aria-hidden="true" /></button>
         </div>
         {users.length > 0 && <>

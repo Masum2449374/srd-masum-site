@@ -245,7 +245,7 @@ export default function MiraCall({ lang: startLang = "en-US", onClose }) {
 
   return (
     <div role="dialog" aria-label="Voice call with Mira" data-testid="mira-call"
-      className="fixed inset-0 z-[60] flex flex-col items-center justify-between bg-gradient-to-b from-[#0a2a6b] via-[#101a3a] to-[#3a1430] px-6 pb-10 pt-14 text-white">
+      className="studio-mira-call fixed inset-0 z-[60] flex flex-col items-center justify-between bg-gradient-to-b from-[#0a2a6b] via-[#101a3a] to-[#3a1430] px-6 pb-10 pt-14 text-white">
       <div className="text-center">
         <p className="text-xs uppercase tracking-[0.25em] text-white/60">Voice call</p>
         <p className="mt-1 text-2xl font-semibold">Mira</p>

@@ -16,13 +16,15 @@ import Reveal, { spring } from "./components/Reveal.jsx";
 import CommunityRow from "./components/CommunityRow.jsx";
 import Reviews from "./components/Reviews.jsx";
 import SecretBurst from "./components/SecretBurst.jsx";
-import { PlayerProvider, MiniPlayer } from "./components/MiniPlayer.jsx";
+import { PlayerProvider } from "./components/MiniPlayer.jsx";
 import { CONTACT_EMAIL, SOCIAL_LINKS } from "./data/videos.js";
 import ChatLauncher from "./components/ChatLauncher.jsx";
 import InstallPrompt from "./components/InstallPrompt.jsx";
 import EnglishPage from "./components/EnglishPage.jsx";
 import PremiumHome from "./components/PremiumHome.jsx";
-import { usePath, SPA_RE } from "./lib/nav.js";
+import SongDetail from "./components/SongDetail.jsx";
+import RouteBoundary from "./components/RouteBoundary.jsx";
+import { usePath, installInternalNavigation } from "./lib/nav.js";
 import { ENGLISH_ALL } from "./data/english-songs.js";
 const CopyrightPage = lazy(() => import("./components/CopyrightPage.jsx"));
 const ProfilePage = lazy(() => import("./components/ProfilePage.jsx"));
@@ -85,6 +87,8 @@ function NotifyForm() {
           autoComplete="email"
           required
           maxLength={120}
+          aria-invalid={state === "bad"}
+          aria-describedby="notify-status"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -98,11 +102,12 @@ function NotifyForm() {
           disabled={state === "busy"}
           className="min-h-[48px] rounded-full bg-accent px-6 font-medium text-white transition active:scale-[0.97] disabled:opacity-60"
         >
-          {state === "busy" ? "…" : "Notify me"}
+          {state === "busy" ? "Joining…" : "Notify me"}
         </button>
       </div>
       <p
         className="mt-2 min-h-[1.25rem] text-sm text-muted"
+        id="notify-status"
         role="status"
         aria-live="polite"
       >
@@ -299,154 +304,71 @@ function Footer() {
   );
 }
 
-// /english/ (and /song/<id>/ of an English song) renders the English page instead of the home sections.
-const PAGE = (() => {
-  if (typeof window === "undefined") return "home";
-  const p = window.location.pathname;
-  if (/^\/english(\/|$)/.test(p)) return "english";
-  if (/^\/copyright(\/|$)/.test(p)) return "copyright";
-  if (/^\/u\/[^/]+\/?$/.test(p)) return "profile";
-  if (/^\/account\/?$/.test(p)) return "account";
-  if (/^\/artist\/[^/]+\/?$/.test(p)) return "artist";
-  if (/^\/admin\/uploads\/?$/.test(p)) return "admin";
-  const id = p.match(/^\/song\/([^/]+)\/?$/)?.[1];
-  return id && ENGLISH_ALL.some((t) => t.id === decodeURIComponent(id))
-    ? "english"
-    : "home";
-})();
-
-function BasePage() {
-  if (PAGE === "copyright")
-    return (
-      <div className="studio-shell min-h-screen pb-24">
-        <Nav page="copyright" />
-        <main id="main-content" tabIndex={-1}>
-          <Suspense fallback={null}>
-            <CopyrightPage />
-          </Suspense>
-        </main>
-        <Footer />
-        <ChatLauncher />
-      </div>
-    );
-  if (PAGE === "artist" || PAGE === "admin")
-    return (
-      <div className="studio-shell min-h-screen pb-24">
-        <Nav page={PAGE} />
-        <main id="main-content" tabIndex={-1}>
-          <Suspense fallback={null}>
-            {PAGE === "artist" ? (
-              <ArtistPage
-                slug={decodeURIComponent(
-                  window.location.pathname.split("/")[2],
-                )}
-              />
-            ) : (
-              <AdminUploads />
-            )}
-          </Suspense>
-        </main>
-        <Footer />
-      </div>
-    );
-  if (PAGE === "profile" || PAGE === "account")
-    return (
-      <div className="studio-shell min-h-screen pb-24">
-        <Nav page={PAGE} />
-        <main id="main-content" tabIndex={-1}>
-          <Suspense fallback={null}>
-            {PAGE === "profile" ? (
-              <ProfilePage
-                username={decodeURIComponent(
-                  window.location.pathname.split("/")[2],
-                )}
-              />
-            ) : (
-              <AccountPage />
-            )}
-          </Suspense>
-        </main>
-        <Footer />
-        <ChatLauncher />
-      </div>
-    );
-  if (PAGE === "english")
-    return (
-      <div className="studio-shell min-h-screen pb-24">
-        <SecretBurst />
-        <Nav page="english" />
-        <main id="main-content" tabIndex={-1}>
-          <EnglishPage />
-        </main>
-        <Footer />
-        <InstallPrompt />
-        <ChatLauncher />
-      </div>
-    );
+// Only route content changes. The one PlayerProvider/audio element is never keyed,
+// hidden-and-remounted, or replaced when a listener follows an internal link.
+function HomeContent() {
   return (
-    <div className="studio-shell min-h-screen pb-24">
-      <SecretBurst />
-      <Nav />
-      <main id="main-content" tabIndex={-1}>
-        <PremiumHome />
-        {COMMUNITY_ROW_ENABLED && <CommunityRow />}
-        <section id="new-release" className="studio-section release-signup">
-          <div>
-            <p className="studio-kicker">Never miss a release</p>
-            <h2>Stay close to the music.</h2>
-            <p className="studio-muted">
-              New sounds from SRD Masum, straight to your inbox.
-            </p>
-          </div>
-          <NotifyForm />
-        </section>
-        <Reviews />
-        <Contact />
-      </main>
-      <Footer />
-      <MiniPlayer />
-      <InstallPrompt />
-      <ChatLauncher />
-    </div>
-  );
-}
-
-const INITIAL_PATH =
-  typeof window === "undefined" ? "/" : window.location.pathname;
-const norm = (p) => p.replace(/\/+$/, "") || "/";
-// Artist / profile pages opened in-app render over the original page (kept mounted but hidden),
-// so the one <audio> element in PlayerProvider never unmounts and music keeps playing.
-function SpaPage({ path }) {
-  const [, kind, name] = path.split("/");
-  const slug = decodeURIComponent(name || "");
-  const page = kind === "artist" ? "artist" : "profile";
-  return (
-    <div className="studio-shell min-h-screen pb-24">
-      <Nav page={page} />
-      <main id="main-content" tabIndex={-1}>
-        <Suspense fallback={null}>
-          {page === "artist" ? (
-            <ArtistPage key={slug} slug={slug} />
-          ) : (
-            <ProfilePage key={slug} username={slug} />
-          )}
-        </Suspense>
-      </main>
-      <Footer />
-      <ChatLauncher />
-    </div>
+    <>
+      <PremiumHome />
+      {COMMUNITY_ROW_ENABLED && <CommunityRow />}
+      <section id="new-release" className="studio-section release-signup">
+        <div>
+          <p className="studio-kicker">Never miss a release</p>
+          <h2>Stay close to the music.</h2>
+          <p className="studio-muted">
+            New sounds from SRD Masum, straight to your inbox.
+          </p>
+        </div>
+        <NotifyForm />
+      </section>
+      <Reviews />
+      <Contact />
+    </>
   );
 }
 function Router() {
-  const path = usePath();
-  const over = norm(path) !== norm(INITIAL_PATH) && SPA_RE.test(path);
+  const path = usePath().split("?")[0];
+  const [, kind, name] = path.split("/");
+  let slug = "";
+  try {
+    slug = decodeURIComponent(name || "");
+  } catch {}
+  const page = kind === "u" ? "profile" : kind || "home";
+  useEffect(() => installInternalNavigation(), []);
+  useEffect(() => {
+    if (page === "home") document.title = "SRD Masum | Official Music";
+  }, [page]);
+  let content;
+  if (page === "english") content = <EnglishPage />;
+  else if (page === "song") content = <SongDetail id={slug} />;
+  else if (page === "artist") content = <ArtistPage slug={slug} />;
+  else if (page === "profile") content = <ProfilePage username={slug} />;
+  else if (page === "account") content = <AccountPage />;
+  else if (page === "admin") content = <AdminUploads />;
+  else if (page === "copyright") content = <CopyrightPage />;
+  else content = <HomeContent />;
   return (
-    <>
-      <div hidden={over} style={over ? { display: "none" } : undefined}>
-        <BasePage />
-      </div>
-      {over && <SpaPage key={path} path={path} />}
-    </>
+    <div className="studio-shell min-h-screen pb-24">
+      <SecretBurst />
+      <Nav page={page} />
+      <main id="main-content" tabIndex={-1}>
+        <RouteBoundary key={path}>
+          <Suspense
+            fallback={
+              <div className="studio-route-loading" role="status">
+                <span />
+                <p>Finding your next sound…</p>
+              </div>
+            }
+          >
+            {content}
+          </Suspense>
+        </RouteBoundary>
+      </main>
+      <Footer />
+      <InstallPrompt />
+      {page !== "admin" && <ChatLauncher />}
+    </div>
   );
 }
 export default function App() {

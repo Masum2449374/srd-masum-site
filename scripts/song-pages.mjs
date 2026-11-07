@@ -1,3 +1,4 @@
+import postcss from "postcss";
 // Post-build: one static HTML per song at /song/<id>/index.html, so link previews
 // (WhatsApp, Facebook) show the song title. Each page is the normal app shell; the app
 // reads the /song/<id>/ path and cues that track.
@@ -62,8 +63,7 @@ for (const t of all) {
   h = h.replace("</head>", `    <meta property="og:audio" content="${esc(t.src)}" />\n  </head>`);
   // The shell's homepage JSON-LD graph (incl. its MusicRecording) does not belong on song pages.
   h = h.replace(/\s*<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "");
-  // Song pages are standalone (no React app): drop the app bundle and its preloads.
-  h = h.replace(/\s*<script type="module"[^>]*><\/script>/g, "").replace(/\s*<link rel="modulepreload"[^>]*>/g, "");
+  // Retain the app bundle: direct deep links join the same persistent audio shell.
   // Static, crawler-visible song page inside #root (React replaces it on mount and cues the track).
   const isOriginal = !t.artist || t.artist === "SRD Masum";
   const lang = BANGLA_TRACKS.includes(t) ? "bn" : /[\u0400-\u04FF]/.test(t.title) ? "ru" : AUDIO_TRACKS.includes(t) ? "hi" : "en";
@@ -149,35 +149,11 @@ body{background:#0f1014}.sp{max-width:1080px;padding:28px 28px 70px;color:#f5f3e
 @media(max-width:700px){.sp{max-width:520px;padding:20px 20px 50px}.sp-top{margin-bottom:28px;padding-bottom:17px}.sp-listening{grid-template-columns:1fr;gap:27px}.sp-cover{max-width:300px;width:85%;margin:auto}.sp h1{font-size:29px;line-height:1.2}.sp-detail>.sp-eyebrow{font-size:8px;margin-bottom:9px}.sp-artist{margin:10px 0 15px}.chips{margin-bottom:20px}.sec dl{grid-template-columns:1fr;gap:14px}.sp-lyrics{padding:25px 23px}.ly{font-size:18px}.sp-brand{font-size:16px}.sp-back{font-size:10px}}
 </style>`;
   const share = `${SITE}/song/${encodeURIComponent(t.id)}/`;
-  const player = audioSrc ? `<div class="card" role="region" aria-label="Player"><audio id="sa" preload="none" src="${esc(audioSrc)}"></audio>
-<div class="bar" id="bar" role="slider" tabindex="0" aria-label="Seek" aria-valuemin="0" aria-valuemax="${Math.round(dur)}" aria-valuenow="0"><div class="tr"><div class="bf" id="bf"></div><div class="fl" id="fl"></div></div><div class="th" id="th"></div></div>
-<div class="times"><span id="tc">0:00</span><span id="td">${fmt(dur)}</span></div>
-<div class="ctl"><button class="ib" id="rw" type="button" aria-label="Back 10 seconds">${I.back}</button><button class="pp" id="pb" type="button" aria-label="Play ${esc(t.title)}">${I.play}</button><button class="ib" id="ff" type="button" aria-label="Forward 10 seconds">${I.fwd}</button></div></div>` : "";
+  // Accessible no-JavaScript fallback only; React replaces it before its audio engine mounts.
+  const player = audioSrc ? `<div class="card" role="region" aria-label="Player"><audio controls preload="none" src="${esc(audioSrc)}" style="width:100%"></audio><p style="font-size:11px;color:#adaebb;margin:12px 0 0">Open the app player for synced lyrics and your listening queue.</p></div>` : "";
   const links = `<div class="grid2">${t.spotifyUrl ? `<a class="btn b-sp" href="${esc(t.spotifyUrl)}" rel="noopener" target="_blank" aria-label="Listen on Spotify (opens in a new tab)">${I.spotify}Spotify</a>` : ""}${t.youtubeUrl ? `<a class="btn b-yt" href="${esc(t.youtubeUrl)}" rel="noopener" target="_blank" aria-label="Watch on YouTube (opens in a new tab)">${I.youtube}YouTube</a>` : ""}</div>
-<div class="grid2"><a class="btn b-out" href="/?from=song&song=${encodeURIComponent(t.id)}">${I.home}Full site</a><button class="btn b-out" id="sh" type="button" aria-label="Share this song">${I.share}Share</button></div>`;
-  const script = `<script>(function(){var $=function(i){return document.getElementById(i)};var a=$("sa"),b=$("pb"),id=${JSON.stringify(t.id)},sent=0,secs=0,last=0,drag=0,PL=${JSON.stringify(I.play)},PA=${JSON.stringify(I.pause)};
-function rip(e){var el=e.currentTarget,r=el.getBoundingClientRect(),s=Math.max(r.width,r.height),d=document.createElement("span");d.className="rp";d.style.width=d.style.height=s+"px";d.style.left=(e.clientX-r.left-s/2)+"px";d.style.top=(e.clientY-r.top-s/2)+"px";el.appendChild(d);setTimeout(function(){d.remove()},600)}
-[].forEach.call(document.querySelectorAll(".btn"),function(x){x.addEventListener("pointerdown",rip)});
-function toast(m){var t=$("toast");t.textContent=m;t.style.opacity=1;setTimeout(function(){t.style.opacity=0},1800)}
-$("sh").onclick=function(){var u=${JSON.stringify(share)},d={title:document.title,url:u};if(navigator.share)navigator.share(d).catch(function(){});else if(navigator.clipboard)navigator.clipboard.writeText(u).then(function(){toast("Link copied")});};
-if(!a)return;var bar=$("bar"),fl=$("fl"),bf=$("bf"),th=$("th"),c=$("tc"),dd=$("td"),L=[].slice.call(document.querySelectorAll(".ly[data-t]")),cur=-1;
-function f(x){x=x||0;return Math.floor(x/60)+":"+("0"+Math.floor(x%60)).slice(-2)}
-function D(){return a.duration&&isFinite(a.duration)?a.duration:${dur}}
-function paint(x){var p=Math.max(0,Math.min(1,x/D()))*100;fl.style.width=p+"%";th.style.left=p+"%";c.textContent=f(x);bar.setAttribute("aria-valuenow",Math.round(x));bar.setAttribute("aria-valuetext",f(x))}
-b.onclick=function(){if(a.paused){b.classList.add("ld");var p=a.play();if(p&&p.catch)p.catch(function(){b.classList.remove("ld")});}else a.pause()};
-$("rw").onclick=function(){a.currentTime=Math.max(0,a.currentTime-10);paint(a.currentTime)};$("ff").onclick=function(){a.currentTime=Math.min(D(),a.currentTime+10);paint(a.currentTime)};
-a.onplaying=function(){b.classList.remove("ld")};
-a.onplay=function(){b.innerHTML=PA;b.classList.add("on");b.setAttribute("aria-label","Pause");sent=0;secs=0;last=a.currentTime;};
-a.onpause=a.onended=function(){b.innerHTML=PL;b.classList.remove("on","ld");b.setAttribute("aria-label","Play")};
-a.onloadedmetadata=function(){dd.textContent=f(D());bar.setAttribute("aria-valuemax",Math.round(D()))};
-a.onprogress=function(){try{if(a.buffered.length)bf.style.width=(a.buffered.end(a.buffered.length-1)/D()*100)+"%"}catch(e){}};
-a.ontimeupdate=function(){var x=a.currentTime;if(!a.paused&&!sent){var delta=x-last;if(delta>0&&delta<2)secs+=delta;if(secs>=3){sent=1;fetch("/api/plays/"+encodeURIComponent(id.toLowerCase()),{method:"POST",keepalive:true}).catch(function(){})}}last=x;if(!drag)paint(x);if(L.length){var i=-1;for(var j=0;j<L.length;j++){if(+L[j].dataset.t<=x)i=j;else break}if(i!==cur){if(cur>=0)L[cur].classList.remove("on");cur=i;if(i>=0){L[i].classList.add("on");L[i].scrollIntoView({block:"center",behavior:"smooth"})}}}};
-function pos(e){var r=bar.getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*D()}
-bar.addEventListener("pointerdown",function(e){drag=1;bar.setPointerCapture(e.pointerId);paint(pos(e))});
-bar.addEventListener("pointermove",function(e){if(drag)paint(pos(e))});
-bar.addEventListener("pointerup",function(e){if(!drag)return;drag=0;a.currentTime=pos(e);paint(a.currentTime)});
-bar.addEventListener("keydown",function(e){var k=e.key;if(k==="ArrowRight"||k==="ArrowLeft"){a.currentTime=Math.max(0,Math.min(D(),a.currentTime+(k==="ArrowRight"?5:-5)));paint(a.currentTime);e.preventDefault()}});
-L.forEach(function(p){p.style.cursor="pointer";p.onclick=function(){a.currentTime=+p.dataset.t;if(a.paused)a.play()}});})();</script>`;
+<div class="grid2"><a class="btn b-out" href="/?from=song&song=${encodeURIComponent(t.id)}">${I.home}Full site</a><a class="btn b-out" href="${share}">${I.share}Song permalink</a></div>`;
+
   h = h.replace(/<div id="root"><\/div>/, `<div id="root"><div class="sp-bg"></div><article class="sp" lang="${lang}">
 <div class="sp-top"><a class="sp-brand" href="/?from=song"><img src="/images/avatar.webp" alt="" width="28" height="28">SRD Masum</a><a class="sp-back" href="/?from=song">Explore the collection ↗</a></div><div class="sp-listening">
 ${cover ? `<img class="sp-cover" src="${esc(cover)}" alt="${esc(t.title)} cover" width="300" height="300">` : ""}
@@ -185,8 +161,15 @@ ${cover ? `<img class="sp-cover" src="${esc(cover)}" alt="${esc(t.title)} cover"
 ${player}${links}</div></div>
 ${credRows ? `<section class="sec"><h2>Credits</h2><dl>${credRows}</dl></section>` : ""}
 ${lyr ? `<section class="sec sp-lyrics"><h2>Synced lyrics · Follow the feeling</h2>${lyr}</section>` : ""}
-</article><div class="toast" id="toast" role="status"></div></div>${script}`);
-  h = h.replace("</head>", css + "\n</head>");
+</article><div class="toast" id="toast" role="status"></div></div>`);
+  // Static fallback styles must not recolor the persistent React shell after navigation.
+  const fallbackStyles = postcss.parse(css.replace(/^<style>|<\/style>$/g, ""));
+  fallbackStyles.walkRules((rule) => {
+    if (rule.parent.type === "atrule" && /keyframes$/.test(rule.parent.name)) return;
+    if (rule.selector === "body") { rule.remove(); return; }
+    rule.selectors = rule.selectors.map((selector) => selector.startsWith(".sp") ? selector : `.sp ${selector}`);
+  });
+  h = h.replace("</head>", `<style>${fallbackStyles.toString()}</style>\n</head>`);
   if (isOriginal) {
     const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, ...(!t.artist || t.artist === "SRD Masum" ? {} : { byArtist: { "@type": "MusicGroup", name: t.artist } }), recordLabel: { "@type": "Organization", "@id": `${SITE}/#org`, name: "SRD Masum" }, inLanguage: lang, ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
     h = h.replace("</head>", `    <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n  </head>`);

@@ -8,6 +8,7 @@ import "@fontsource/ibm-plex-mono/500.css";
 import App from "./App.jsx";
 import "./index.css";
 import "./studio.css";
+import "./player-studio.css";
 
 // Arriving from a static song page (/?from=song): skip the first-visit intro/curtain.
 try {

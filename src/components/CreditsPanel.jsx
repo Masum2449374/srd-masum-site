@@ -1,63 +1,177 @@
-import { useDialogFocus } from "../lib/useDialogFocus.js";
 import { useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { X, Article, SpotifyLogo, YoutubeLogo } from "@phosphor-icons/react";
-
-function Cover({ t, className = "" }) {
-  return (
-    <picture>
-      {t.coverWebp && <source srcSet={t.coverWebp} type="image/webp" />}
-      <img src={t.cover || t.art || "/images/avatar.webp"} alt="" loading="lazy" draggable={false} className={className} />
-    </picture>
-  );
-}
-
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  X,
+  Article,
+  SpotifyLogo,
+  YoutubeLogo,
+  ArrowUpRight,
+} from "@phosphor-icons/react";
+import { useDialogFocus } from "../lib/useDialogFocus.js";
 export default function CreditsPanel({ t, onClose, onPlay }) {
-  const dialogRef = useRef(null);
-  useDialogFocus(dialogRef, Boolean(t));
+  const ref = useRef(null),
+    reduce = useReducedMotion();
+  useDialogFocus(ref, Boolean(t));
   useEffect(() => {
     if (!t) return;
-    const k = (e) => { if (e.key === "Escape") { e.stopImmediatePropagation(); onClose(); } };
-    window.addEventListener("keydown", k, true);
-    return () => window.removeEventListener("keydown", k, true);
-  }, [t, onClose]);
-  const orig = t && (t.original || !t.artist || t.artist === "SRD Masum");
+    const key = (e) => {
+      if (e.key === "Escape") {
+        e.stopImmediatePropagation();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", key, true);
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", key, true);
+      document.body.style.overflow = previous;
+    };
+  }, [Boolean(t)]);
+  const own = t && (!t.artist || t.artist === "SRD Masum");
+  const rows = t
+    ? [
+        [own ? "Released by" : "Artist", t.artist || "SRD Masum"],
+        ["Release", t.album],
+        ["Songwriting", t.writers],
+        ["Production", t.producer],
+        [
+          "Release date",
+          t.released &&
+            new Date(t.released + "T00:00:00Z").toLocaleDateString("en-US", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+              timeZone: "UTC",
+            }),
+        ],
+        ["Label", t.label],
+      ].filter(([, value]) => value)
+    : [];
   return (
     <AnimatePresence>
       {t && (
-        <motion.div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
-          <motion.div ref={dialogRef} role="dialog" aria-modal="true" aria-label={`Credits: ${t.title}`} data-testid="en-credits"
-            initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }} transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        <motion.div
+          className="studio-sheet-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+        >
+          <motion.section
+            ref={ref}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="song-info-title"
+            data-testid="en-credits"
+            className="studio-info-sheet"
+            initial={reduce ? { opacity: 0 } : { y: 60 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={reduce ? { opacity: 0 } : { y: 60 }}
+            transition={{ type: "spring", stiffness: 300, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-t-3xl bg-sunk p-6 ring-1 ring-hairline sm:rounded-3xl">
-            <div className="flex items-start gap-4">
-              <Cover t={t} className="h-20 w-20 rounded-xl object-cover" />
-              <div className="min-w-0 flex-1">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">Credits</p>
-                <h3 className="mt-1 truncate font-display text-2xl text-ink">{t.title}</h3>
-                <p className="text-sm text-muted">{orig ? "Released by SRD Masum" : t.artist}</p>
+          >
+            <div className="studio-sheet-grip" aria-hidden="true" />
+            <header>
+              <div>
+                <p className="studio-kicker">Behind the music</p>
+                <span>Song information</span>
               </div>
-              <button type="button" onClick={onClose} aria-label="Close credits" className="flex h-9 w-9 items-center justify-center rounded-full ring-1 ring-hairline text-muted"><X size={16} weight="bold" /></button>
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close song information"
+                className="studio-player-icon"
+              >
+                <X size={20} />
+              </button>
+            </header>
+            <div className="studio-info-identity">
+              <picture>
+                {t.coverWebp && (
+                  <source srcSet={t.coverWebp} type="image/webp" />
+                )}
+                <img
+                  src={t.cover || t.art || "/images/avatar.webp"}
+                  alt={`${t.title} cover`}
+                  width="112"
+                  height="112"
+                />
+              </picture>
+              <div>
+                <p className="studio-kicker">The music space</p>
+                <h2 id="song-info-title">{t.title}</h2>
+                <p>{t.artist || "SRD Masum"}</p>
+              </div>
             </div>
-            <dl className="mt-5 space-y-2 text-sm">
-              <div className="flex justify-between gap-4"><dt className="text-faint">{t.artist && t.artist !== "SRD Masum" ? "Artist" : "Released by"}</dt><dd className="text-right text-ink">{t.artist || "SRD Masum"}</dd></div>
-              {t.album && <div className="flex justify-between gap-4"><dt className="text-faint">Release</dt><dd className="text-right text-ink">{t.album}</dd></div>}
-              {t.writers && <div className="flex justify-between gap-4"><dt className="text-faint">Writers</dt><dd className="text-right text-ink">{t.writers}</dd></div>}
-              {t.producer && <div className="flex justify-between gap-4"><dt className="text-faint">Producer</dt><dd className="text-right text-ink">{t.producer}</dd></div>}
-              {t.released && <div className="flex justify-between gap-4"><dt className="text-faint">Released</dt><dd className="text-right text-ink">{new Date(t.released + "T00:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" })}</dd></div>}
-              {t.label && <div className="flex justify-between gap-4"><dt className="text-faint">Label</dt><dd className="text-right text-ink">{t.label}</dd></div>}
+            <dl className="studio-info-metadata">
+              {rows.map(([label, value]) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
             </dl>
             {((t.lyrics && onPlay) || t.spotifyUrl || t.youtubeUrl) && (
-              <div className="mt-5 grid grid-cols-2 gap-2">
-                {t.lyrics && onPlay && <button type="button" onClick={() => { onPlay(t); onClose(); }} className="flex items-center gap-2 rounded-full bg-accent px-4 py-2 text-sm font-semibold text-on-accent"><Article size={18} weight="bold" />Play with synced lyrics</button>}
-                {t.spotifyUrl && <a href={t.spotifyUrl} target="_blank" rel="noopener noreferrer" data-testid="en-spotify" className="sbtn sbtn-sp"><SpotifyLogo size={20} weight="fill" />Listen on Spotify</a>}
-                {t.youtubeUrl && <a href={t.youtubeUrl} target="_blank" rel="noopener noreferrer" data-testid="en-youtube" className="sbtn sbtn-yt"><YoutubeLogo size={20} weight="fill" />Watch on YouTube</a>}
+              <div className="studio-info-services">
+                <p className="studio-kicker">Keep listening</p>
+                {t.lyrics && onPlay && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onPlay(t);
+                      onClose();
+                    }}
+                    className="studio-service-link"
+                  >
+                    <Article size={21} />
+                    <span>
+                      <strong>Play with lyrics</strong>
+                      <small>Follow every line</small>
+                    </span>
+                    <ArrowUpRight size={17} />
+                  </button>
+                )}
+                {t.spotifyUrl && (
+                  <a
+                    href={t.spotifyUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="en-spotify"
+                    className="studio-service-link"
+                  >
+                    <SpotifyLogo size={24} weight="fill" />
+                    <span>
+                      <strong>Spotify</strong>
+                      <small>Listen on Spotify</small>
+                    </span>
+                    <ArrowUpRight size={17} />
+                  </a>
+                )}
+                {t.youtubeUrl && (
+                  <a
+                    href={t.youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-testid="en-youtube"
+                    className="studio-service-link"
+                  >
+                    <YoutubeLogo size={24} weight="fill" />
+                    <span>
+                      <strong>YouTube</strong>
+                      <small>Watch on YouTube</small>
+                    </span>
+                    <ArrowUpRight size={17} />
+                  </a>
+                )}
               </div>
             )}
-          </motion.div>
+            <p className="studio-info-footnote">
+              A little closer to the music.
+            </p>
+          </motion.section>
         </motion.div>
       )}
     </AnimatePresence>
   );
 }
-

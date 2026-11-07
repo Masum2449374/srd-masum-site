@@ -46,6 +46,8 @@ export default function Nav({ page = "home" }) {
   const searchButton = useRef(null),
     taps = useRef({ count: 0, time: 0 });
   const onHome = page === "home";
+  useEffect(() => { setSearch(false); setActive(page === "english" ? "english" : "top"); }, [page]);
+  useEffect(() => { const close = () => setSearch(false); window.addEventListener("srd-nav", close); return () => window.removeEventListener("srd-nav", close); }, []);
   useEffect(() => {
     const k = (e) => {
       if (

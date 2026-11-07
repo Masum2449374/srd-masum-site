@@ -1,30 +1,81 @@
 import { useEffect, useState } from "react";
-// Tiny in-app router for artist/profile pages so the single <audio> element (in PlayerProvider) keeps playing.
-export const SPA_RE = /^\/(artist|u)\/[^/]+\/?$/;
-const scrolls = {};
-export function navigate(href, { replace = false } = {}) {
-  const u = new URL(href, location.href);
-  if (u.origin !== location.origin || !SPA_RE.test(u.pathname)) { location.href = u.href; return; }
-  scrolls[location.pathname] = scrollY;
-  const st = { srdSpa: 1 };
-  replace ? history.replaceState(st, "", u.pathname) : history.pushState(st, "", u.pathname);
-  window.dispatchEvent(new Event("srd-nav"));
-  scrollTo(0, 0);
+import {
+  APP_ROUTE_RE,
+  internalDestination,
+  canHandleLink,
+} from "./navigation-core.js";
+export const SPA_RE = APP_ROUTE_RE;
+const scrolls = new Map();
+const key = () => location.pathname + location.search + location.hash;
+const route = () => location.pathname + location.search;
+function restoreScroll(y = 0, hash = location.hash) {
+  let frames = 0;
+  const apply = () => {
+    let id = hash && hash.slice(1);
+    try {
+      id = decodeURIComponent(id || "");
+    } catch {}
+    const el = id && document.getElementById(id);
+    if (id && !el && frames++ < 20) {
+      requestAnimationFrame(apply);
+      return;
+    }
+    if (el) el.scrollIntoView({ block: "start", behavior: "instant" });
+    else scrollTo(0, y);
+  };
+  requestAnimationFrame(() => requestAnimationFrame(apply));
 }
-// Click handler for <a>: in-app navigate on plain left-clicks.
-export const spaClick = (e, opts) => {
-  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
-  const href = e.currentTarget.getAttribute("href");
-  if (!href || !SPA_RE.test(new URL(href, location.href).pathname)) return;
-  e.preventDefault(); navigate(href, opts);
+export function navigate(href, { replace = false } = {}) {
+  const url = internalDestination(href, location.href);
+  if (!url) return false;
+  scrolls.set(key(), scrollY);
+  const next = url.pathname + url.search + url.hash;
+  if (next !== key() || replace) {
+    const state = { srdSpa: 1 };
+    replace
+      ? history.replaceState(state, "", next)
+      : history.pushState(state, "", next);
+  }
+  window.dispatchEvent(new Event("srd-nav"));
+  restoreScroll(0, url.hash);
+  return true;
+}
+export const spaClick = (event, options) => {
+  const url = canHandleLink(event, event.currentTarget, location.href);
+  if (!url) return;
+  event.preventDefault();
+  navigate(url.href, options);
 };
+export function installInternalNavigation() {
+  const click = (event) => {
+    const anchor = event.target.closest?.("a[href]");
+    const url = canHandleLink(event, anchor, location.href);
+    if (!url) return;
+    event.preventDefault();
+    navigate(url.href);
+  };
+  document.addEventListener("click", click);
+  const previous = history.scrollRestoration;
+  history.scrollRestoration = "manual";
+  return () => {
+    document.removeEventListener("click", click);
+    history.scrollRestoration = previous;
+  };
+}
 export function usePath() {
-  const [p, setP] = useState(() => location.pathname);
+  const [path, setPath] = useState(route);
   useEffect(() => {
-    const on = () => { const np = location.pathname; setP(np); const y = scrolls[np]; requestAnimationFrame(() => scrollTo(0, y || 0)); };
-    const onNav = () => setP(location.pathname);
-    addEventListener("popstate", on); addEventListener("srd-nav", onNav);
-    return () => { removeEventListener("popstate", on); removeEventListener("srd-nav", onNav); };
+    const pop = () => {
+      setPath(route());
+      restoreScroll(scrolls.get(key()) || 0);
+    };
+    const nav = () => setPath(route());
+    window.addEventListener("popstate", pop);
+    window.addEventListener("srd-nav", nav);
+    return () => {
+      window.removeEventListener("popstate", pop);
+      window.removeEventListener("srd-nav", nav);
+    };
   }, []);
-  return p;
+  return path;
 }

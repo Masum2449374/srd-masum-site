@@ -46,6 +46,7 @@ export function FXCover({ src, playing, children }) {
     const cv = canvas.current; if (!cv) return;
     const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     const g = cv.getContext("2d");
+    const spectrumColor = getComputedStyle(cv).getPropertyValue("--spectrum-rgb").trim() || "255,255,255";
     const spec = new Uint8Array(BARS), half = new Uint8Array(BARS / 4);
     let raf = 0, smooth = 0, silentSince = 0, sim = false;
     // Simulated beat (used when the analyser has no real data, e.g. a silent capture on some phones):
@@ -112,7 +113,7 @@ export function FXCover({ src, playing, children }) {
         const k = Math.abs(i - (n - 1) / 2) / (n / 2); // 0 centre .. 1 edges
         const v = spec[Math.min(BARS - 1, Math.floor(k * (BARS / 2)))] / 255;
         const bh = Math.max(2, Math.pow(v, 1.4) * h * (1 - k * 0.55));
-        g.fillStyle = `rgba(255,255,255,${0.18 + v * 0.45})`;
+        g.fillStyle = `rgba(${spectrumColor},${0.25 + v * 0.6})`;
         const x = i * (bw + gap), y = cy - bh / 2;
         g.beginPath(); g.roundRect ? g.roundRect(x, y, bw, bh, bw / 2) : g.rect(x, y, bw, bh); g.fill();
       }
