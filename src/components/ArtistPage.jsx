@@ -3,7 +3,7 @@ import { Play, Pause, ArrowLeft, MusicNotes } from "@phosphor-icons/react";
 import { artistBySlug } from "../lib/artists.js";
 import { usePlayer } from "./MiniPlayer.jsx";
 import { TrackList } from "./PlaylistSection.jsx";
-import { NameWithBadge } from "./VerifiedBadge.jsx";
+import VerifiedBadge from "./VerifiedBadge.jsx";
 
 export default function ArtistPage({ slug }) {
   const artist = artistBySlug(slug),
@@ -49,10 +49,12 @@ export default function ArtistPage({ slug }) {
             />
           </div>
           <div>
-            <p className="studio-kicker">
-              Artist collection
-            </p>
-            <h1 data-testid="artist-name"><NameWithBadge name={artist.name} verified={artist.verified} size={13} /></h1>
+            {artist.verified ? (
+              <p data-testid="artist-verification" className="artist-verification-label inline-flex items-center gap-1.5 text-sm font-semibold"><VerifiedBadge size={14} />Verified Artist</p>
+            ) : (
+              <p className="studio-kicker">Artist collection</p>
+            )}
+            <h1 data-testid="artist-name">{artist.name}</h1>
             <p className="studio-muted">
               {artist.tracks.length}{" "}
               {artist.tracks.length === 1 ? "track" : "tracks"} in the SRD Masum

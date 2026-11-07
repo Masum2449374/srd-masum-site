@@ -10,17 +10,9 @@ export default function VerifiedBadge({ size = 14, className = "" }) {
   );
 }
 
-// Glue the small raised badge to the name ending, never to an empty new line.
-// Long unbroken final words keep a short terminal group so narrow columns can wrap.
-export function NameWithBadge({ name, verified, size = 13, className = "" }) {
-  const s = String(name || "");
+// Name with the badge glued to its last word (never orphans onto its own line).
+export function NameWithBadge({ name, verified, size = 22, className = "" }) {
+  const s = String(name || ""), i = s.lastIndexOf(" ");
   if (!verified) return s;
-  const boundary = s.lastIndexOf(" ") + 1;
-  const word = s.slice(boundary);
-  const letters = typeof Intl.Segmenter === "function"
-    ? [...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(word)].map(x => x.segment)
-    : Array.from(word);
-  const tail = letters.slice(-2).join("");
-  const prefix = s.slice(0, s.length - tail.length);
-  return (<>{prefix}<span className="verified-name-tail">{tail}<VerifiedBadge size={size} className={`verified-name-raised ${className}`} /></span></>);
+  return (<>{i > 0 ? s.slice(0, i + 1) : ""}<span className="whitespace-nowrap">{i > 0 ? s.slice(i + 1) : s}<VerifiedBadge size={size} className={`ml-[5px] align-middle relative -top-[0.06em] ${className}`} /></span></>);
 }
