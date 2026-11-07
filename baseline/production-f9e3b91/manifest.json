@@ -24,6 +24,10 @@
     "tailwind.config.mjs": {
       "source": "tailwind.config.js",
       "sha256": "5e6e7bf21231cc0aaaa5684add335ffde7c5b19ea02e732fb7561ea5c2c4f5cf"
+    },
+    "ArtistPage.jsx.txt": {
+      "source": "src/components/ArtistPage.jsx",
+      "sha256": "64a42dbfca048c8df214ec879b10867d3fa04e04c3ae4da4f7de961943a05123"
     }
   }
 }
