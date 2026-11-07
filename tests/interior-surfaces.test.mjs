@@ -81,7 +81,7 @@ test("Mobile now-playing renders actual artwork, transport, lyrics/queue tabs an
   assert.equal((html.match(/id="player-tab-panel"/g) || []).length, 1);
   assert.ok(!html.includes("<audio"));
 });
-test("Desktop player shows actual synced lyrics alongside controls with a single tabpanel", () => {
+test("Desktop lyrics uses the original production layout alongside current playback controls", () => {
   desktop = true;
   const html = render(NowPlaying, {
     player: {
@@ -96,14 +96,15 @@ test("Desktop player shows actual synced lyrics alongside controls with a single
     onClose() {},
   });
   for (const content of [
-    "studio-player-side",
+    "np-lyrics-desk",
     "np-lyrics-panel",
-    "Synced lyrics",
+    "Lyrics",
     'lang="en"',
     'aria-current="true"',
   ])
     assert.ok(html.includes(content), content);
-  assert.equal((html.match(/id="player-tab-panel"/g) || []).length, 1);
+  assert.equal((html.match(/id="player-tab-panel"/g) || []).length, 0);
+  assert.ok(!html.includes("studio-player-tabs"));
   desktop = false;
 });
 test("Credits retain full real titles, date and exact service destinations without truncation", () => {

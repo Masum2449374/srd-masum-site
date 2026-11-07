@@ -1,3 +1,4 @@
+import ProductionLyricsScene from "./ProductionLyricsScene.jsx";
 import { useEffect, useRef, useState } from "react";
 import { motion, useDragControls, useReducedMotion } from "framer-motion";
 import {
@@ -22,7 +23,6 @@ import { navigate } from "../lib/nav.js";
 import { formatTime, useIsDesktop } from "./MiniPlayer.jsx";
 import { FXBackground, FXCover } from "./NowPlayingFX.jsx";
 import VerifiedBadge from "./VerifiedBadge.jsx";
-import LyricsPanel from "./LyricsPanel.jsx";
 import CreditsPanel from "./CreditsPanel.jsx";
 import ShareButton from "./ShareButton.jsx";
 
@@ -43,7 +43,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
   const [info, setInfo] = useState(null);
   const ref = useRef(null),
     drag = useDragControls();
-  useDialogFocus(ref);
+  useDialogFocus(ref, view !== "lyrics");
   useEffect(() => {
     const key = (e) => {
       if (e.key === "Escape") onClose();
@@ -90,25 +90,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
     </div>
   );
   const secondary =
-    view === "lyrics" && hasLyrics ? (
-      <div className="studio-lyrics-view">
-        <div className="studio-interior-section-heading">
-          <div>
-            <h2>Lyrics</h2>
-          </div>
-          <span className="studio-interior-badge">
-            {t.lyricTimes?.length ? "Synced lyrics" : "Lyrics"}
-          </span>
-        </div>
-        <LyricsPanel
-          track={t}
-          current={shown}
-          duration={max}
-          onSeek={player.seekTo}
-          playing={player.playing}
-        />
-      </div>
-    ) : view === "queue" ? (
+    view === "queue" ? (
       <div className="studio-queue-view" data-testid="np-queue">
         <div className="studio-interior-section-heading">
           <div>
@@ -165,6 +147,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
         )}
       </div>
     ) : null;
+  if (view === "lyrics" && hasLyrics) return <ProductionLyricsScene player={player} scrub={scrub} onClose={onClose} onArtist={onArtist} onExitLyrics={() => setView("cover")} />;
   return (
     <motion.div
       ref={ref}

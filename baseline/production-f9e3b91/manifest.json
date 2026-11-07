@@ -1,0 +1,29 @@
+{
+  "commit": "f9e3b91c83966aca82c22b2203f21faaf7b8f653",
+  "files": {
+    "LyricsPanel.jsx.txt": {
+      "source": "src/components/LyricsPanel.jsx",
+      "sha256": "8fe9b20447f798242c2a73eb12225bb5e2c3d64d6614a578859167c09c815a60"
+    },
+    "index.css": {
+      "source": "src/index.css",
+      "sha256": "1bf5ac8934a76877bf5aa2cf3ab515a790c41479552c7bb279b2b2d7404c3501"
+    },
+    "ShareButton.jsx.txt": {
+      "source": "src/components/ShareButton.jsx",
+      "sha256": "44e8245475012bd30fa8f07cda4b92bf94beb845ba1fdda071d880cf4c4f817c"
+    },
+    "NowPlayingFX.jsx.txt": {
+      "source": "src/components/NowPlayingFX.jsx",
+      "sha256": "6c8de3542a57a5cc64ae2dda8cbda11154412478cc18f7bc87da6d9e79357559"
+    },
+    "NowPlaying.jsx.txt": {
+      "source": "src/components/MiniPlayer.jsx, NowPlaying function",
+      "sha256": "58bf83691b82407e16b95efd606cc92d581616ee9b88e246ec22b4d5756a5d6e"
+    },
+    "tailwind.config.mjs": {
+      "source": "tailwind.config.js",
+      "sha256": "5e6e7bf21231cc0aaaa5684add335ffde7c5b19ea02e732fb7561ea5c2c4f5cf"
+    }
+  }
+}

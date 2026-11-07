@@ -51,3 +51,5 @@ import { installSocialBar } from "./lib/socialbar.js";
 if (!DESIGN_SANDBOX) installSocialBar();
 
 import "./language-playlists.css";
+
+import "./production-lyrics.css";
