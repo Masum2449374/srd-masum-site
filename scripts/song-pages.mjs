@@ -117,7 +117,7 @@ ${cover ? `<img class="sp-cover" src="${esc(cover)}" alt="${esc(t.title)} cover"
 <div class="sp-detail"><p class="sp-eyebrow">Single · The music space</p><h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by " : ""}<a class="sp-alink" href="${esc(artistHref(t))}">${xesc(artistOf(t))}${isVerified(t) ? BADGE : ""}</a></p><div class="chips">${chips}</div>
 ${player}${links}</div></div>
 ${credRows ? `<section class="sec"><h2>Credits</h2><dl>${credRows}</dl></section>` : ""}
-${lyr ? `<section class="sec sp-lyrics"><h2>Synced lyrics · Follow the feeling</h2>${lyr}</section>` : ""}
+${lyr ? `<section class="sec sp-lyrics"><h2>${t.lyricTimes?.length ? "Lyrics · Synced in the app player" : "Lyrics"}</h2>${lyr}</section>` : ""}
 </article><div class="toast" id="toast" role="status"></div></div>`);
   // Static fallback styles must not recolor the persistent React shell after navigation.
   const fallbackStyles = postcss.parse(css.replace(/^<style>|<\/style>$/g, ""));

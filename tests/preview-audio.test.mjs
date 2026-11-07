@@ -15,10 +15,10 @@ const request=(headers={},method='GET',host='https://safe-review.srd-masum.pages
 test('Uploaded song has evidence-backed metadata, exact file duration, real artwork and no invented verification/lyrics',()=>{
  assert.equal(track.title,'Sajan Tumse Pyar');assert.equal(track.artist,'Udit Narayan & Alka Yagnik');assert.equal(track.duration,247.536);
  assert.equal(track.released,'2005-05-24');assert.equal(track.composer,'Himesh Reshammiya');assert.equal(track.writers,'Sameer');
- assert.equal(track.verified,false);assert.equal(isVerified(track),false);assert.equal(track.previewOnly,true);assert.equal(track.lyrics,undefined);
+ assert.equal(track.verified,false);assert.equal(isVerified(track),false);assert.equal(track.previewOnly,true);assert.match(track.lyrics,/^Sajan tumse pyar/);assert.equal(track.lyricTimes.length,34);
  assert.match(track.version,/unspecified/);assert.equal(playlistBySlug('hindi').tracks.filter(t=>t.id===track.id).length,1);
  for(const p of [track.cover,track.coverWebp,track.thumb,track.artwork512]) assert.ok(fs.existsSync(new URL('../public'+p,import.meta.url)));
- const html=fs.readFileSync(new URL('../dist/song/sajan-tumse-pyar/index.html',import.meta.url),'utf8');assert.ok(html.includes('Sajan Tumse Pyar'));assert.ok(html.includes('Hindi'));assert.ok(html.includes('https://design-premium-studio-202611.srd-masum.pages.dev/og/sajan-tumse-pyar.png'));assert.ok(html.includes('edit unspecified'));assert.ok(!html.includes('Synced lyrics ·'));
+ const html=fs.readFileSync(new URL('../dist/song/sajan-tumse-pyar/index.html',import.meta.url),'utf8');assert.ok(html.includes('Sajan Tumse Pyar'));assert.ok(html.includes('Hindi'));assert.ok(html.includes('https://design-premium-studio-202611.srd-masum.pages.dev/og/sajan-tumse-pyar.png'));assert.ok(html.includes('edit unspecified'));assert.ok(html.includes('Lyrics · Synced in the app player'));
 });
 test('Preview R2 streaming supports GET, HEAD, normal/suffix/open ranges and cache validators',async()=>{
  let r=await request();assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'audio/mpeg');assert.equal(r.headers.get('accept-ranges'),'bytes');assert.equal(r.headers.get('content-language'),'hi');assert.deepEqual(new Uint8Array(await r.arrayBuffer()),bytes);

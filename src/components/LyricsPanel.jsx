@@ -1,73 +1,79 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { activeLine, parseLyrics } from "../lib/lyrics.js";
+import { lyricScrollTarget } from "../lib/lyric-scroll.js";
 
-// Scrolling lyrics for the Now Playing sheet. Synced when the track has lyricTimes:
-// highlights the current line, auto-scrolls it to center, and seeks on tap.
+// Line-level timing only. Reading and seeking never replace or reload the audio.
 export default function LyricsPanel({ track, current, duration, onSeek }) {
   const rows = useMemo(
     () => parseLyrics(track.lyrics, track.lyricTimes, track.lyricEnds, duration || track.duration),
     [track.lyrics, track.lyricTimes, track.lyricEnds, duration, track.duration]
   );
-  const synced = Array.isArray(track.lyricTimes) && track.lyricTimes.length > 0;
+  const synced = Boolean(track.lyricTimes?.length);
   const active = synced ? activeLine(rows, current) : -1;
   const box = useRef(null);
-  const userScroll = useRef(0);
-
+  const resumeTimer = useRef(null);
+  const [following, setFollowing] = useState(true);
+  const resume = () => {
+    clearTimeout(resumeTimer.current);
+    setFollowing(true);
+  };
+  const readManually = () => {
+    clearTimeout(resumeTimer.current);
+    setFollowing(false);
+    resumeTimer.current = setTimeout(() => setFollowing(true), 5000);
+  };
   useEffect(() => {
-    if (!synced || active < 0 || !box.current) return;
-    if (Date.now() - userScroll.current < 3000) return; // let a manual scroll breathe
-    const el = box.current.querySelector(`[data-seq="${active}"]`);
-    if (!el) return;
-    const c = box.current;
-    c.scrollTo({ top: el.offsetTop - c.clientHeight / 2 + el.clientHeight / 2, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-  }, [active, synced]);
-
+    clearTimeout(resumeTimer.current);
+    setFollowing(true);
+    box.current?.scrollTo({ top: 0, behavior: "auto" });
+    return () => clearTimeout(resumeTimer.current);
+  }, [track.id]);
+  useEffect(() => {
+    if (!synced || !following || active < 0 || !box.current) return;
+    const viewport = box.current;
+    const line = viewport.querySelector(`[data-seq="${active}"]`);
+    if (!line) return;
+    viewport.scrollTo({
+      top: lyricScrollTarget(viewport, line),
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  }, [active, synced, following, track.id]);
+  const seek = (time) => { resume(); onSeek?.(time); };
+  const lang = track.lyricsLang || (/[\u0980-\u09ff]/.test(track.lyrics || "") ? "bn" : /[\u0400-\u04ff]/.test(track.lyrics || "") ? "ru" : /[\u0900-\u097f]/.test(track.lyrics || "") ? "hi" : "en");
   return (
-    <div
-      ref={box}
-      data-testid="np-lyrics-panel"
-      lang={/[\u0980-\u09ff]/.test(track.lyrics || "") ? "bn" : /[\u0400-\u04ff]/.test(track.lyrics || "") ? "ru" : /[\u0900-\u097f]/.test(track.lyrics || "") ? "hi" : "en"}
-      onPointerDownCapture={(e) => e.stopPropagation()}
-      onWheel={() => { userScroll.current = Date.now(); }}
-      onTouchMove={() => { userScroll.current = Date.now(); }}
-      className="lyrics-scroll relative min-h-0 flex-1 overflow-y-auto overscroll-contain text-center"
-      style={{ fontFamily: "'Noto Sans Bengali', 'Hind Siliguri', system-ui, sans-serif", maskImage: "linear-gradient(transparent, #000 15%, #000 85%, transparent)", WebkitMaskImage: "linear-gradient(transparent, #000 15%, #000 85%, transparent)" }}
-    >
-      <div aria-hidden="true" className="h-[30vh] shrink-0" />
-      {!synced ? <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.25em] text-muted">Lyrics</p> : null}
-      {rows.map((r, i) => {
-        if (r.kind === "gap") return <div key={i} className="h-4" />;
-        if (r.kind === "label")
-          return <p key={i} className="mb-2 mt-2 font-mono text-[10px] uppercase tracking-[0.25em] text-muted/70">{r.text}</p>;
-        if (r.kind === "inst") {
-          const on = r.seq === active;
-          const prog = on ? Math.min(1, Math.max(0, (current - r.t) / Math.max(0.1, r.until - r.t))) : 0;
-          return (
-            <button key={i} type="button" data-seq={r.seq} data-inst="1" disabled={!onSeek} aria-label="Instrumental" aria-current={on ? "true" : undefined}
-              onClick={() => { userScroll.current = 0; onSeek?.(r.t); }}
-              className={`mx-auto my-2 flex items-center justify-center gap-2 py-1.5 text-[22px] transition-all duration-300 ${on ? "scale-110 text-ink" : "text-ink/35"}`}>
-              {[0, 1, 2].map((d) => (
-                <span key={d} className={on ? "lyr-note" : ""}
-                  style={on ? { animationDelay: `${d * 0.25}s`, opacity: prog * 3 > d ? 1 : 0.35 } : undefined}>♪</span>
-              ))}
+    <div className="lyrics-reader">
+      <div ref={box} data-testid="np-lyrics-panel" lang={lang}
+        role="region" aria-label={`Lyrics for ${track.title}`} tabIndex={0}
+        onPointerDownCapture={(e) => e.stopPropagation()}
+        onWheel={readManually} onTouchMove={readManually}
+        onKeyDownCapture={(e) => { if (["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "].includes(e.key) && (e.key !== " " || e.target === box.current)) readManually(); }}
+        className="lyrics-scroll">
+        <div aria-hidden="true" className="lyrics-leading-space" />
+        {rows.map((r, i) => {
+          if (r.kind === "gap") return <div key={i} className="lyrics-stanza-space" />;
+          if (r.kind === "label") return <p key={i} className="lyrics-section-label">{r.text}</p>;
+          if (r.kind === "inst") return (
+            <button key={i} type="button" data-seq={r.seq} data-inst="1" disabled={!onSeek}
+              aria-label="Instrumental" aria-current={r.seq === active ? "true" : undefined}
+              onClick={() => seek(r.t)} className="lyrics-interlude">
+              <span className="lyrics-interlude-bars" aria-hidden="true"><i /><i /><i /></span>
+              <span>Instrumental</span>
             </button>
           );
-        }
-        const on = r.seq != null && r.seq === active;
-        const past = synced && active >= 0 && r.seq != null && r.seq < active;
-        const cls = `block w-full py-1.5 text-[19px] font-semibold leading-relaxed lg:py-2 lg:text-[26px] transition-all duration-300 ${
-          on ? "scale-[1.04] text-ink" : synced ? (past ? "text-ink/40" : "text-ink/55") : "text-ink/85"
-        }`;
-        return synced && r.t != null ? (
-          <button key={i} type="button" data-line={r.idx} data-seq={r.seq} disabled={!onSeek} aria-current={on ? "true" : undefined}
-            onClick={() => { userScroll.current = 0; onSeek?.(r.t); }} className={`${cls} hover:text-accent`}>
-            {r.text}
-          </button>
-        ) : (
-          <p key={i} data-line={r.idx} className={cls}>{r.text}</p>
-        );
-      })}
-      <div aria-hidden="true" className="h-[30vh] shrink-0" />
+          const on = r.seq != null && r.seq === active;
+          const past = synced && active >= 0 && r.seq != null && r.seq < active;
+          const cls = `lyrics-line ${past ? "is-past" : ""}`;
+          return synced && r.t != null ? (
+            <button key={i} type="button" data-line={r.idx} data-seq={r.seq} disabled={!onSeek}
+              aria-current={on ? "true" : undefined} onClick={() => seek(r.t)} className={cls}>{r.text}</button>
+          ) : <p key={i} data-line={r.idx} className={cls}>{r.text}</p>;
+        })}
+        <div aria-hidden="true" className="lyrics-trailing-space" />
+      </div>
+      <div className="lyrics-reader-footer">
+        <span>{synced && onSeek ? "Tap a line to seek" : "Read along"}</span>
+        {synced && (!following ? <button type="button" onClick={resume}>Resume sync <span aria-hidden="true">↗</span></button> : <span className="lyrics-follow-state">Following the music</span>)}
+      </div>
     </div>
   );
 }

@@ -86,11 +86,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
           />
         </FXCover>
       </div>
-      <div className="studio-spectrum-caption">
-        <span className={player.playing ? "is-live" : ""} />
-        <span>{player.playing ? "IN THE MOMENT" : "TAKE A MOMENT"}</span>
-        <span className="studio-spectrum-rule" />
-      </div>
+
     </div>
   );
   const secondary =
@@ -98,8 +94,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
       <div className="studio-lyrics-view">
         <div className="studio-interior-section-heading">
           <div>
-            <span className="studio-kicker">Word for word</span>
-            <h2>Feel every line.</h2>
+            <h2>Lyrics</h2>
           </div>
           <span className="studio-interior-badge">
             {t.lyricTimes?.length ? "Synced lyrics" : "Lyrics"}
@@ -111,11 +106,6 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
           duration={max}
           onSeek={player.seekTo}
         />
-        <p className="studio-lyrics-hint">
-          {t.lyricTimes?.length
-            ? "Tap a line to go to that moment."
-            : "Lyrics for your listening session."}
-        </p>
       </div>
     ) : view === "queue" ? (
       <div className="studio-queue-view" data-testid="np-queue">
@@ -181,7 +171,8 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
       aria-modal="true"
       aria-label="Now Playing"
       data-testid="nowplaying"
-      className={`studio-now-playing studio-player-v2 ${desktop && secondary ? "has-side-panel" : ""}`}
+      data-view={view}
+      className={`studio-now-playing studio-player-v2 ${desktop && secondary ? "has-side-panel" : ""} ${view === "lyrics" ? "is-lyrics-focused" : ""}`}
       initial={reduce ? { opacity: 0 } : { y: "100%" }}
       animate={reduce ? { opacity: 1 } : { y: 0 }}
       exit={reduce ? { opacity: 0 } : { y: "100%" }}

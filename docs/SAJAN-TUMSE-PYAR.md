@@ -28,6 +28,8 @@ https://is1-ssl.mzstatic.com/image/thumb/Music18/v4/81/ff/b3/81ffb34b-e0fd-0522-
 
 Only local size/format derivatives were made (800px JPEG/WebP, 512px JPEG, 96px thumbnail). No invented/generated artwork was used.
 
+Follow-up: the owner subsequently supplied 34 Romanized Hindi lyric lines. They are now acoustically synchronized to this exact edit; the malformed embedded lyric tag remains unused. See `SAJAN-LYRICS-ALIGNMENT.md` for timing evidence and machine-alignment limitations.
+
 ## Storage and serving
 
 The existing music project's R2 MEDIA binding points at private bucket `srd-masum-media`. Its managed public domain is disabled and no custom domain exists. Neither setting was changed.

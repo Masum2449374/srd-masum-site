@@ -89,7 +89,7 @@ export default function SongDetail({ id }) {
                 <Article size={13} />
                 Word for word
               </p>
-              <h2>Feel every line.</h2>
+              <h2>Lyrics</h2>
             </div>
             <span className="studio-interior-badge">{track.lyricTimes?.length ? "Synced lyrics" : "Lyrics"}</span>
           </div>

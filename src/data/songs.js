@@ -1,3 +1,4 @@
+import * as sajanLyrics from "./lyrics/sajan-tumse-pyar.js";
 import * as laalLyrics from "./lyrics/laal-dupatta.js";
 import * as sladkayaLyrics from "./lyrics/sladkaya-myata.js";
 // Audio songs shown in the "Hindi Songs" section (plays through the shared mini-player).
@@ -17,5 +18,5 @@ export const AUDIO_TRACKS = [
     version: "Provided recording (edit unspecified)", versionNote: "This audio runs 4:07; the commercial soundtrack listing runs 4:25. Its edit is not specified.",
     cover: "/covers/sajan-tumse-pyar-20261107-8e0e606f.jpg", coverWebp: "/covers/sajan-tumse-pyar-20261107-8e0e606f.webp", thumb: "/covers/sajan-tumse-pyar-20261107-8e0e606f-96.jpg", artwork512: "/covers/sajan-tumse-pyar-20261107-8e0e606f-512.jpg",
     spotifyUrl: "https://open.spotify.com/track/6Df7LnLJUifLIDYJbvzVhQ", youtubeUrl: "https://www.youtube.com/watch?v=jSkBtDg-8lg",
-    src: "/audio/preview/sajan-tumse-pyar-8e0e606fb673.mp3", duration: 247.536 },
+    src: "/audio/preview/sajan-tumse-pyar-8e0e606fb673.mp3", duration: 247.536, lyrics: sajanLyrics.text, lyricTimes: sajanLyrics.times, lyricEnds: sajanLyrics.ends, lyricsLang: "hi-Latn" },
 ];

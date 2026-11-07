@@ -1,0 +1,180 @@
+{
+  "sourceSha256": "8e0e606fb6731801e46f3e0518f3b97b791ff7886b87f4596b7a1cdc51db1455",
+  "duration": 247.536,
+  "referenceSha256": "1c2c487d61d0737138076c2950e623ca8119688f3f3c18de781a446a44acc50e",
+  "model": "Systran/faster-whisper-medium",
+  "fasterWhisperVersion": "1.2.1",
+  "method": "Hindi decoding with word timestamps; acoustic cross-attention/DTW forced alignment of supplied words, overlapping transitions, onset corrections from independent decoded words. No evenly spaced timings.",
+  "lines": [
+    {
+      "line": 1,
+      "start": 36.64,
+      "end": 41.9
+    },
+    {
+      "line": 2,
+      "start": 41.9,
+      "end": 47.3
+    },
+    {
+      "line": 3,
+      "start": 47.3,
+      "end": 52.54
+    },
+    {
+      "line": 4,
+      "start": 52.54,
+      "end": 57.74
+    },
+    {
+      "line": 5,
+      "start": 57.74,
+      "end": 62.4
+    },
+    {
+      "line": 6,
+      "start": 62.64,
+      "end": 68.14
+    },
+    {
+      "line": 7,
+      "start": 68.14,
+      "end": 73.4
+    },
+    {
+      "line": 8,
+      "start": 73.4,
+      "end": 78.62
+    },
+    {
+      "line": 9,
+      "start": 78.62,
+      "end": 83.8
+    },
+    {
+      "line": 10,
+      "start": 83.8,
+      "end": 88.58
+    },
+    {
+      "line": 11,
+      "start": 108.98,
+      "end": 112.08
+    },
+    {
+      "line": 12,
+      "start": 112.18,
+      "end": 114.5
+    },
+    {
+      "line": 13,
+      "start": 114.8,
+      "end": 117.24
+    },
+    {
+      "line": 14,
+      "start": 117.5,
+      "end": 120.32
+    },
+    {
+      "line": 15,
+      "start": 120.6,
+      "end": 125.06
+    },
+    {
+      "line": 16,
+      "start": 125.1,
+      "end": 130.74
+    },
+    {
+      "line": 17,
+      "start": 130.74,
+      "end": 136.0
+    },
+    {
+      "line": 18,
+      "start": 136.0,
+      "end": 141.16
+    },
+    {
+      "line": 19,
+      "start": 141.16,
+      "end": 145.9
+    },
+    {
+      "line": 20,
+      "start": 166.56,
+      "end": 169.4
+    },
+    {
+      "line": 21,
+      "start": 169.64,
+      "end": 172.1
+    },
+    {
+      "line": 22,
+      "start": 172.1,
+      "end": 174.76
+    },
+    {
+      "line": 23,
+      "start": 174.76,
+      "end": 177.72
+    },
+    {
+      "line": 24,
+      "start": 177.72,
+      "end": 182.44
+    },
+    {
+      "line": 25,
+      "start": 182.44,
+      "end": 188.2
+    },
+    {
+      "line": 26,
+      "start": 188.2,
+      "end": 193.5
+    },
+    {
+      "line": 27,
+      "start": 193.5,
+      "end": 198.54
+    },
+    {
+      "line": 28,
+      "start": 198.54,
+      "end": 203.34
+    },
+    {
+      "line": 29,
+      "start": 203.34,
+      "end": 209.06
+    },
+    {
+      "line": 30,
+      "start": 209.06,
+      "end": 214.3
+    },
+    {
+      "line": 31,
+      "start": 214.3,
+      "end": 219.44
+    },
+    {
+      "line": 32,
+      "start": 219.44,
+      "end": 224.56
+    },
+    {
+      "line": 33,
+      "start": 224.56,
+      "end": 229.8
+    },
+    {
+      "line": 34,
+      "start": 229.8,
+      "end": 234.6
+    }
+  ]
+}
