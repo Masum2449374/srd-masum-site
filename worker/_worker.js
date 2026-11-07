@@ -59,7 +59,7 @@ const handle = async (req, env, ctx) => {
     if (url.pathname.startsWith("/api/admin/")) return adminApi(req, env, url);
     if (url.pathname === "/api/users/search") return userSearch(req, env, url);
     if (url.pathname.startsWith("/media/songs/")) return songMedia(req, env, url);
-    if (url.pathname.startsWith("/audio/preview/")) return previewAudio(req, env, url);
+    if (url.pathname.startsWith("/audio/preview/") || url.pathname.startsWith("/audio/releases/")) return catalogAudio(req, env, url);
     // App routes rendered by the SPA (404.html disables the Pages fallback, so serve the shell here).
     if ((req.method === "GET" || req.method === "HEAD") && /^\/(u\/[a-z0-9_]{1,20}|artist\/[a-z0-9-]{1,40}|account|admin\/uploads)\/?$/i.test(url.pathname)) {
       const shell = await env.ASSETS.fetch(new Request(`${url.origin}/`));
@@ -97,15 +97,23 @@ const handle = async (req, env, ctx) => {
   }
 };
 
-// Explicit preview-only audio allowlist. Never expose arbitrary/private MEDIA keys or mutate the catalogue DB.
+// Explicit published-audio allowlist. Public release approved by the owner; legacy preview route stays preview-only.
+// Never expose arbitrary/private MEDIA keys or mutate the catalogue DB.
 const PREVIEW_AUDIO = {
   "/audio/preview/sajan-tumse-pyar-8e0e606fb673.mp3": "preview-assets/20261107/sajan-tumse-pyar-8e0e606fb673-6555353ff48c.mp3",
 };
-async function previewAudio(req, env, url) {
-  if (!url.hostname.endsWith(".srd-masum.pages.dev") || !PREVIEW_AUDIO[url.pathname]) return new Response("Not found", { status: 404 });
+const RELEASE_AUDIO = {
+  "/audio/releases/sajan-tumse-pyar-8e0e606fb673.mp3": "preview-assets/20261107/sajan-tumse-pyar-8e0e606fb673-6555353ff48c.mp3",
+};
+async function catalogAudio(req, env, url) {
+  const previewHost = url.hostname.endsWith(".srd-masum.pages.dev");
+  const legacyPreview = url.pathname.startsWith("/audio/preview/");
+  const allowedHost = previewHost || (!legacyPreview && ["srdmasum.bbroot.com", "srd-masum.pages.dev"].includes(url.hostname));
+  const key = (legacyPreview ? PREVIEW_AUDIO : RELEASE_AUDIO)[url.pathname];
+  if (!allowedHost || !key) return new Response("Not found", { status: 404 });
   if (req.method !== "GET" && req.method !== "HEAD") return new Response("Method not allowed", { status: 405, headers: { allow: "GET, HEAD" } });
   if (!env.MEDIA) return new Response("Audio unavailable", { status: 503 });
-  const key = PREVIEW_AUDIO[url.pathname], meta = await env.MEDIA.head(key);
+  const meta = await env.MEDIA.head(key);
   if (!meta) return new Response("Not found", { status: 404 });
   const size = meta.size;
   const headers = new Headers({ "content-type": "audio/mpeg", "content-language": "hi", "accept-ranges": "bytes", "access-control-allow-origin": "*", "cache-control": "public, max-age=31536000, immutable", etag: meta.httpEtag });

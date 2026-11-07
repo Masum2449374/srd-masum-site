@@ -1,3 +1,4 @@
+import ArtistCredit from "./ArtistCredit.jsx";
 import { Play, Pause, Info, ListNumbers } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { AUDIO_TRACKS } from "../data/songs.js";
@@ -31,7 +32,7 @@ export function TrackList({ tracks, onInfo, testid = "playlist", languageLabels 
               </span>
               <span className="pl-title min-w-0 flex-1 text-left">
                 <span className={`block truncate text-[15px] font-semibold ${active ? "text-accent" : "text-ink"}`}>{t.title}</span>
-                <span className="block truncate text-xs text-muted">{t.artist || "SRD Masum"}</span>
+                <span className="block truncate text-xs text-muted"><ArtistCredit track={t} /></span>
                 {languageLabels && <small className="language-track-mobile">{languageLabels(t)}</small>}
                 {plays ? <span data-testid="plays" className="block truncate text-[11px] tabular-nums text-faint">{fmtPlays(plays[String(t.id).toLowerCase()])}</span> : null}
               </span>

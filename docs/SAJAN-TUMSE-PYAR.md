@@ -1,3 +1,5 @@
+> Release update: owner approved LIVE publication on November 7, 2026 (Asia/Dhaka). Canonical audio is now `/audio/releases/sajan-tumse-pyar-8e0e606fb673.mp3`; sharing/OG/sitemap use https://srdmasum.bbroot.com. Original preview notes below are historical. The immutable R2 object is reused; no file or catalogue DB overwrite. Explicit unverified status is unchanged.
+
 # Requested song addition — preview only
 
 ## Identification and provenance

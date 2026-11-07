@@ -63,7 +63,7 @@ for (const t of all) {
   h = setMeta(h, /<meta name="twitter:title"[^>]*>/, `<meta name="twitter:title" content="${esc(title)}" />`);
   h = setMeta(h, /<meta name="twitter:description"[^>]*>/, `<meta name="twitter:description" content="${esc(desc)}" />`);
   h = setMeta(h, /<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${img}" />`);
-  h = h.replace("</head>", `    <meta property="og:audio" content="${esc(t.previewOnly ? songSite + t.src : t.src)}" />\n  </head>`);
+  h = h.replace("</head>", `    <meta property="og:audio" content="${esc(new URL(t.src, songSite).href)}" />\n  </head>`);
   // The shell's homepage JSON-LD graph (incl. its MusicRecording) does not belong on song pages.
   h = h.replace(/\s*<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "");
   // Retain the app bundle: direct deep links join the same persistent audio shell.
@@ -186,7 +186,7 @@ for (const p of languagePages) {
   await card(path.join(dist,imagePath),p.title,`${p.tracks.length} TRACKS · PLAYLIST`,p.tracks[0]?.cover,"SRD Masum");
   h = setMeta(h, /<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${SITE}/${imagePath}" />`);
   h = setMeta(h, /<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${SITE}/${imagePath}" />`);
-  const list = p.slug ? p.tracks.map(t=>`<li><a href="/song/${esc(t.id)}/">${xesc(t.title)}</a> — ${xesc(t.artist || "SRD Masum")} · ${esc(languageLabel(t))}</li>`).join("") : LANGUAGE_PLAYLISTS.map(group=>`<li><a href="${group.href}">${group.title}</a> · ${group.tracks.length} tracks</li>`).join("");
+  const list = p.slug ? p.tracks.map(t=>`<li><a href="/song/${esc(t.id)}/">${xesc(t.title)}</a> — ${xesc(t.artist || "SRD Masum")}${isVerified(t) ? BADGE : ""} · ${esc(languageLabel(t))}</li>`).join("") : LANGUAGE_PLAYLISTS.map(group=>`<li><a href="${group.href}">${group.title}</a> · ${group.tracks.length} tracks</li>`).join("");
   h = h.replace('<div id="root"></div>',`<div id="root"><main><a href="/">SRD Masum · The music space</a><h1>${esc(p.title)}</h1><p>${esc(desc)}</p><ol>${list}</ol></main></div>`);
   const dir=path.join(dist,p.href); fs.mkdirSync(dir,{recursive:true}); fs.writeFileSync(path.join(dir,"index.html"),h);
 }

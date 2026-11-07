@@ -50,10 +50,9 @@ export default function ArtistPage({ slug }) {
           </div>
           <div>
             <p className="studio-kicker">
-              {artist.name === "SRD Masum" && <VerifiedBadge size={14} />}
               Artist collection
             </p>
-            <h1 data-testid="artist-name">{artist.name}</h1>
+            <h1 data-testid="artist-name">{artist.name}{artist.verified && <VerifiedBadge size={26} className="ml-2" />}</h1>
             <p className="studio-muted">
               {artist.tracks.length}{" "}
               {artist.tracks.length === 1 ? "track" : "tracks"} in the SRD Masum

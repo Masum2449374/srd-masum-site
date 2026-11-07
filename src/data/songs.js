@@ -13,10 +13,10 @@ export const AUDIO_TRACKS = [
   { id: "aashiqana", title: "Aashiqana", artist: "Radivyne", label: "Radivyne Music", released: "2026-07-19", spotifyUrl: "https://open.spotify.com/track/0wZZAEVOtwInqYe4OzGD9m", youtubeUrl: "https://www.youtube.com/watch?v=Wdqq9SFfkA4", src: "/audio/aashiqana.mp3", cover: "/covers/aashiqana.jpg", coverWebp: "/covers/aashiqana.webp", thumb: "/covers/aashiqana-96.jpg", artwork512: "/covers/aashiqana-512.jpg", duration: 194.3 },
   // User-provided audio; commercial song identity/credits verified against Apple Music, JioSaavn and Spotify.
   // The file is 4:07.536, shorter than the 4:25 commercial listing; do not invent a remix/speed designation.
-  { id: "sajan-tumse-pyar", title: "Sajan Tumse Pyar", artist: "Udit Narayan & Alka Yagnik", verified: false, previewOnly: true,
+  { id: "sajan-tumse-pyar", title: "Sajan Tumse Pyar", artist: "Udit Narayan & Alka Yagnik", verified: false,
     album: "Maine Pyaar Kyun Kiya (Original Motion Picture Soundtrack)", composer: "Himesh Reshammiya", writers: "Sameer", label: "T-Series", released: "2005-05-24",
     version: "Provided recording (edit unspecified)", versionNote: "This audio runs 4:07; the commercial soundtrack listing runs 4:25. Its edit is not specified.",
     cover: "/covers/sajan-tumse-pyar-20261107-8e0e606f.jpg", coverWebp: "/covers/sajan-tumse-pyar-20261107-8e0e606f.webp", thumb: "/covers/sajan-tumse-pyar-20261107-8e0e606f-96.jpg", artwork512: "/covers/sajan-tumse-pyar-20261107-8e0e606f-512.jpg",
     spotifyUrl: "https://open.spotify.com/track/6Df7LnLJUifLIDYJbvzVhQ", youtubeUrl: "https://www.youtube.com/watch?v=jSkBtDg-8lg",
-    src: "/audio/preview/sajan-tumse-pyar-8e0e606fb673.mp3", duration: 247.536, lyrics: sajanLyrics.text, lyricTimes: sajanLyrics.times, lyricEnds: sajanLyrics.ends, lyricsLang: "hi-Latn" },
+    src: "/audio/releases/sajan-tumse-pyar-8e0e606fb673.mp3", duration: 247.536, lyrics: sajanLyrics.text, lyricTimes: sajanLyrics.times, lyricEnds: sajanLyrics.ends, lyricsLang: "hi-Latn" },
 ];

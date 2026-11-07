@@ -1,3 +1,4 @@
+import ArtistCredit from "./ArtistCredit.jsx";
 import { useEffect, useState } from "react";
 import { Play, Pause, ArrowLeft, Info } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
@@ -43,7 +44,7 @@ export default function SongDetail({ id }) {
             <p className="studio-kicker">Single · The music space</p>
             <h1>{track.title}</h1>
             <a className="studio-song-artist" href={artistHref(track)}>
-              {track.artist || "SRD Masum"}
+              <ArtistCredit track={track} size={16} />
             </a>
             <p className="studio-muted">
               {formatTime(track.duration)}

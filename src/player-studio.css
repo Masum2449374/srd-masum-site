@@ -1367,3 +1367,8 @@
   .studio-player-v2.is-lyrics-focused .studio-player-tabs { justify-content:space-between; width:100%; }
   .studio-player-v2.is-lyrics-focused .studio-player-tabs > button { flex:1; justify-content:center; }
 }
+
+/* Keep the catalog/account badge visible beside the name, not clipped after it. */
+.artist-credit { display:inline-flex; align-items:center; gap:4px; min-width:0; max-width:100%; vertical-align:middle; }
+.artist-credit-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.artist-credit > .srd-verified { flex:none; }

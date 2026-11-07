@@ -1,3 +1,4 @@
+import ArtistCredit from "./ArtistCredit.jsx";
 import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -104,7 +105,7 @@ export default function CreditsPanel({ t, onClose, onPlay }) {
               <div>
                 <p className="studio-kicker">The music space</p>
                 <h2 id="song-info-title">{t.title}</h2>
-                <p>{t.artist || "SRD Masum"}</p>
+                <p><ArtistCredit track={t} size={14} /></p>
               </div>
             </div>
             <dl className="studio-info-metadata">

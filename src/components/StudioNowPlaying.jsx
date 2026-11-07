@@ -1,3 +1,4 @@
+import ArtistCredit from "./ArtistCredit.jsx";
 import LyricsPanel from "./LyricsPanel.jsx";
 import { FXBackground as ClassicLyricsBackground } from "./ProductionLyricsFX.jsx";
 import { useEffect, useRef, useState } from "react";
@@ -19,11 +20,10 @@ import {
   Disc,
 } from "@phosphor-icons/react";
 import { useDialogFocus } from "../lib/useDialogFocus.js";
-import { artistHref, isVerified } from "../lib/artists.js";
+import { artistHref } from "../lib/artists.js";
 import { navigate } from "../lib/nav.js";
 import { formatTime, useIsDesktop } from "./MiniPlayer.jsx";
 import { FXBackground, FXCover } from "./NowPlayingFX.jsx";
-import VerifiedBadge from "./VerifiedBadge.jsx";
 import CreditsPanel from "./CreditsPanel.jsx";
 import ShareButton from "./ShareButton.jsx";
 
@@ -133,7 +133,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
                 />
                 <span className="studio-queue-track">
                   <strong>{item.title}</strong>
-                  <small>{item.artist || "SRD Masum"}</small>
+                  <small><ArtistCredit track={item} /></small>
                 </span>
                 <span className="studio-queue-duration">
                   {formatTime(item.duration)}
@@ -244,8 +244,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
                   }}
                   className="studio-player-artist"
                 >
-                  <span>{t.artist || "SRD Masum"}</span>
-                  {isVerified(t) && <VerifiedBadge size={13} />}
+                  <ArtistCredit track={t} size={13} />
                   <CaretRight size={12} />
                 </a>
               </div>

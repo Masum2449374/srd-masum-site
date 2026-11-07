@@ -1,3 +1,4 @@
+import ArtistCredit from "./ArtistCredit.jsx";
 import { Play, Pause, ArrowUpRight, Info } from "@phosphor-icons/react";
 import { usePlayer, formatTime } from "./MiniPlayer.jsx";
 import { usePlays, fmtPlays } from "../lib/plays.js";
@@ -66,7 +67,7 @@ export default function MusicCard({ track, list, onInfo, number }) {
             </button>
           )}
         </div>
-        <p>{track.artist || "SRD Masum"}</p>
+        <p><ArtistCredit track={track} /></p>
         <div className="music-card-meta">
           <span>
             {plays

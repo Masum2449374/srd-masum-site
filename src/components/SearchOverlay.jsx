@@ -1,4 +1,5 @@
 import { useDialogFocus } from "../lib/useDialogFocus.js";
+import { isVerified } from "../lib/artists.js";
 import VerifiedBadge from "./VerifiedBadge.jsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { MagnifyingGlass, X, CaretRight } from "@phosphor-icons/react";
@@ -91,7 +92,7 @@ export default function SearchOverlay({ onClose }) {
                 <img src={t.thumb || t.cover || "/images/avatar.webp"} alt="" width="44" height="44" loading="lazy" />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[15px] font-semibold text-ink">{t.title}</span>
-                  <span className="flex min-w-0 items-center gap-1 text-xs text-muted"><span className="truncate">{t.artist || "SRD Masum"}</span>{t.verified !== false && <VerifiedBadge size={12} />}</span>
+                  <span className="flex min-w-0 items-center gap-1 text-xs text-muted"><span className="truncate">{t.artist || "SRD Masum"}</span>{isVerified(t) && <VerifiedBadge size={12} />}</span>
                 </span>
                 <CaretRight size={16} weight="bold" aria-hidden="true" className="text-muted" />
               </a>

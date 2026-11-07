@@ -1,3 +1,4 @@
+import ArtistCredit from "./ArtistCredit.jsx";
 import { LanguagePlaylistCards } from "./LanguagePlaylists.jsx";
 import { spaClick } from "../lib/nav.js";
 import { useState } from "react";
@@ -144,9 +145,7 @@ export function FeaturedRelease({ track, list, english = false }) {
         <div className="studio-feature-details">
           <div>
             <p className="studio-kicker">
-              {track.artist === "SRD Masum"
-                ? "SRD Masum · Official release"
-                : track.artist}
+              <ArtistCredit track={track} size={13} />{track.artist === "SRD Masum" ? " · Official release" : ""}
             </p>
             <h2>{track.title}</h2>
             <p>

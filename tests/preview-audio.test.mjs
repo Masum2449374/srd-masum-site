@@ -15,12 +15,16 @@ const request=(headers={},method='GET',host='https://safe-review.srd-masum.pages
 test('Uploaded song has evidence-backed metadata, exact file duration, real artwork and no invented verification/lyrics',()=>{
  assert.equal(track.title,'Sajan Tumse Pyar');assert.equal(track.artist,'Udit Narayan & Alka Yagnik');assert.equal(track.duration,247.536);
  assert.equal(track.released,'2005-05-24');assert.equal(track.composer,'Himesh Reshammiya');assert.equal(track.writers,'Sameer');
- assert.equal(track.verified,false);assert.equal(isVerified(track),false);assert.equal(track.previewOnly,true);assert.match(track.lyrics,/^Sajan tumse pyar/);assert.equal(track.lyricTimes.length,34);
+ assert.equal(track.verified,false);assert.equal(isVerified(track),false);assert.equal(Boolean(track.previewOnly),false);assert.match(track.lyrics,/^Sajan tumse pyar/);assert.equal(track.lyricTimes.length,34);
  assert.match(track.version,/unspecified/);assert.equal(playlistBySlug('hindi').tracks.filter(t=>t.id===track.id).length,1);
  for(const p of [track.cover,track.coverWebp,track.thumb,track.artwork512]) assert.ok(fs.existsSync(new URL('../public'+p,import.meta.url)));
- const html=fs.readFileSync(new URL('../dist/song/sajan-tumse-pyar/index.html',import.meta.url),'utf8');assert.ok(html.includes('Sajan Tumse Pyar'));assert.ok(html.includes('Hindi'));assert.ok(html.includes('https://design-premium-studio-202611.srd-masum.pages.dev/og/sajan-tumse-pyar.png'));assert.ok(html.includes('edit unspecified'));assert.ok(html.includes('Lyrics · Synced in the app player'));
+ const html=fs.readFileSync(new URL('../dist/song/sajan-tumse-pyar/index.html',import.meta.url),'utf8');assert.ok(html.includes('Sajan Tumse Pyar'));assert.ok(html.includes('Hindi'));assert.ok(html.includes('https://srdmasum.bbroot.com/og/sajan-tumse-pyar.png'));assert.ok(html.includes('edit unspecified'));assert.ok(html.includes('Lyrics · Synced in the app player'));
+ assert.ok(html.includes('rel="canonical" href="https://srdmasum.bbroot.com/song/sajan-tumse-pyar/"'));
+ assert.ok(html.includes('https://srdmasum.bbroot.com'+track.src));
+ assert.ok(!html.includes('name="robots" content="noindex"'));
+ assert.ok(fs.readFileSync('dist/sitemap.xml','utf8').includes('https://srdmasum.bbroot.com/song/sajan-tumse-pyar/'));
 });
-test('Preview R2 streaming supports GET, HEAD, normal/suffix/open ranges and cache validators',async()=>{
+test('Published R2 streaming supports GET, HEAD, normal/suffix/open ranges and cache validators',async()=>{
  let r=await request();assert.equal(r.status,200);assert.equal(r.headers.get('content-type'),'audio/mpeg');assert.equal(r.headers.get('accept-ranges'),'bytes');assert.equal(r.headers.get('content-language'),'hi');assert.deepEqual(new Uint8Array(await r.arrayBuffer()),bytes);
  r=await request({},'HEAD');assert.equal(r.status,200);assert.equal(r.headers.get('content-length'),String(bytes.length));assert.equal((await r.arrayBuffer()).byteLength,0);
  for(const [range,start,end] of [['bytes=0-3',0,3],['bytes=-4',bytes.length-4,bytes.length-1],['bytes=5-',5,bytes.length-1]]){r=await request({range});assert.equal(r.status,206);assert.equal(r.headers.get('content-range'),`bytes ${start}-${end}/${bytes.length}`);assert.deepEqual(new Uint8Array(await r.arrayBuffer()),bytes.slice(start,end+1));}
@@ -28,15 +32,20 @@ test('Preview R2 streaming supports GET, HEAD, normal/suffix/open ranges and cac
  r=await request({range:'bytes=0-3','if-range':'"old-etag"'});assert.equal(r.status,200);
  for(const range of ['bytes=999-','bytes=-0','bytes=-','bytes=9-1','bytes=0-2,4-5','bytes=9007199254740993-']){r=await request({range});assert.equal(r.status,416,range);assert.equal(r.headers.get('content-range'),`bytes */${bytes.length}`);}
 });
-test('Preview media allowlist blocks production hosts, arbitrary object paths and write methods',async()=>{
- for(const host of ['https://srdmasum.bbroot.com','https://srd-masum.pages.dev','https://evil.example']) assert.equal((await request({},'GET',host)).status,404);
+test('Approved release works on canonical/Pages/preview hosts but denies arbitrary paths, foreign hosts and writes',async()=>{
+ for(const host of ['https://srdmasum.bbroot.com','https://srd-masum.pages.dev','https://safe-review.srd-masum.pages.dev']) assert.equal((await request({},'HEAD',host)).status,200);
+ assert.equal((await request({},'GET','https://evil.example')).status,404);
+ assert.equal((await request({},'GET','https://srdmasum.bbroot.com','/audio/preview/sajan-tumse-pyar-8e0e606fb673.mp3')).status,404);
+ assert.equal((await request({},'HEAD',undefined,'/audio/preview/sajan-tumse-pyar-8e0e606fb673.mp3')).status,200);
  const before=operations.length;
  assert.equal((await request({},'GET',undefined,'/audio/preview/private.mp3')).status,404);assert.equal((await request({},'POST')).status,405);
  assert.equal(operations.length,before,'Denied paths/methods never reach storage');
 });
-test('Preview-only song shares point at the current preview, while existing canonical shares stay unchanged',()=>{
+test('Released song shares use canonical production on both preview and live hosts',()=>{
  globalThis.window={location:new URL('https://safe-review.srd-masum.pages.dev/song/sajan-tumse-pyar/')};
- assert.equal(songUrl(track),'https://safe-review.srd-masum.pages.dev/song/sajan-tumse-pyar/');
+ assert.equal(songUrl(track),'https://srdmasum.bbroot.com/song/sajan-tumse-pyar/');
+ globalThis.window.location=new URL('https://srdmasum.bbroot.com/');
+ assert.equal(songUrl(track),'https://srdmasum.bbroot.com/song/sajan-tumse-pyar/');
  assert.equal(songUrl(AUDIO_TRACKS[0]),`https://srdmasum.bbroot.com/song/${AUDIO_TRACKS[0].id}/`);
  delete globalThis.window;
 });
