@@ -49,3 +49,5 @@ if (!DESIGN_SANDBOX) installSmartlink();
 
 import { installSocialBar } from "./lib/socialbar.js";
 if (!DESIGN_SANDBOX) installSocialBar();
+
+import "./language-playlists.css";

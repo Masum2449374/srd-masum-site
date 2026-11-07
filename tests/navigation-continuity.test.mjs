@@ -7,6 +7,10 @@ import Renderer, { act } from "react-test-renderer";
 import { build } from "esbuild";
 import { ENGLISH_ALL } from "../src/data/english-songs.js";
 import {
+  LANGUAGE_PLAYLISTS,
+  playlistBySlug,
+} from "../src/data/language-playlists.js";
+import {
   internalDestination,
   canHandleLink,
 } from "../src/lib/navigation-core.js";
@@ -17,6 +21,8 @@ test("Every real internal route and anchor uses the persistent app, not a reload
   for (const href of [
     "/",
     "/#collections",
+    "/playlists/",
+    ...LANGUAGE_PLAYLISTS.map((p) => p.href),
     "/#music",
     "/english/",
     "/song/billie-jean/",
@@ -248,6 +254,8 @@ test("React lifecycle: route changes and back keep audio identity, source, playb
     identity = audioNode.instance;
   for (const url of [
     "/#collections",
+    "/playlists/",
+    ...LANGUAGE_PLAYLISTS.map((p) => p.href),
     "/english/",
     "/song/billie-jean/",
     "/artist/srd-masum/",
@@ -329,6 +337,90 @@ test("React lifecycle: route changes and back keep audio identity, source, playb
     tree.root.findByProps({ role: "alert" }).props.className,
     "studio-section studio-route-error",
   );
+  // Restore the route probe, then exercise actual provider playlist actions with local audio only.
+  await act(async () => {
+    tree.update(
+      React.createElement(
+        PlayerProvider,
+        null,
+        React.createElement(RouteProbe),
+      ),
+    );
+  });
+  const english = playlistBySlug("english").tracks,
+    bangla = playlistBySlug("bangla").tracks;
+  await act(async () => {
+    player.startPlaylist(english);
+  });
+  assert.deepEqual(
+    player.queue.map((t) => t.id),
+    english.map((t) => t.id),
+  );
+  assert.equal(player.track.id, english[0].id);
+  assert.equal(player.shuffle, false);
+  await act(async () => {
+    player.step(1, true);
+  });
+  assert.equal(player.track.id, english[1].id);
+  await act(async () => {
+    audioNode.props.onEnded({ currentTarget: mock });
+  });
+  assert.equal(
+    player.track.id,
+    english[2].id,
+    "Natural track completion stays in this playlist",
+  );
+  await act(async () => {
+    player.step(-1, true);
+  });
+  mock.currentTime = 0;
+  await act(async () => {
+    player.previous();
+  });
+  assert.equal(player.track.id, english[0].id);
+  await act(async () => {
+    player.step(-1, true);
+  });
+  assert.equal(
+    player.track.id,
+    english.at(-1).id,
+    "Previous wraps inside the language playlist",
+  );
+  await act(async () => {
+    player.step(1, true);
+  });
+  assert.equal(
+    player.track.id,
+    english[0].id,
+    "Next wraps inside the language playlist",
+  );
+  await act(async () => {
+    player.startPlaylist(bangla, { shuffle: true });
+  });
+  assert.equal(player.shuffle, true);
+  assert.ok(bangla.some((t) => t.id === player.track.id));
+  await act(async () => {
+    player.step(1, true);
+  });
+  assert.ok(bangla.some((t) => t.id === player.track.id));
+  assert.deepEqual(
+    player.queue.map((t) => t.id),
+    bangla.map((t) => t.id),
+  );
+  // Selecting the same recording from a different scoped list must still adopt that list.
+  const selected = player.track,
+    priorLoads = mock.loads;
+  const solo = [{ ...selected, playlist: "language:solo-test" }];
+  await act(async () => {
+    player.toggle(solo[0], solo);
+  });
+  assert.equal(
+    mock.loads,
+    priorLoads,
+    "Same-song queue adoption does not reset position/counting",
+  );
+  assert.equal(player.queue.length, 1);
+  assert.equal(player.queue[0].playlist, "language:solo-test");
   await act(async () => {
     tree.unmount();
   });

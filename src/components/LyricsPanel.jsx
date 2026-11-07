@@ -26,7 +26,7 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
     <div
       ref={box}
       data-testid="np-lyrics-panel"
-      lang={/[\u0980-\u09ff]/.test(track.lyrics || "") ? "bn" : /[\u0400-\u04ff]/.test(track.lyrics || "") ? "ru" : "en"}
+      lang={/[\u0980-\u09ff]/.test(track.lyrics || "") ? "bn" : /[\u0400-\u04ff]/.test(track.lyrics || "") ? "ru" : /[\u0900-\u097f]/.test(track.lyrics || "") ? "hi" : "en"}
       onPointerDownCapture={(e) => e.stopPropagation()}
       onWheel={() => { userScroll.current = Date.now(); }}
       onTouchMove={() => { userScroll.current = Date.now(); }}

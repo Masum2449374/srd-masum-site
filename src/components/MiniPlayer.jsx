@@ -57,6 +57,7 @@ export function PlayerProvider({ children }) {
   const trackRef = useRef(null);
   const listenRef = useRef({ id: null, secs: 0, last: 0, sent: false });
   const queueRef = useRef([]);
+  const [queueVersion, setQueueVersion] = useState(0);
   const scrubRef = useRef(null);
   const scrubTimer = useRef(0);
   const [track, setTrack] = useState(null);
@@ -84,7 +85,7 @@ export function PlayerProvider({ children }) {
   const load = useCallback((t, list, autoplay = true) => {
     const a = audioRef.current;
     if (!a) return;
-    if (list || !queueRef.current.length) queueRef.current = fullQueue(list);
+    if (list || !queueRef.current.length) { queueRef.current = fullQueue(list); setQueueVersion(v => v + 1); }
     if (trackRef.current && trackRef.current.id !== t.id) historyRef.current = [...historyRef.current.slice(-50), trackRef.current.id];
     trackRef.current = t;
     setTrack(t);
@@ -117,6 +118,7 @@ export function PlayerProvider({ children }) {
       const a = audioRef.current;
       if (!a) return;
       if (trackRef.current && trackRef.current.id === t.id) {
+        if (list?.length) { queueRef.current = fullQueue(list); setQueueVersion(v => v + 1); }
         if (a.paused) a.play().catch(() => {});
         else a.pause();
       } else {
@@ -124,6 +126,22 @@ export function PlayerProvider({ children }) {
       }
     },
     [load]
+  );
+
+  // Explicit playlist actions adopt a scoped queue, even if its first song is already selected.
+  const startPlaylist = useCallback(
+    (list, { shuffle: shouldShuffle = false } = {}) => {
+      if (!list?.length) return;
+      shuffleRef.current = shouldShuffle;
+      setShuffle(shouldShuffle);
+      writePref("srd-shuffle", shouldShuffle ? "1" : "0");
+      historyRef.current = [];
+      load(
+        list[shouldShuffle ? Math.floor(Math.random() * list.length) : 0],
+        list,
+      );
+    },
+    [load],
   );
 
   // dir: +1 or -1. wrap: loop around the list (buttons, lock screen) or stop at the ends (track ended).
@@ -269,9 +287,9 @@ export function PlayerProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({ track, playing, toggle, step, previous, queue: queueRef.current, current, duration, onScrub, endScrub, seekTo, highlight, shuffle, repeat, toggleShuffle, cycleRepeat, volume, muted, setVolume, toggleMute }),
+    () => ({ track, playing, toggle, startPlaylist, step, previous, queue: queueRef.current, current, duration, onScrub, endScrub, seekTo, highlight, shuffle, repeat, toggleShuffle, cycleRepeat, volume, muted, setVolume, toggleMute }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [track, playing, toggle, step, previous, current, duration, scrub, highlight, shuffle, repeat, volume, muted]
+    [track, playing, toggle, startPlaylist, queueVersion, step, previous, current, duration, scrub, highlight, shuffle, repeat, volume, muted]
   );
 
   useEffect(() => exRegister("site", () => { const a = audioRef.current; if (a && !a.paused) a.pause(); }), []);

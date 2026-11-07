@@ -29,7 +29,12 @@ const LINKS = [
     Icon: GlobeHemisphereWest,
     href: "/english/",
   },
-  { id: "collections", label: "Collections", Icon: SquaresFour },
+  {
+    id: "collections",
+    label: "Collections",
+    Icon: SquaresFour,
+    href: "/playlists/",
+  },
   { id: "playlist", label: "All tracks", Icon: ListNumbers },
 ];
 const SOCIALS = [
@@ -39,15 +44,34 @@ const SOCIALS = [
 ];
 export default function Nav({ page = "home" }) {
   const [search, setSearch] = useState(false),
-    [active, setActive] = useState(page === "english" ? "english" : "top");
+    [active, setActive] = useState(
+      page === "english"
+        ? "english"
+        : ["playlist", "playlists"].includes(page)
+          ? "collections"
+          : "top",
+    );
   const [light, setLight] = useState(() =>
     document.documentElement.classList.contains("light"),
   );
   const searchButton = useRef(null),
     taps = useRef({ count: 0, time: 0 });
   const onHome = page === "home";
-  useEffect(() => { setSearch(false); setActive(page === "english" ? "english" : "top"); }, [page]);
-  useEffect(() => { const close = () => setSearch(false); window.addEventListener("srd-nav", close); return () => window.removeEventListener("srd-nav", close); }, []);
+  useEffect(() => {
+    setSearch(false);
+    setActive(
+      page === "english"
+        ? "english"
+        : ["playlist", "playlists"].includes(page)
+          ? "collections"
+          : "top",
+    );
+  }, [page]);
+  useEffect(() => {
+    const close = () => setSearch(false);
+    window.addEventListener("srd-nav", close);
+    return () => window.removeEventListener("srd-nav", close);
+  }, []);
   useEffect(() => {
     const k = (e) => {
       if (
@@ -244,8 +268,12 @@ export default function Nav({ page = "home" }) {
           <span>English</span>
         </a>
         <a
-          href={onHome ? "#collections" : "/#collections"}
-          aria-current={active === "collections" ? "page" : undefined}
+          href="/playlists/"
+          aria-current={
+            active === "collections" || ["playlist", "playlists"].includes(page)
+              ? "page"
+              : undefined
+          }
         >
           <SquaresFour size={22} />
           <span>Collections</span>

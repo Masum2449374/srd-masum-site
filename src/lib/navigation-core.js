@@ -1,6 +1,6 @@
 // Pure routing policy, shared with regression tests. Never intercept ads or API URLs.
 export const APP_ROUTE_RE =
-  /^(?:\/|\/english\/?|\/copyright\/?|\/account\/?|\/admin\/uploads\/?|\/(?:artist|u|song)\/[^/]+\/?)$/;
+  /^(?:\/|\/english\/?|\/playlists\/?|\/copyright\/?|\/account\/?|\/admin\/uploads\/?|\/(?:artist|u|song|playlist)\/[^/]+\/?)$/;
 export function internalDestination(href, base) {
   if (typeof href !== "string" || !href) return null;
   try {

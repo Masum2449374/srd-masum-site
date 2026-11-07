@@ -1,3 +1,4 @@
+import { LanguagePlaylistCards } from "./LanguagePlaylists.jsx";
 import { spaClick } from "../lib/nav.js";
 import { useState } from "react";
 import {
@@ -177,32 +178,6 @@ export function FeaturedRelease({ track, list, english = false }) {
 export default function PremiumHome() {
   const player = usePlayer();
   const [info, setInfo] = useState(null);
-  const collections = [
-    {
-      title: "English rotation",
-      sub: "International favorites",
-      list: ENGLISH_ALL,
-      href: "/english/",
-      Icon: GlobeHemisphereWest,
-      tone: "violet",
-    },
-    {
-      title: "Hindi favorites",
-      sub: "Melodies that stay",
-      list: AUDIO_TRACKS,
-      href: "#audio-songs",
-      Icon: MicrophoneStage,
-      tone: "rose",
-    },
-    {
-      title: "Bangla essentials",
-      sub: "A little closer to home",
-      list: BANGLA_TRACKS,
-      href: "#bangla-songs",
-      Icon: MusicNotes,
-      tone: "mint",
-    },
-  ];
   return (
     <>
       <FeaturedRelease track={OFFICIAL[0]} list={OFFICIAL} />
@@ -274,36 +249,8 @@ export default function PremiumHome() {
       </section>
       <AdSlot type="leader" />
       <section id="collections" className="studio-section">
-        <StudioHeading eyebrow="Find your frequency" title="A world of sound" />
-        <div className="studio-collections">
-          {collections.map(({ title, sub, list, href, Icon, tone }) => (
-            <a key={title} href={href} className={`studio-collection ${tone}`}>
-              <div className="studio-collection-top">
-                <Icon size={25} weight="duotone" />
-                <span>
-                  {list.length} tracks
-                  <ArrowUpRight size={18} />
-                </span>
-              </div>
-              <div className="studio-collection-art">
-                {list.slice(0, 3).map((t) => (
-                  <img
-                    src={t.coverWebp || t.cover}
-                    alt=""
-                    key={t.id}
-                    width="200"
-                    height="200"
-                    loading="lazy"
-                  />
-                ))}
-              </div>
-              <div>
-                <h3>{title}</h3>
-                <p>{sub}</p>
-              </div>
-            </a>
-          ))}
-        </div>
+        <StudioHeading eyebrow="Find your frequency" title="A world of sound" href="/playlists/" link="Browse language playlists" />
+        <LanguagePlaylistCards />
       </section>
       <PlaylistSection />
       <AdSlot type="native" />

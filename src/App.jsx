@@ -24,6 +24,7 @@ import EnglishPage from "./components/EnglishPage.jsx";
 import PremiumHome from "./components/PremiumHome.jsx";
 import SongDetail from "./components/SongDetail.jsx";
 import RouteBoundary from "./components/RouteBoundary.jsx";
+import LanguagePlaylists from "./components/LanguagePlaylists.jsx";
 import { usePath, installInternalNavigation } from "./lib/nav.js";
 import { ENGLISH_ALL } from "./data/english-songs.js";
 const CopyrightPage = lazy(() => import("./components/CopyrightPage.jsx"));
@@ -339,7 +340,11 @@ function Router() {
     if (page === "home") document.title = "SRD Masum | Official Music";
   }, [page]);
   let content;
-  if (page === "english") content = <EnglishPage />;
+  if (page === "playlists" || page === "playlist")
+    content = (
+      <LanguagePlaylists slug={page === "playlist" ? slug : undefined} />
+    );
+  else if (page === "english") content = <EnglishPage />;
   else if (page === "song") content = <SongDetail id={slug} />;
   else if (page === "artist") content = <ArtistPage slug={slug} />;
   else if (page === "profile") content = <ProfilePage username={slug} />;

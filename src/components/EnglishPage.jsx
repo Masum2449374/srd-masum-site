@@ -19,17 +19,11 @@ export default function EnglishPage() {
     document.title = "The English Rotation | SRD Masum";
   }, []);
   const active =
-    player?.track && ENGLISH_ALL.some((t) => t.id === player.track.id);
+    player?.track && ENGLISH_ALL.some((t) => t.id === player.track.id) && player.queue?.length === ENGLISH_ALL.length && player.queue.every((t, i) => t.id === ENGLISH_ALL[i].id);
   const playAll = (shuffle = false) => {
     if (!ENGLISH_ALL.length) return;
     if (active && !shuffle) player.toggle(player.track);
-    else
-      player.toggle(
-        ENGLISH_ALL[
-          shuffle ? Math.floor(Math.random() * ENGLISH_ALL.length) : 0
-        ],
-        ENGLISH_ALL,
-      );
+    else player.startPlaylist(ENGLISH_ALL, { shuffle });
   };
   return (
     <>

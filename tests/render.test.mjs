@@ -79,3 +79,28 @@ test("English collection renders actual catalogue and the first existing song", 
   ])
     assert.ok(html.includes(content), content);
 });
+
+test("Language overview and every detail route render the real playlist without changing the audio root", async () => {
+  const { LANGUAGE_PLAYLISTS } =
+    await import("../src/data/language-playlists.js");
+  for (const path of [
+    "/playlists/",
+    ...LANGUAGE_PLAYLISTS.map((p) => p.href),
+  ]) {
+    window.location.pathname = path;
+    const { default: App } = await import(
+      `${bundled.href}?${encodeURIComponent(path)}`
+    );
+    const html = renderToString(React.createElement(App));
+    assert.ok(
+      html.includes(
+        path === "/playlists/" ? "Find your language." : "language-track-list",
+      ),
+      path,
+    );
+    if (path !== "/playlists/") {
+      assert.ok(html.includes("Play all"));
+      assert.ok(html.includes("Browsing never interrupts"));
+    }
+  }
+});

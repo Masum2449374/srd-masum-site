@@ -1,3 +1,4 @@
+import { LANGUAGE_PLAYLISTS, languageLabel, languagesFor, CATALOGUE } from "../src/data/language-playlists.js";
 import postcss from "postcss";
 // Post-build: one static HTML per song at /song/<id>/index.html, so link previews
 // (WhatsApp, Facebook) show the song title. Each page is the normal app shell; the app
@@ -66,7 +67,8 @@ for (const t of all) {
   // Retain the app bundle: direct deep links join the same persistent audio shell.
   // Static, crawler-visible song page inside #root (React replaces it on mount and cues the track).
   const isOriginal = !t.artist || t.artist === "SRD Masum";
-  const lang = BANGLA_TRACKS.includes(t) ? "bn" : /[\u0400-\u04FF]/.test(t.title) ? "ru" : AUDIO_TRACKS.includes(t) ? "hi" : "en";
+  const codes = languagesFor(t);
+  const lang = codes.length === 1 ? codes[0] : "und";
   let li = 0;
   const times = Array.isArray(t.lyricTimes) ? t.lyricTimes : null;
   const lyr = t.lyrics ? t.lyrics.split("\n").map((l) => {
@@ -84,7 +86,7 @@ for (const t of all) {
   // Accent from the cover's dominant colour (brightened so it reads on dark), fallback to site blue.
   let acc = "11,108,240";
   if (cover) { try { const { dominant: d } = await sharp(path.resolve("public" + cover)).stats(); const m = Math.max(d.r, d.g, d.b, 1), k = Math.max(1, 170 / m); acc = [d.r, d.g, d.b].map((v) => Math.min(255, Math.round(v * k))).join(","); } catch {} }
-  const langName = { ru: "Russian", bn: "Bangla", hi: "Hindi", en: "English" }[lang];
+  const langName = languageLabel(t);
   const chips = [t.released ? `Released ${xesc(t.released)}` : "", langName, t.duration ? `${Math.floor(t.duration / 60)}:${String(Math.round(t.duration % 60)).padStart(2, "0")}` : "", isOriginal ? "SRD Masum Original" : ""].filter(Boolean).map((c) => `<span class="chip">${c}</span>`).join("");
   const credRows = [["Album", t.album], ["Writers", t.writers], ["Label", t.label]].filter(([, v]) => v).map(([k, v]) => `<div><dt>${k}</dt><dd>${xesc(v)}</dd></div>`).join("");
   const I = {
@@ -98,55 +100,8 @@ for (const t of all) {
     share: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>',
   };
   const css = `<style>
-.sp{--a:${acc};max-width:34rem;margin:0 auto;padding:max(1rem,env(safe-area-inset-top)) 1.1rem 3rem;font-family:'DM Sans','Noto Sans Bengali','Noto Sans Devanagari',system-ui,sans-serif;color:#f4f1ea;-webkit-tap-highlight-color:transparent}
-body{background:#0e0d0c}
-.sp-bg{position:fixed;inset:0;z-index:-1;background:radial-gradient(120% 60% at 50% 0%,rgba(var(--a),.38),transparent 70%),#0e0d0c;pointer-events:none}
-.sp a{color:inherit}
-.sp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
-.sp-brand{display:inline-flex;align-items:center;gap:.5rem;font-weight:700;font-size:.9rem;text-decoration:none;padding:.4rem .2rem;border-radius:10px}
-.sp-brand img{width:28px;height:28px;border-radius:50%}
-.sp-cover{display:block;width:min(78vw,300px);aspect-ratio:1;margin:.5rem auto 1.4rem;border-radius:22px;object-fit:cover;box-shadow:0 24px 60px -12px rgba(var(--a),.55),0 0 0 1px rgba(255,255,255,.08)}
-.sp h1{font-size:clamp(1.7rem,7vw,2.3rem);line-height:1.12;margin:0;font-weight:800;letter-spacing:-.01em;text-align:center}
-.sp-artist{margin:.4rem 0 .8rem;text-align:center;color:rgb(var(--a));filter:brightness(1.35);font-weight:600}
-.sp-artist .sp-alink{display:inline-flex;align-items:center;gap:4px;color:#4c9bff!important;text-decoration:none;font-weight:600;filter:brightness(.75)}.sp-alink:hover{text-decoration:underline}.sp-alink:active{opacity:.55}.vbadge{flex:none;display:block}
-.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:.4rem;margin-bottom:1.2rem}
-.chip{font-size:.72rem;padding:.3rem .65rem;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:#d6d1ca}
-.card{position:relative;padding:1.1rem 1.1rem 1rem;border-radius:24px;background:linear-gradient(160deg,rgba(var(--a),.22),rgba(255,255,255,.04) 60%);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 10px 40px -20px rgba(0,0,0,.8)}
-.bar{position:relative;height:28px;display:flex;align-items:center;cursor:pointer;touch-action:none}
-.bar .tr{position:absolute;left:0;right:0;height:6px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}
-.bar .bf{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.18);width:0}
-.bar .fl{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,rgb(var(--a)),#8fc0ff);width:0}
-.bar .th{position:absolute;left:0;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(var(--a),.35),0 2px 6px rgba(0,0,0,.4);transition:transform .15s}
-.bar:active .th,.bar:focus-visible .th{transform:scale(1.25)}
-.bar:focus-visible{outline:none}.bar:focus-visible .tr{box-shadow:0 0 0 2px #fff}
-.times{display:flex;justify-content:space-between;font:500 .75rem ui-monospace,monospace;color:#a39e98;margin-top:.1rem}
-.ctl{display:flex;align-items:center;justify-content:center;gap:1.6rem;margin-top:.6rem}
-.ib{display:grid;place-items:center;width:48px;height:48px;border-radius:50%;border:0;background:rgba(255,255,255,.06);color:#f4f1ea;cursor:pointer;transition:transform .12s,background .2s}
-.ib:hover{background:rgba(255,255,255,.12)}
-.pp{display:grid;place-items:center;width:76px;height:76px;border-radius:50%;border:0;cursor:pointer;color:#fff;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.35),transparent 55%),linear-gradient(145deg,#4a95ff,#0b6cf0 70%);box-shadow:0 10px 30px -6px rgba(var(--a),.75),inset 0 1px 0 rgba(255,255,255,.3);transition:transform .14s cubic-bezier(.3,1.6,.5,1),box-shadow .2s}
-.pp.on{animation:glow 2.4s ease-in-out infinite}
-@keyframes glow{50%{box-shadow:0 10px 44px -2px rgba(var(--a),.95),inset 0 1px 0 rgba(255,255,255,.3)}}
-.pp svg:first-child{margin-left:3px}.pp.on svg:first-child{margin-left:0}
-.ib:active,.pp:active,.btn:active{transform:scale(.92)}
-.ib:focus-visible,.pp:focus-visible,.btn:focus-visible,.sp-brand:focus-visible{outline:2px solid #fff;outline-offset:3px}
-.pp.ld svg{opacity:.4}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-top:1rem}
-.btn{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:.55rem;min-height:52px;padding:0 1rem;border-radius:16px;font-weight:700;font-size:.95rem;text-decoration:none;cursor:pointer;transition:transform .12s,background .2s,border-color .2s;font-family:inherit}
-.b-sp,.b-yt{background:#181715;border:1px solid rgba(255,255,255,.1);color:#fff}
-.b-sp:hover{border-color:#1DB954;background:#13241a}.b-yt:hover{border-color:#FF0033;background:#2a1418}
-.b-out{background:transparent;border:1.5px solid rgba(255,255,255,.22);color:#f4f1ea}.b-out:hover{border-color:rgb(var(--a));background:rgba(var(--a),.1)}
-.rp{position:absolute;border-radius:50%;background:rgba(255,255,255,.35);transform:scale(0);animation:rp .55s ease-out forwards;pointer-events:none}
-@keyframes rp{to{transform:scale(4);opacity:0}}
-.sec{margin-top:1.6rem;padding:1.1rem;border-radius:20px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.07)}
-.sec h2{margin:0 0 .7rem;font-size:.75rem;letter-spacing:.2em;text-transform:uppercase;color:#a39e98}
-.sec dl{margin:0;display:grid;gap:.6rem}.sec dt{font-size:.72rem;color:#a39e98}.sec dd{margin:0;font-size:.92rem}
-.ly{margin:.3rem 0;font-size:1.02rem;line-height:1.55;color:#bdb7af;transition:color .25s,transform .25s;transform-origin:left}
-.ly.on{color:#fff;font-weight:700;transform:scale(1.03)}
-.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#f4f1ea;color:#0e0d0c;padding:.6rem 1rem;border-radius:999px;font-weight:600;font-size:.85rem;opacity:0;transition:opacity .2s;pointer-events:none}
-@media (prefers-reduced-motion:reduce){.sp *{animation:none!important;transition:none!important}}
-/* The Music Space — immersive release detail. */
-body{background:#0f1014}.sp{max-width:1080px;padding:28px 28px 70px;color:#f5f3ef;font-family:'Inter Variable','Noto Sans Bengali',system-ui,sans-serif}.sp-bg{background:radial-gradient(ellipse at 75% 10%,rgba(var(--a),.1),transparent 65%),#0f1014}.sp-top{margin-bottom:35px;padding-bottom:22px;border-bottom:1px solid #ffffff12}.sp-brand{font-family:'Sora Variable',sans-serif;font-weight:600;font-size:18px;letter-spacing:-.6px;gap:10px}.sp-brand img{width:32px;height:32px}.sp-back{font-size:11px;color:#adaebb!important;text-decoration:none}.sp-listening{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:65px;align-items:center}.sp-cover{width:100%;max-width:440px;aspect-ratio:1;border-radius:15px;margin:0;box-shadow:0 25px 70px -30px #0008}.sp h1{font-family:'Sora Variable',sans-serif;font-size:clamp(30px,4vw,48px);line-height:1.15;font-weight:600;letter-spacing:-.05em;text-align:left}.sp-detail>.sp-eyebrow{font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#b6a0ff;margin-bottom:14px}.sp-artist{text-align:left;margin:14px 0 18px;filter:none;font-size:13px}.sp-artist .sp-alink{color:#c0adef!important;filter:none;font-weight:500}.chips{justify-content:flex-start;gap:6px;margin-bottom:25px}.chip{font-size:9px;padding:5px 9px;border-radius:5px;border-color:#ffffff12;background:#ffffff06;color:#adaebb}.card{padding:20px 22px;border-radius:14px;background:#17181e;border-color:#2f303a;backdrop-filter:none;box-shadow:none}.pp{background:#b6a0ff;color:#211930;box-shadow:none;width:60px;height:60px}.pp.on{animation:none}.bar .fl{background:#b6a0ff}.bar .th{box-shadow:0 0 0 3px #b6a0ff33}.bar .tr{height:3px}.bar .th{width:11px;height:11px;margin-left:-5px}.times{font-family:inherit;font-size:10px;color:#9294a2}.ctl{gap:27px;margin-top:13px}.ib{height:41px;width:41px;background:transparent}.btn{min-height:44px;border-radius:9px;font-size:11px;font-weight:550;gap:8px}.btn svg{height:18px;width:18px}.b-sp,.b-yt{background:#17181e;border-color:#2f303a}.b-out{border-width:1px;border-color:#2f303a;color:#b5b3c1}.sec{border-radius:14px;background:#17181e;border-color:#2f303a;padding:25px;margin-top:25px}.sec h2{font-family:inherit;font-size:9px;letter-spacing:1.8px;margin-bottom:19px;color:#b6a0ff}.sec dl{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.sec dt{font-size:9px;color:#9395a3;margin-bottom:6px}.sec dd{font-size:12px;color:#d1cfda}.ly{font-size:20px;letter-spacing:-.025em;line-height:1.9;color:#9294a2}.ly.on{color:#e0d5ff;transform:none}.sp-lyrics{padding:30px 40px}.toast{font-family:inherit;font-size:11px;background:#e0d5ff;color:#211930}
-@media(max-width:700px){.sp{max-width:520px;padding:20px 20px 50px}.sp-top{margin-bottom:28px;padding-bottom:17px}.sp-listening{grid-template-columns:1fr;gap:27px}.sp-cover{max-width:300px;width:85%;margin:auto}.sp h1{font-size:29px;line-height:1.2}.sp-detail>.sp-eyebrow{font-size:8px;margin-bottom:9px}.sp-artist{margin:10px 0 15px}.chips{margin-bottom:20px}.sec dl{grid-template-columns:1fr;gap:14px}.sp-lyrics{padding:25px 23px}.ly{font-size:18px}.sp-brand{font-size:16px}.sp-back{font-size:10px}}
+.sp{max-width:1100px;margin:auto;padding:28px 28px 70px;color:#f5f3ef;font-family:'Inter Variable',system-ui,sans-serif;background:#0f1014}.sp a{color:inherit}.sp-top{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:38px;padding-bottom:23px;border-bottom:1px solid #ffffff14}.sp-brand{display:flex;align-items:center;gap:11px;text-decoration:none;font-family:'Sora Variable',sans-serif;font-size:19px;font-weight:600;letter-spacing:-.7px}.sp-brandmark{display:grid;place-items:center;width:39px;height:39px;border:1px solid #b6a0ff33;border-radius:12px;background:#b6a0ff14;color:#b6a0ff}.sp-brand small{display:block;margin-top:4px;font-family:'Inter Variable',sans-serif;letter-spacing:1.9px;font-size:6px;font-weight:500;color:#9294a2}.sp-back{font-size:11px;text-decoration:none;color:#adaebb!important;line-height:1.6}.sp-listening{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:60px;align-items:center}.sp-cover{width:100%;max-width:440px;aspect-ratio:1;border-radius:15px;object-fit:cover;box-shadow:0 25px 70px -30px #0008}.sp h1{font-family:'Sora Variable',sans-serif;font-size:clamp(30px,4vw,48px);line-height:1.15;letter-spacing:-.05em;font-weight:550;margin:15px 0}.sp-eyebrow{font-size:9px;letter-spacing:2px;color:#b6a0ff;text-transform:uppercase}.sp-artist{font-size:13px;color:#b6a0ff;line-height:1.7}.sp-alink{display:inline-flex;align-items:center;gap:5px;text-decoration:none}.sp .vbadge{width:14px;height:14px}.sp .chips{display:flex;flex-wrap:wrap;gap:7px;margin:20px 0}.sp .chip{padding:6px 9px;border:1px solid #ffffff12;border-radius:6px;color:#adaebb;font-size:10px}.sp .card{padding:18px;border-radius:13px;border:1px solid #2f303a;background:#17181e}.sp .grid2{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}.sp .btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:0 12px;border-radius:9px;text-decoration:none;font-size:11px;background:#17181e;border:1px solid #2f303a}.sp .btn svg{width:18px;height:18px;flex:none}.sp .btn:hover,.sp a:focus-visible{outline:1px solid #b6a0ff;outline-offset:3px}.sp .sec{padding:26px;margin-top:25px;border:1px solid #2f303a;border-radius:14px;background:#17181e}.sp .sec h2{font-size:10px;letter-spacing:1.8px;color:#b6a0ff;text-transform:uppercase;margin:0 0 20px}.sp .sec dl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.sp .sec dt{font-size:10px;color:#9294a2}.sp .sec dd{font-size:12px;line-height:1.7;margin:6px 0 0}.sp .ly{font-size:20px;line-height:1.9;color:#adaebb}.sp .sp-lyrics{padding:30px 38px}
+@media(max-width:700px){.sp{padding:20px 20px 50px;max-width:520px}.sp-top{margin-bottom:28px;gap:14px}.sp-brand{font-size:16px}.sp-brandmark{width:34px;height:34px;border-radius:10px}.sp-back{font-size:9px;max-width:120px;text-align:right}.sp-listening{grid-template-columns:1fr;gap:27px}.sp-cover{max-width:300px;margin:auto}.sp h1{font-size:31px}.sp .sec dl{grid-template-columns:1fr;gap:15px}.sp .sp-lyrics{padding:25px 23px}.sp .ly{font-size:18px}}
 </style>`;
   const share = `${SITE}/song/${encodeURIComponent(t.id)}/`;
   // Accessible no-JavaScript fallback only; React replaces it before its audio engine mounts.
@@ -155,9 +110,9 @@ body{background:#0f1014}.sp{max-width:1080px;padding:28px 28px 70px;color:#f5f3e
 <div class="grid2"><a class="btn b-out" href="/?from=song&song=${encodeURIComponent(t.id)}">${I.home}Full site</a><a class="btn b-out" href="${share}">${I.share}Song permalink</a></div>`;
 
   h = h.replace(/<div id="root"><\/div>/, `<div id="root"><div class="sp-bg"></div><article class="sp" lang="${lang}">
-<div class="sp-top"><a class="sp-brand" href="/?from=song"><img src="/images/avatar.webp" alt="" width="28" height="28">SRD Masum</a><a class="sp-back" href="/?from=song">Explore the collection ↗</a></div><div class="sp-listening">
+<div class="sp-top"><a class="sp-brand" href="/?from=song"><span class="sp-brandmark" aria-hidden="true"><svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor"><path d="M20 2.7a1 1 0 0 0-.9-.2l-12 3A1 1 0 0 0 6.3 6v10.4a3.8 3.8 0 1 0 2 3.3V9.8l10-2.5v6.1a3.8 3.8 0 1 0 2 3.3V3.5a1 1 0 0 0-.3-.8Z"/></svg></span><span>SRD Masum<small>THE MUSIC SPACE</small></span></a><a class="sp-back" href="/?from=song">Explore the collection ↗</a></div><div class="sp-listening">
 ${cover ? `<img class="sp-cover" src="${esc(cover)}" alt="${esc(t.title)} cover" width="300" height="300">` : ""}
-<div class="sp-detail"><p class="sp-eyebrow">The music space · Now listening</p><h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by " : ""}<a class="sp-alink" href="${esc(artistHref(t))}">${xesc(artistOf(t))}${isVerified(t) ? BADGE : ""}</a></p><div class="chips">${chips}</div>
+<div class="sp-detail"><p class="sp-eyebrow">Single · The music space</p><h1>${xesc(t.title)}</h1><p class="sp-artist">${!t.artist || t.artist === "SRD Masum" ? "Released by " : ""}<a class="sp-alink" href="${esc(artistHref(t))}">${xesc(artistOf(t))}${isVerified(t) ? BADGE : ""}</a></p><div class="chips">${chips}</div>
 ${player}${links}</div></div>
 ${credRows ? `<section class="sec"><h2>Credits</h2><dl>${credRows}</dl></section>` : ""}
 ${lyr ? `<section class="sec sp-lyrics"><h2>Synced lyrics · Follow the feeling</h2>${lyr}</section>` : ""}
@@ -171,7 +126,7 @@ ${lyr ? `<section class="sec sp-lyrics"><h2>Synced lyrics · Follow the feeling<
   });
   h = h.replace("</head>", `<style>${fallbackStyles.toString()}</style>\n</head>`);
   if (isOriginal) {
-    const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, ...(!t.artist || t.artist === "SRD Masum" ? {} : { byArtist: { "@type": "MusicGroup", name: t.artist } }), recordLabel: { "@type": "Organization", "@id": `${SITE}/#org`, name: "SRD Masum" }, inLanguage: lang, ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
+    const ld = { "@context": "https://schema.org", "@type": "MusicRecording", name: t.title, url, ...(!t.artist || t.artist === "SRD Masum" ? {} : { byArtist: { "@type": "MusicGroup", name: t.artist } }), recordLabel: { "@type": "Organization", "@id": `${SITE}/#org`, name: "SRD Masum" }, ...(codes.length ? { inLanguage: codes } : {}), ...(t.duration ? { duration: `PT${Math.floor(t.duration / 60)}M${Math.round(t.duration % 60)}S` } : {}), ...(t.released ? { datePublished: t.released } : {}), ...(cover ? { image: SITE + cover } : {}), sameAs: [t.spotifyUrl, t.youtubeUrl].filter((u) => u && !/\/search\//.test(u)), ...(t.lyrics ? { recordingOf: { "@type": "MusicComposition", name: t.title, lyrics: { "@type": "CreativeWork", text: t.lyrics } } } : {}) };
     h = h.replace("</head>", `    <script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>\n  </head>`);
   }
   if (t.lyrics) {
@@ -215,8 +170,27 @@ ${lyr ? `<section class="sec sp-lyrics"><h2>Synced lyrics · Follow the feeling<
   fs.writeFileSync(path.join(dist, "copyright", "index.html"), h);
 }
 
+// Language overview/detail pages retain the app bundle and shareable route-specific metadata.
+const languagePages = [{slug:null,title:"Language playlists",tracks:CATALOGUE,href:"/playlists/",description:"Explore the current collection by song language."}, ...LANGUAGE_PLAYLISTS];
+for (const p of languagePages) {
+  const title = `${p.title}${p.slug ? " playlist" : ""} | SRD Masum`, url = SITE + p.href;
+  const desc = p.description || `Explore ${p.tracks.length} existing recordings by language.`;
+  let h = shell.replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`);
+  h = h.replace(/\s*<script type="application\/ld\+json">[\s\S]*?<\/script>/g, "");
+  for (const [property,value] of [["og:title",title],["og:description",desc],["og:url",url],["twitter:title",title],["twitter:description",desc]]) h = setMeta(h,new RegExp(`<meta (?:property|name)="${property}"[^>]*>`),`<meta ${property.startsWith("twitter")?"name":"property"}="${property}" content="${esc(value)}" />`);
+  h = setMeta(h, /<meta name="description"[^>]*>/, `<meta name="description" content="${esc(desc)}" />`);
+  h = setMeta(h, /<link rel="canonical"[^>]*>/, `<link rel="canonical" href="${url}" />`);
+  const imagePath = `og/playlist-${p.slug || "languages"}.png`;
+  await card(path.join(dist,imagePath),p.title,`${p.tracks.length} TRACKS · PLAYLIST`,p.tracks[0]?.cover,"SRD Masum");
+  h = setMeta(h, /<meta property="og:image"[^>]*>/, `<meta property="og:image" content="${SITE}/${imagePath}" />`);
+  h = setMeta(h, /<meta name="twitter:image"[^>]*>/, `<meta name="twitter:image" content="${SITE}/${imagePath}" />`);
+  const list = p.slug ? p.tracks.map(t=>`<li><a href="/song/${esc(t.id)}/">${xesc(t.title)}</a> — ${xesc(t.artist || "SRD Masum")} · ${esc(languageLabel(t))}</li>`).join("") : LANGUAGE_PLAYLISTS.map(group=>`<li><a href="${group.href}">${group.title}</a> · ${group.tracks.length} tracks</li>`).join("");
+  h = h.replace('<div id="root"></div>',`<div id="root"><main><a href="/">SRD Masum · The music space</a><h1>${esc(p.title)}</h1><p>${esc(desc)}</p><ol>${list}</ol></main></div>`);
+  const dir=path.join(dist,p.href); fs.mkdirSync(dir,{recursive:true}); fs.writeFileSync(path.join(dir,"index.html"),h);
+}
+
 // Sitemap with the song pages.
-const urls = [`${SITE}/`, `${SITE}/english/`, `${SITE}/copyright/`, ...all.map((t) => `${SITE}/song/${t.id}/`)];
+const urls = [...languagePages.map(p=>SITE+p.href), `${SITE}/`, `${SITE}/english/`, `${SITE}/copyright/`, ...all.map((t) => `${SITE}/song/${t.id}/`)];
 fs.writeFileSync(
   path.join(dist, "sitemap.xml"),
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map((u) => `  <url><loc>${u}</loc></url>`).join("\n")}\n</urlset>\n`
