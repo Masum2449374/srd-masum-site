@@ -35,3 +35,5 @@ There is no sufficient evidence to move the existing known lyric/end timestamps,
 Tests cover 95s, just before/at 89.50 and 117.40, all other Laal break boundaries, completion/invalid clocks, absent guessed gaps, inactive headings/markers, repeated forwards/backwards seeks, track switches, exact line-tap seek, normal versus jump scrolling and manual reading. Existing Sajan timing, style, worker and playback/navigation checks also run.
 
 No Shell browser automation or production play/visit/Mira writes are used. Device visual and audible QA remain outstanding.
+
+Follow-up: the owner requested a more visible real music icon. The tiny note glyphs are superseded by the SVG medallion described in `LYRICS-FOCUS-AND-MUSIC-ICON.md`; the exact interval and inactive-heading fixes above remain unchanged.

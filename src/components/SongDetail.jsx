@@ -95,6 +95,7 @@ export default function SongDetail({ id }) {
               current={active ? player.current : 0}
               duration={track.duration}
               onSeek={active ? player.seekTo : undefined}
+              playing={active && player.playing}
             />
           </div>
           {!active && (

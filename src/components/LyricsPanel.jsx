@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { MusicNotes } from "@phosphor-icons/react";
 import { activeLine, parseLyrics } from "../lib/lyrics.js";
 import { lyricScrollTarget } from "../lib/lyric-scroll.js";
 
 // Line-level timing only. Reading and seeking never replace or reload the audio.
-export default function LyricsPanel({ track, current, duration, onSeek }) {
+export default function LyricsPanel({ track, current, duration, onSeek, playing = false }) {
   const rows = useMemo(
     () => parseLyrics(track.lyrics, track.lyricTimes, track.lyricEnds, duration || track.duration),
     [track.lyrics, track.lyricTimes, track.lyricEnds, duration, track.duration]
@@ -54,7 +55,7 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
   const seek = (time) => { if (!canFollow) return; resume(); onSeek(time); };
   const lang = track.lyricsLang || (/[\u0980-\u09ff]/.test(track.lyrics || "") ? "bn" : /[\u0400-\u04ff]/.test(track.lyrics || "") ? "ru" : /[\u0900-\u097f]/.test(track.lyrics || "") ? "hi" : "en");
   return (
-    <div className="lyrics-reader">
+    <div className="lyrics-reader" data-playing={playing ? "true" : "false"}>
       <div ref={box} data-testid="np-lyrics-panel" lang={lang}
         role="region" aria-label={`Lyrics for ${track.title}`} tabIndex={0}
         onPointerDownCapture={(e) => e.stopPropagation()}
@@ -69,7 +70,10 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
             <button key={i} type="button" data-seq={r.seq} data-inst="1" disabled={!canFollow}
               aria-label="Instrumental break" aria-current="true"
               onClick={() => seek(r.t)} className="lyrics-interlude">
-              <span className="lyrics-interlude-notes" aria-hidden="true">♪ · ♪</span>
+              <span className="lyrics-music-orb" aria-hidden="true">
+                <span className="lyrics-music-orbit" />
+                <MusicNotes size={38} weight="duotone" className="lyrics-music-icon" />
+              </span>
             </button>
           ) : null;
           const on = r.seq != null && r.seq === active;
@@ -77,8 +81,8 @@ export default function LyricsPanel({ track, current, duration, onSeek }) {
           const cls = `lyrics-line ${past ? "is-past" : ""}`;
           return synced && r.t != null ? (
             <button key={i} type="button" data-line={r.idx} data-seq={r.seq} disabled={!canFollow}
-              aria-current={on ? "true" : undefined} onClick={() => seek(r.t)} className={cls}>{r.text}</button>
-          ) : <p key={i} data-line={r.idx} className={cls}>{r.text}</p>;
+              aria-current={on ? "true" : undefined} onClick={() => seek(r.t)} className={cls}><span className="lyrics-line-text">{r.text}</span></button>
+          ) : <p key={i} data-line={r.idx} className={cls}><span className="lyrics-line-text">{r.text}</span></p>;
         })}
         <div aria-hidden="true" className="lyrics-trailing-space" />
       </div>

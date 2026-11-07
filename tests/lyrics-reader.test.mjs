@@ -197,3 +197,36 @@ test('Inactive song details never pretend their intro is playing; activating the
  assert.equal(view.root.findAllByType('button').filter(b=>b.props['aria-current']==='true').length,0);
  act(()=>view.unmount());
 });
+
+test('Visible music-note SVG obeys Laal 95s gap, pause, exact vocal onset, backward seeks and Sajan intro boundary',async()=>{
+ const {AUDIO_TRACKS}=await import('../src/data/songs.js');
+ const laal=AUDIO_TRACKS.find(t=>t.id==='laal-dupatta');
+ const sajan=AUDIO_TRACKS.find(t=>t.id==='sajan-tumse-pyar');
+ const props=(track,current,playing)=>({track,current,playing,onSeek:()=>{}});
+ let view;
+ act(()=>{view=create(React.createElement(Lyrics,props(laal,95,true)));});
+ const icon=()=>view.root.findAllByType('svg');
+ assert.equal(icon().length,1);
+ assert.equal(icon()[0].props.width,38);
+ assert.ok(view.root.findAllByType('path').length>=1,'A genuine SVG note, not tiny text glyphs');
+ assert.equal(view.root.findByProps({className:'lyrics-reader'}).props['data-playing'],'true');
+ act(()=>view.update(React.createElement(Lyrics,props(laal,95,false))));
+ assert.equal(icon().length,1,'Pausing retains the correct static music icon');
+ assert.equal(view.root.findByProps({className:'lyrics-reader'}).props['data-playing'],'false');
+ act(()=>view.update(React.createElement(Lyrics,props(laal,117.399,false))));
+ assert.equal(icon().length,1);
+ act(()=>view.update(React.createElement(Lyrics,props(laal,117.4,true))));
+ assert.equal(icon().length,0);
+ assert.equal(view.root.findByProps({'data-line':22}).props['aria-current'],'true');
+ const activeText=view.root.findByProps({'data-line':22}).findByProps({className:'lyrics-line-text'});
+ assert.equal(activeText.children.length,1,'Whole-line focus only, not fabricated word karaoke');
+ act(()=>view.update(React.createElement(Lyrics,props(laal,95,true))));
+ assert.equal(icon().length,1);
+ act(()=>view.update(React.createElement(Lyrics,props(sajan,36.639,true))));
+ assert.equal(icon().length,1);
+ act(()=>view.update(React.createElement(Lyrics,props(sajan,36.64,true))));
+ assert.equal(icon().length,0);
+ assert.equal(view.root.findByProps({'data-line':0}).props['aria-current'],'true');
+ assert.equal(view.root.findAllByProps({className:'lyrics-section-label'}).length,0);
+ act(()=>view.unmount());
+});

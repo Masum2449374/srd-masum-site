@@ -105,6 +105,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
           current={shown}
           duration={max}
           onSeek={player.seekTo}
+          playing={player.playing}
         />
       </div>
     ) : view === "queue" ? (

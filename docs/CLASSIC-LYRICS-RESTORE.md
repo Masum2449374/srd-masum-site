@@ -10,3 +10,5 @@ Design reference: production `main` commit `f9e3b91`, inspected read-only with `
 - All existing lyrics and timestamps, particularly Sajan's exact-edit alignment, are unchanged.
 
 CSS AST assertions verify the centered typography, active-line treatment, original background settings and mode scoping. Shared reader lifecycle/seek and complete playback/navigation regressions are also run. These checks are not browser visual/audible verification; a phone comparison to the production screenshot is still required.
+
+Follow-up: the owner subsequently requested stronger active highlighting and a prominent music icon. The centered layout/background remain, but the plain active treatment is superseded by `LYRICS-FOCUS-AND-MUSIC-ICON.md`.
