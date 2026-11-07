@@ -1,4 +1,5 @@
-import ProductionLyricsScene from "./ProductionLyricsScene.jsx";
+import LyricsPanel from "./LyricsPanel.jsx";
+import { FXBackground as ClassicLyricsBackground } from "./ProductionLyricsFX.jsx";
 import { useEffect, useRef, useState } from "react";
 import { motion, useDragControls, useReducedMotion } from "framer-motion";
 import {
@@ -43,7 +44,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
   const [info, setInfo] = useState(null);
   const ref = useRef(null),
     drag = useDragControls();
-  useDialogFocus(ref, view !== "lyrics");
+  useDialogFocus(ref);
   useEffect(() => {
     const key = (e) => {
       if (e.key === "Escape") onClose();
@@ -90,7 +91,11 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
     </div>
   );
   const secondary =
-    view === "queue" ? (
+    view === "lyrics" && hasLyrics ? (
+      <div className="studio-classic-lyrics-view">
+        <LyricsPanel track={t} current={shown} duration={max} onSeek={player.seekTo} playing={player.playing} />
+      </div>
+    ) : view === "queue" ? (
       <div className="studio-queue-view" data-testid="np-queue">
         <div className="studio-interior-section-heading">
           <div>
@@ -147,7 +152,6 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
         )}
       </div>
     ) : null;
-  if (view === "lyrics" && hasLyrics) return <ProductionLyricsScene player={player} scrub={scrub} onClose={onClose} onArtist={onArtist} onExitLyrics={() => setView("cover")} />;
   return (
     <motion.div
       ref={ref}
@@ -176,9 +180,9 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className={`studio-player-atmosphere ${player.playing ? "" : "np-paused"}`}
+        className={`${view === "lyrics" ? "studio-classic-lyrics-atmosphere production-lyrics-scope" : "studio-player-atmosphere"} ${player.playing ? "" : "np-paused"}`}
       >
-        <FXBackground src={art} />
+        {view === "lyrics" ? <ClassicLyricsBackground src={art} /> : <FXBackground src={art} />}
       </div>
       <div
         className="studio-player-grip"
@@ -218,7 +222,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
           >
             {desktop || !secondary ? cover : secondary}
           </div>
-          <div className="studio-player-console">
+          <div className="studio-player-console" data-testid="np-console">
             <div className="studio-player-track-heading">
               <div>
                 <p className="studio-player-release">
@@ -331,7 +335,7 @@ export default function StudioNowPlaying({ player, scrub, onClose, onArtist }) {
               </button>
             </div>
           </div>
-          <div className="studio-player-bottom">
+          <div className="studio-player-bottom" data-testid="np-footer">
             <div
               className="studio-player-tabs"
               role="tablist"

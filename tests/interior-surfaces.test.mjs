@@ -81,7 +81,7 @@ test("Mobile now-playing renders actual artwork, transport, lyrics/queue tabs an
   assert.equal((html.match(/id="player-tab-panel"/g) || []).length, 1);
   assert.ok(!html.includes("<audio"));
 });
-test("Desktop lyrics uses the original production layout alongside current playback controls", () => {
+test("Desktop keeps original reader in premium player with one new footer and selected Lyrics tab", () => {
   desktop = true;
   const html = render(NowPlaying, {
     player: {
@@ -96,15 +96,17 @@ test("Desktop lyrics uses the original production layout alongside current playb
     onClose() {},
   });
   for (const content of [
-    "np-lyrics-desk",
+    "studio-player-side",
     "np-lyrics-panel",
     "Lyrics",
     'lang="en"',
     'aria-current="true"',
   ])
     assert.ok(html.includes(content), content);
-  assert.equal((html.match(/id="player-tab-panel"/g) || []).length, 0);
-  assert.ok(!html.includes("studio-player-tabs"));
+  assert.equal((html.match(/id="player-tab-panel"/g) || []).length, 1);
+  assert.equal((html.match(/data-testid="np-footer"/g) || []).length, 1);
+  assert.ok(html.includes("studio-player-tabs"));
+  assert.ok(!html.includes("data-testid=\"np-lyrics\""));
   desktop = false;
 });
 test("Credits retain full real titles, date and exact service destinations without truncation", () => {

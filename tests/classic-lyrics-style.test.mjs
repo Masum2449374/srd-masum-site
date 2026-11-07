@@ -19,7 +19,7 @@ test('Every generated production rule is isolated; exact original spacing/fades/
  });
  const source=fs.readFileSync('src/components/LyricsPanel.jsx','utf8');
  for(const original of ['h-[30vh] shrink-0','text-[19px] font-semibold leading-relaxed','scale-[1.04] text-ink','text-ink/40','text-ink/55','linear-gradient(transparent, #000 15%, #000 85%, transparent)','lyr-note','{r.text}'])assert.ok(source.includes(original),original);
- for(const path of ['src/components/LyricsPanel.jsx','src/components/ProductionLyricsScene.jsx']){
+ for(const path of ['src/components/LyricsPanel.jsx']){
   const code=fs.readFileSync(path,'utf8');assert.doesNotMatch(code,/lyrics-music-orb|lyrics-line-text|lyrics-reader-footer|studio-player-tabs|Feel every line/);
  }
  const built=css.toString();assert.match(built,/blur\(70px\) saturate\(1.25\) brightness\(\.75\)/);

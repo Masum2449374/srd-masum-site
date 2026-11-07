@@ -1337,3 +1337,33 @@
 }
 
 .studio-lyrics-hint { font-size:11px; color:rgb(var(--muted)); padding:10px 0; text-align:center; }
+
+/* Split contract: immutable original reader/background, current premium shell/controls.
+   Neither this wrapper nor the footer is inside production-lyrics-scope. */
+.studio-classic-lyrics-atmosphere {
+  position:absolute; inset:0; z-index:-1; pointer-events:none;
+}
+.studio-classic-lyrics-view {
+  display:flex; flex:1; min-height:0; min-width:0; width:100%;
+}
+.studio-player-v2.is-lyrics-focused .studio-player-console { flex-shrink:0; }
+@media (max-width:1023px) {
+  .studio-player-v2.is-lyrics-focused .studio-player-stage { flex:1; min-height:0; }
+  .studio-player-v2.is-lyrics-focused .studio-player-header { padding-top:0; padding-bottom:4px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-header p { display:none; }
+  .studio-player-v2.is-lyrics-focused .studio-player-header > div > span { margin-top:0; }
+  .studio-player-v2.is-lyrics-focused .studio-player-layout { padding:0 24px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-console { padding-top:7px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-release { display:none; }
+  .studio-player-v2.is-lyrics-focused .studio-player-track-heading h1 { font-size:18px; letter-spacing:-.025em; }
+  .studio-player-v2.is-lyrics-focused .studio-player-artist { margin-top:1px; font-size:11px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-track-heading > button { width:44px; height:44px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-timeline { margin-top:3px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-controls { margin:5px 0 7px; gap:8px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-controls .studio-player-primary { width:56px; height:56px; border-width:5px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-controls .studio-player-skip { width:44px; height:44px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-bottom { padding-top:4px; }
+  .studio-player-v2.is-lyrics-focused .studio-player-position { display:none; }
+  .studio-player-v2.is-lyrics-focused .studio-player-tabs { justify-content:space-between; width:100%; }
+  .studio-player-v2.is-lyrics-focused .studio-player-tabs > button { flex:1; justify-content:center; }
+}
