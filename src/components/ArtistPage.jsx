@@ -49,10 +49,12 @@ export default function ArtistPage({ slug }) {
             />
           </div>
           <div>
-            <p className="studio-kicker">
-              Artist collection
-            </p>
-            <h1 data-testid="artist-name">{artist.name}{artist.verified && <VerifiedBadge size={26} className="ml-2" />}</h1>
+            {artist.verified ? (
+              <p data-testid="artist-verification" className="artist-verification-label inline-flex items-center gap-1.5 text-sm font-semibold"><VerifiedBadge size={14} />Verified Artist</p>
+            ) : (
+              <p className="studio-kicker">Artist collection</p>
+            )}
+            <h1 data-testid="artist-name">{artist.name}</h1>
             <p className="studio-muted">
               {artist.tracks.length}{" "}
               {artist.tracks.length === 1 ? "track" : "tracks"} in the SRD Masum
