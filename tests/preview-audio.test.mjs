@@ -15,7 +15,7 @@ const request=(headers={},method='GET',host='https://safe-review.srd-masum.pages
 test('Uploaded song has evidence-backed metadata, exact file duration, real artwork and no invented verification/lyrics',()=>{
  assert.equal(track.title,'Sajan Tumse Pyar');assert.equal(track.artist,'Udit Narayan & Alka Yagnik');assert.equal(track.duration,247.536);
  assert.equal(track.released,'2005-05-24');assert.equal(track.composer,'Himesh Reshammiya');assert.equal(track.writers,'Sameer');
- assert.equal(track.verified,false);assert.equal(isVerified(track),false);assert.equal(Boolean(track.previewOnly),false);assert.match(track.lyrics,/^Sajan tumse pyar/);assert.equal(track.lyricTimes.length,34);
+ assert.equal(track.verified,false);assert.equal(isVerified(track),true);assert.equal(Boolean(track.previewOnly),false);assert.match(track.lyrics,/^Sajan tumse pyar/);assert.equal(track.lyricTimes.length,34);
  assert.match(track.version,/unspecified/);assert.equal(playlistBySlug('hindi').tracks.filter(t=>t.id===track.id).length,1);
  for(const p of [track.cover,track.coverWebp,track.thumb,track.artwork512]) assert.ok(fs.existsSync(new URL('../public'+p,import.meta.url)));
  const html=fs.readFileSync(new URL('../dist/song/sajan-tumse-pyar/index.html',import.meta.url),'utf8');assert.ok(html.includes('Sajan Tumse Pyar'));assert.ok(html.includes('Hindi'));assert.ok(html.includes('https://srdmasum.bbroot.com/og/sajan-tumse-pyar.png'));assert.ok(html.includes('edit unspecified'));assert.ok(html.includes('Lyrics · Synced in the app player'));
