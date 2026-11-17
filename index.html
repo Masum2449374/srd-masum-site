@@ -14,7 +14,7 @@ try{var q=new URLSearchParams(location.search),t=q.get("theme")||q.get("season")
         var g = document.createElement("script"); g.async = true; g.src = "https://www.googletagmanager.com/gtag/js?id=G-YJKYZ129RT"; document.head.appendChild(g);
       }
     </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>SRD Masum | Official Music</title>
     <script data-cfasync="false">/* Adsterra Popunder (abscloud.org): site-wide except /admin. */
 if(!location.pathname.startsWith("/admin")){var pu=document.createElement("script");pu.setAttribute("data-cfasync","false");pu.src="https://abscloud.org/1/77dbfbcc31bd9bdc8dc097ea6e8b21b1";document.head.appendChild(pu);}</script>
@@ -38,6 +38,11 @@ if(!location.pathname.startsWith("/admin")){var pu=document.createElement("scrip
     <meta name="twitter:image" content="https://srdmasum.bbroot.com/og/home.png" />
     <meta name="twitter:image:alt" content="SRD Masum — Official Music: English, Hindi and Bangla songs" />
     <meta name="theme-color" content="#0f1014" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SRD Masum" />
+    <meta name="format-detection" content="telephone=no" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;600&display=swap" media="print" onload="this.media='all'" />
@@ -50,6 +55,15 @@ if(!location.pathname.startsWith("/admin")){var pu=document.createElement("scrip
         if (localStorage.getItem("srd-theme") === "light") document.documentElement.classList.add("light");
       } catch (e) {}
     </script>
+    <script>
+      // Theme-color follows the light/dark toggle (html.light) so the browser UI matches the page.
+      try {
+        var __srdMeta = document.querySelector('meta[name="theme-color"]');
+        var __srdSync = function () { __srdMeta.setAttribute("content", document.documentElement.classList.contains("light") ? "#f8f7f4" : "#0f1014"); };
+        __srdSync();
+        new MutationObserver(__srdSync).observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
@@ -60,21 +74,21 @@ if(!(/[?&]source=twa\b/.test(q)||r.indexOf("android-app://")===0))return;
 if(sessionStorage.getItem("srd-intro"))return;sessionStorage.setItem("srd-intro","1");
 var rm=matchMedia("(prefers-reduced-motion: reduce)").matches;
 var st=document.createElement("style");
-st.textContent="#srdi{position:fixed;inset:0;z-index:2147483647;background:#0e0d0c;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;transition:opacity .45s ease;-webkit-tap-highlight-color:transparent}"+
-"#srdi.out{opacity:0;pointer-events:none}"+
-"#srdi .rg{position:relative;width:132px;height:132px;border-radius:50%;display:grid;place-items:center;animation:si-in .7s cubic-bezier(.2,.9,.3,1.3) both}"+
-"#srdi .rg:before{content:'';position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,#0b6cf0,#5aa2ff,#0b6cf0 60%,transparent 75%,#0b6cf0);animation:si-spin 1.6s linear infinite;-webkit-mask:radial-gradient(circle,transparent 64px,#000 65px);mask:radial-gradient(circle,transparent 64px,#000 65px)}"+
-"#srdi .rg:after{content:'';position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 0 rgba(11,108,240,.55);animation:si-pulse 1.4s ease-out .5s infinite}"+
-"#srdi img{width:116px;height:116px;border-radius:50%;object-fit:cover;box-shadow:0 0 40px rgba(11,108,240,.45)}"+
-"#srdi h1{margin:26px 0 4px;font-size:30px;font-weight:800;letter-spacing:.5px;overflow:hidden}"+
-"#srdi h1 span{display:inline-block;opacity:0;transform:translateY(100%);animation:si-up .5s ease forwards}"+
-"#srdi p{margin:0;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:#7fb2ff;opacity:0;animation:si-fade .6s ease 1.05s forwards}"+
-"#srdi .eq{display:flex;gap:5px;align-items:flex-end;height:28px;margin-top:22px;opacity:0;animation:si-fade .4s ease 1.2s forwards}"+
-"#srdi .eq i{width:5px;border-radius:3px;background:linear-gradient(#5aa2ff,#0b6cf0);height:30%;animation:si-eq .9s ease-in-out infinite alternate}"+
-"#srdi small{position:absolute;bottom:28px;font-size:11px;color:#777;letter-spacing:1px}"+
-"@keyframes si-in{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}"+
+st.textContent="#srdi{position:fixed;inset:0;z-index:2147483647;background:radial-gradient(120% 100% at 50% 0%,#17131f 0%,#0f1014 55%,#0f1014 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;transition:opacity .5s cubic-bezier(.4,0,.2,1);-webkit-tap-highlight-color:transparent}"+
+"#srdi.out{opacity:0;pointer-events:none;transform:scale(1.03)}"+
+"#srdi .rg{position:relative;width:132px;height:132px;border-radius:50%;display:grid;place-items:center;animation:si-in .8s cubic-bezier(.2,.9,.3,1.25) both}"+
+"#srdi .rg:before{content:'';position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,#b6a0ff,#e4dbff,#b6a0ff 60%,transparent 78%,#b6a0ff);animation:si-spin 1.7s cubic-bezier(.45,.05,.55,.95) infinite;-webkit-mask:radial-gradient(circle,transparent 64px,#000 65px);mask:radial-gradient(circle,transparent 64px,#000 65px)}"+
+"#srdi .rg:after{content:'';position:absolute;inset:-6px;border-radius:50%;box-shadow:0 0 0 0 rgba(182,160,255,.5);animation:si-pulse 1.6s cubic-bezier(.25,.6,.35,1) .5s infinite}"+
+"#srdi img{width:116px;height:116px;border-radius:50%;object-fit:cover;box-shadow:0 8px 50px rgba(182,160,255,.35),0 2px 14px rgba(0,0,0,.5)}"+
+"#srdi h1{margin:26px 0 5px;font-size:30px;font-weight:750;letter-spacing:-.5px;overflow:hidden;font-variant-ligatures:common-ligatures}"+
+"#srdi h1 span{display:inline-block;opacity:0;transform:translateY(105%) rotate(2deg);animation:si-up .55s cubic-bezier(.2,.8,.25,1) forwards}"+
+"#srdi p{margin:0;font-size:12px;letter-spacing:4.5px;text-transform:uppercase;color:#cabcf5;opacity:0;animation:si-fade .7s ease 1.05s forwards}"+
+"#srdi .eq{display:flex;gap:5px;align-items:flex-end;height:28px;margin-top:24px;opacity:0;animation:si-fade .45s ease 1.2s forwards}"+
+"#srdi .eq i{width:5px;border-radius:3px;background:linear-gradient(180deg,#e4dbff,#b6a0ff);height:30%;animation:si-eq .9s ease-in-out infinite alternate}"+
+"#srdi small{position:absolute;bottom:30px;font-size:11px;color:#8a8794;letter-spacing:1.2px}"+
+"@keyframes si-in{from{opacity:0;transform:scale(.55)}to{opacity:1;transform:none}}"+
 "@keyframes si-spin{to{transform:rotate(360deg)}}"+
-"@keyframes si-pulse{0%{box-shadow:0 0 0 0 rgba(11,108,240,.55)}100%{box-shadow:0 0 0 26px rgba(11,108,240,0)}}"+
+"@keyframes si-pulse{0%{box-shadow:0 0 0 0 rgba(182,160,255,.5)}100%{box-shadow:0 0 0 28px rgba(182,160,255,0)}}"+
 "@keyframes si-up{to{opacity:1;transform:none}}@keyframes si-fade{to{opacity:1}}"+
 "@keyframes si-eq{0%{height:20%}100%{height:100%}}"+
 "#srdi.rm *,#srdi.rm *:before,#srdi.rm *:after{animation:none!important;opacity:1!important;transform:none!important}";

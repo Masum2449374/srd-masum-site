@@ -116,6 +116,10 @@ export default function Nav({ page = "home" }) {
     try {
       localStorage.setItem("srd-theme", next ? "light" : "dark");
     } catch {}
+    // Keep the browser UI (address bar / task switcher) in sync with the theme.
+    try {
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", next ? "#f8f7f4" : "#0f1014");
+    } catch {}
   };
   const closeSearch = () => {
     setSearch(false);
