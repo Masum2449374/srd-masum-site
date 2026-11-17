@@ -101,7 +101,7 @@ function NotifyForm() {
         <button
           type="submit"
           disabled={state === "busy"}
-          className="min-h-[48px] rounded-full bg-accent px-6 font-medium text-white transition active:scale-[0.97] disabled:opacity-60"
+          className="min-h-[48px] rounded-full bg-accent px-6 font-medium text-on-accent shadow-[0_10px_26px_-12px_rgba(182,160,255,0.65)] transition hover:shadow-[0_16px_34px_-12px_rgba(182,160,255,0.75)] active:scale-[0.97] disabled:opacity-60"
         >
           {state === "busy" ? "Joining…" : "Notify me"}
         </button>
