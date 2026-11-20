@@ -53,3 +53,6 @@ if (!DESIGN_SANDBOX) installSocialBar();
 import "./language-playlists.css";
 
 import "./production-lyrics.css";
+
+// Premium redesign layer (2026-11-20): last-loaded visual overrides only.
+import "./premium.css";

@@ -258,46 +258,66 @@ function VisitorCounter() {
 }
 
 function Footer() {
+  const browse = [
+    { href: "/", label: "Discover" },
+    { href: "/english/", label: "English collection" },
+    { href: "/playlists/", label: "Language playlists" },
+    { href: "/artist/srd-masum/", label: "SRD Masum" },
+  ];
   return (
     <footer className="pro-footer border-t border-hairline bg-sunk px-5 pb-10 pt-12 sm:px-8 sm:pt-14">
-      <div className="mx-auto flex max-w-6xl flex-col gap-8 lg:max-w-[1240px] text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+      <div className="mx-auto grid max-w-6xl gap-10 lg:max-w-[1240px] md:grid-cols-[1.4fr_1fr_1fr] text-sm text-muted">
         <div className="flex flex-col gap-3">
           <p className="flex items-center gap-2 font-display text-xl tracking-display text-ink">
             <Disc size={20} aria-hidden="true" className="text-accent" />
             SRD Masum
           </p>
           <p className="max-w-xs text-sm leading-relaxed text-muted">
-            Music made to be played loud, late, and on repeat.
+            Original sounds. Global favorites. Music made to be played loud,
+            late, and on repeat.
           </p>
           <p className="text-xs text-faint">
             © {YEAR} SRD Masum. All rights reserved.
           </p>
-          <p className="text-xs">
-            <a
-              href="/copyright/"
-              className="text-muted underline-offset-4 transition-colors hover:text-accent hover:underline"
-            >
-              Copyright &amp; DMCA Policy
-            </a>
-          </p>
         </div>
-        <div className="flex items-center gap-2.5">
-          {[
-            { key: "instagram", label: "Instagram", Icon: InstagramLogo },
-            { key: "whatsapp", label: "WhatsApp", Icon: WhatsappLogo },
-            { key: "telegram", label: "Telegram", Icon: TelegramLogo },
-          ].map(({ key, label, Icon }) => (
-            <a
-              key={key}
-              href={SOCIAL_LINKS[key]}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${label} (opens in a new tab)`}
-              className="glow-hover pro-btn beat-pop inline-flex h-10 w-10 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
-            >
-              <Icon size={18} aria-hidden="true" />
+        <nav aria-label="Browse the music space" className="flex flex-col gap-2.5">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-faint">
+            Browse
+          </p>
+          {browse.map((l) => (
+            <a key={l.href} href={l.href} className="foot-link w-fit">
+              {l.label}
             </a>
           ))}
+        </nav>
+        <div className="flex flex-col gap-3">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.18em] text-faint">
+            Follow &amp; contact
+          </p>
+          <div className="flex items-center gap-2.5">
+            {[
+              { key: "instagram", label: "Instagram", Icon: InstagramLogo },
+              { key: "whatsapp", label: "WhatsApp", Icon: WhatsappLogo },
+              { key: "telegram", label: "Telegram", Icon: TelegramLogo },
+            ].map(({ key, label, Icon }) => (
+              <a
+                key={key}
+                href={SOCIAL_LINKS[key]}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${label} (opens in a new tab)`}
+                className="glow-hover pro-btn beat-pop inline-flex h-11 w-11 items-center justify-center rounded-full bg-raised text-ink ring-1 ring-hairline transition-colors hover:text-accent focus-visible:text-accent"
+              >
+                <Icon size={19} aria-hidden="true" />
+              </a>
+            ))}
+          </div>
+          <a
+            href="/copyright/"
+            className="foot-link w-fit text-xs underline-offset-4 hover:underline"
+          >
+            Copyright &amp; DMCA Policy
+          </a>
         </div>
       </div>
       <VisitorCounter />
