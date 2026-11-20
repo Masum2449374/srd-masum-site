@@ -11,9 +11,9 @@ export default {
         ink: "rgb(var(--ink) / <alpha-value>)",
         muted: "rgb(var(--muted) / <alpha-value>)",
         faint: "rgb(var(--faint) / <alpha-value>)",
-        accent: "#b6a0ff",
-        "on-accent": "#171224",
-        "accent-deep": "#554178",
+        accent: "#2e7dff",
+        "on-accent": "#ffffff",
+        "accent-deep": "#0b5cff",
       },
       fontFamily: {
         display: ['"Sora Variable"', "system-ui", "sans-serif"],
